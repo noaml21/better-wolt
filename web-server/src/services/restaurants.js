@@ -1,0 +1,136 @@
+const Restaurant = require('../models/Restaurant');
+const usersService = require('./users');
+
+function toApiProduct(product) {
+    if (!product) {
+        return null;
+    }
+
+    return {
+        id: product.id,
+        name: product.name,
+        description: product.description || '',
+        price: product.price
+    };
+}
+
+function toApiRestaurant(restaurant) {
+    if (!restaurant) {
+        return null;
+    }
+
+    return {
+        id: restaurant.id,
+        username: restaurant.username,
+        name: restaurant.name,
+        phone: restaurant.phone || '',
+        address: restaurant.address || '',
+        image: restaurant.image || '',
+        products: (restaurant.products || []).map(toApiProduct)
+    };
+}
+
+async function getAllRestaurants() {
+    const restaurants = await Restaurant.find({});
+    return restaurants.map(toApiRestaurant);
+}
+
+async function getRestaurantById(id) {
+    const restaurant = await Restaurant.findById(id);
+    return toApiRestaurant(restaurant);
+}
+
+async function getRestaurantDocumentById(id) {
+    return await Restaurant.findById(id);
+}
+
+async function getRestaurantByName(name) {
+    const restaurant = await Restaurant.findOne({ name: String(name) });
+    return toApiRestaurant(restaurant);
+}
+
+async function createRestaurant(data) {
+    if (!data || !data.name || !data.username) {
+        throw new Error('Name and username are required');
+    }
+
+    const owner = await usersService.findUserByUsername(data.username);
+
+    if (!owner) {
+        throw new Error('Invalid username');
+    }
+
+    const existingRestaurant = await Restaurant.findOne({ name: data.name });
+
+    if (existingRestaurant) {
+        throw new Error('Restaurant with this name already exists');
+    }
+
+    const restaurant = new Restaurant({
+        username: data.username,
+        name: data.name,
+        phone: data.phone || '',
+        address: data.address || '',
+        image: data.image || '',
+        products: []
+    });
+
+    const savedRestaurant = await restaurant.save();
+    return toApiRestaurant(savedRestaurant);
+}
+
+async function updateRestaurant(id, data) {
+    const restaurant = await Restaurant.findById(id);
+
+    if (!restaurant) {
+        return null;
+    }
+
+    if (data.name !== undefined && data.name !== restaurant.name) {
+        const existingRestaurant = await Restaurant.findOne({ name: data.name });
+
+        if (existingRestaurant && String(existingRestaurant.id) !== String(id)) {
+            throw new Error('Restaurant with this name already exists');
+        }
+
+        restaurant.name = data.name;
+    }
+
+    if (data.phone !== undefined) {
+        restaurant.phone = data.phone;
+    }
+
+    if (data.address !== undefined) {
+        restaurant.address = data.address;
+    }
+
+    if (data.image !== undefined) {
+        restaurant.image = data.image;
+    }
+
+    const savedRestaurant = await restaurant.save();
+    return toApiRestaurant(savedRestaurant);
+}
+
+async function deleteRestaurant(id) {
+    const restaurant = await Restaurant.findById(id);
+
+    if (!restaurant) {
+        return false;
+    }
+
+    await restaurant.deleteOne();
+    return true;
+}
+
+module.exports = {
+    getAllRestaurants,
+    getRestaurantById,
+    getRestaurantDocumentById,
+    getRestaurantByName,
+    createRestaurant,
+    updateRestaurant,
+    deleteRestaurant,
+    toApiRestaurant,
+    toApiProduct
+};

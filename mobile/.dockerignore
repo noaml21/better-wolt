@@ -1,0 +1,11 @@
+node_modules/
+.expo/
+dist/
+web-build/
+ios/
+android/
+npm-debug.log
+.env
+.env*.local
+.git/
+.DS_Store

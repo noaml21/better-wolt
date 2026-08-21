@@ -1,0 +1,58 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: better-wolt-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build:
+      context: ./web-server
+      dockerfile: Dockerfile
+    container_name: better-wolt-backend
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      MONGODB_URI: "mongodb://mongo:27017/better_wolt"
+      JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set}"
+      CORS_ORIGINS: "http://localhost:3000,http://localhost:8080,http://localhost:8081,http://localhost:19006"
+    ports:
+      - "8080:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # Optional: starts the Expo/Metro development server.
+  # It does NOT compile a native iOS/Android app inside Docker.
+  # Use it only if you need Docker Compose to start the mobile dev server.
+  mobile:
+    profiles: ["mobile"]
+    build:
+      context: ./mobile
+      dockerfile: Dockerfile
+    container_name: better-wolt-mobile
+    restart: unless-stopped
+    environment:
+      EXPO_PUBLIC_API_URL: "http://localhost:8080/api"
+      REACT_NATIVE_PACKAGER_HOSTNAME: "localhost"
+      CI: "1"
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+volumes:
+  mongo-data:

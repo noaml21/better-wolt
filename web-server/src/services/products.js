@@ -1,5 +1,4 @@
 const Restaurant = require('../models/Restaurant');
-const restaurantsService = require('./restaurants');
 
 function toApiProduct(product) {
     if (!product) {
@@ -112,22 +111,11 @@ async function deleteProduct(restaurantId, productId) {
     return true;
 }
 
-async function userOwnsRestaurant(restaurantId, username) {
-    const restaurant = await restaurantsService.getRestaurantById(restaurantId);
-
-    if (!restaurant) {
-        return false;
-    }
-
-    return restaurant.username === username;
-}
-
 module.exports = {
     getMenu,
     getProduct,
     addProduct,
     updateProduct,
     deleteProduct,
-    userOwnsRestaurant,
     toApiProduct
 };

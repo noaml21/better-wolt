@@ -33,11 +33,6 @@ app.use(cors({
 app.disable('etag');
 app.use(express.json({ limit: '5mb' }));
 
-app.use((req, res, next) => {
-    req.action = req.method.toLowerCase();
-    next();
-});
-
 app.use('/api/users', usersRouter);
 app.use('/api/tokens', tokensRouter);
 app.use('/api/restaurants', restaurantsRouter);

@@ -40,15 +40,6 @@ async function getRestaurantById(id) {
     return toApiRestaurant(restaurant);
 }
 
-async function getRestaurantDocumentById(id) {
-    return await Restaurant.findById(id);
-}
-
-async function getRestaurantByName(name) {
-    const restaurant = await Restaurant.findOne({ name: String(name) });
-    return toApiRestaurant(restaurant);
-}
-
 async function createRestaurant(data) {
     if (!data || !data.name || !data.username) {
         throw new Error('Name and username are required');
@@ -126,8 +117,6 @@ async function deleteRestaurant(id) {
 module.exports = {
     getAllRestaurants,
     getRestaurantById,
-    getRestaurantDocumentById,
-    getRestaurantByName,
     createRestaurant,
     updateRestaurant,
     deleteRestaurant,

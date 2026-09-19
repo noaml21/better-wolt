@@ -43,10 +43,6 @@ async function getUserById(id) {
     return await User.findById(id);
 }
 
-async function getAllUsers() {
-    return await User.find({});
-}
-
 async function createUser(data) {
     if (!data) {
         return null;
@@ -92,7 +88,6 @@ async function createUser(data) {
 module.exports = {
     createUser,
     getUserById,
-    getAllUsers,
     findUserByUsername,
     hashPassword,
     verifyPassword,

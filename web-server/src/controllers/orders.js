@@ -108,51 +108,6 @@ async function getOrder(req, res) {
     }
 }
 
-async function updateOrder(req, res) {
-    const username = getRequestUsername(req);
-
-    if (!req.body) {
-        return res.status(400).json({
-            error: 'Bad Request'
-        });
-    }
-
-    try {
-        const user = await usersService.findUserByUsername(username);
-
-        if (!user) {
-            return res.status(400).json({
-                error: 'Invalid username'
-            });
-        }
-
-        const order = await ordersService.getOrderById(req.params.id);
-
-        if (!order || String(order.username) !== String(username)) {
-            return res.status(404).json({
-                error: 'Not Found'
-            });
-        }
-
-        await ordersService.updateOrder(req.params.id, {
-            restaurant: req.body.restaurant,
-            restaurantName: req.body.restaurantName,
-            products: req.body.products,
-            items: req.body.items,
-            total: req.body.total,
-            status: req.body.status,
-            date: req.body.date
-        });
-
-        return res.status(204).send();
-
-    } catch (error) {
-        return res.status(500).json({
-            error: 'Error processing request'
-        });
-    }
-}
-
 async function deleteOrder(req, res) {
     const username = getRequestUsername(req);
 
@@ -188,6 +143,5 @@ module.exports = {
     getUserOrders,
     createOrder,
     getOrder,
-    updateOrder,
     deleteOrder
 };

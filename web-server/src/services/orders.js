@@ -145,49 +145,6 @@ async function createOrder(data) {
     return toApiOrder(savedOrder);
 }
 
-async function updateOrder(id, data) {
-    if (!mongoose.isValidObjectId(id)) {
-        return null;
-    }
-
-    const order = await Order.findById(id);
-
-    if (!order) {
-        return null;
-    }
-
-    if (data.restaurant !== undefined) {
-        order.restaurant = data.restaurant;
-    }
-
-    if (data.restaurantName !== undefined) {
-        order.restaurantName = data.restaurantName;
-    }
-
-    if (data.products !== undefined) {
-        order.products = data.products;
-    }
-
-    if (data.items !== undefined) {
-        order.items = data.items;
-    }
-
-    if (data.total !== undefined) {
-        order.total = data.total;
-    }
-
-    if (data.status !== undefined) {
-        order.status = data.status;
-    }
-
-    if (data.date !== undefined) {
-        order.date = data.date;
-    }
-
-    const savedOrder = await order.save();
-    return toApiOrder(savedOrder);
-}
-
 async function deleteOrder(id) {
     if (!mongoose.isValidObjectId(id)) {
         return false;
@@ -207,7 +164,6 @@ module.exports = {
     getUserOrders,
     getOrderById,
     createOrder,
-    updateOrder,
     deleteOrder,
     toApiOrder
 };

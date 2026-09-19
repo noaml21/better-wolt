@@ -39,7 +39,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 1.4 | Orders tests | ☑ | |
 | 1.5 | Search tests | ☑ | |
 | 1.6 | Seed tests | ☑ | |
-| 1.7 | App-level tests + BF pins | ☐ | |
+| 1.7 | App-level tests + BF pins | ☑ | |
 | 1.8 | Web tests (replace dead CRA test) | ☐ | |
 | 1.9 | CI workflow | ☐ | |
 | 2.1 | Delete service shims | ☐ | |

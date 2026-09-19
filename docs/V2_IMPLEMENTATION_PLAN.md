@@ -45,7 +45,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 2.1 | Delete service shims | ☑ | |
 | 2.2 | Delete dead code | ☑ | |
 | 2.3 | Drop header-based identity | ☑ | |
-| 2.4 | One `toApiProduct` | ☐ | |
+| 2.4 | One `toApiProduct` | ☑ | |
 | 2.5 | `config.js` + `db.js` | ☐ | |
 | 2.6a–f | Feature-folder moves (one per commit) | ☐ | |
 | 3.1 | BF-1: `AppError`, error handler, `/api` 404 | ☐ | |

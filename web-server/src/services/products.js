@@ -1,17 +1,5 @@
 const Restaurant = require('../models/Restaurant');
-
-function toApiProduct(product) {
-    if (!product) {
-        return null;
-    }
-
-    return {
-        id: product.id,
-        name: product.name,
-        description: product.description || '',
-        price: product.price
-    };
-}
+const { toApiProduct } = require('./restaurants');
 
 async function getMenu(restaurantId) {
     const restaurant = await Restaurant.findById(restaurantId);
@@ -116,6 +104,5 @@ module.exports = {
     getProduct,
     addProduct,
     updateProduct,
-    deleteProduct,
-    toApiProduct
+    deleteProduct
 };

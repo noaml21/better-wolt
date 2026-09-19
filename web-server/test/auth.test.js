@@ -92,20 +92,29 @@ describe('auth and users', () => {
             assert.equal(customer.user.role, 'customer');
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-4] unknown role -> 500', async () => {
+        // Regression: was 500 Error processing request (Mongoose enum error)
+        test('[BF-4] unknown role -> 400', async () => {
             const res = await request().post('/api/users').send(newUserBody({ role: 'admin' }));
 
-            assert.equal(res.status, 500);
-            assert.deepEqual(res.body, { error: 'Error processing request' });
+            assert.equal(res.status, 400);
+            assert.deepEqual(res.body, { error: 'Role must be customer or restaurant' });
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-4] non-string username -> 500', async () => {
+        // Regression: was 500 Error processing request (Mongoose cast error)
+        test('[BF-4] non-string username -> 400', async () => {
             const res = await request().post('/api/users').send(newUserBody({ username: { $gt: '' } }));
 
-            assert.equal(res.status, 500);
-            assert.deepEqual(res.body, { error: 'Error processing request' });
+            assert.equal(res.status, 400);
+            assert.deepEqual(res.body, { error: 'username must be a string' });
+        });
+
+        test('[BF-4] non-string displayName, email, address or image -> 400', async () => {
+            for (const field of ['displayName', 'email', 'address', 'image']) {
+                const res = await request().post('/api/users').send(newUserBody({ [field]: 42 }));
+
+                assert.equal(res.status, 400, field);
+                assert.deepEqual(res.body, { error: `${field} must be a string` });
+            }
         });
     });
 
@@ -170,6 +179,15 @@ describe('auth and users', () => {
                 assert.deepEqual(res.body, { error: 'Missing required fields: username, password' });
             });
         }
+
+        test('[BF-4] non-string username or password -> 400', async () => {
+            for (const body of [{ username: { $gt: '' }, password: 'password123' }, { username: 'dana', password: 12345678 }]) {
+                const res = await request().post('/api/tokens').send(body);
+
+                assert.equal(res.status, 400, JSON.stringify(body));
+                assert.match(res.body.error, /^(username|password) must be a string$/);
+            }
+        });
 
         test('no body -> 400', async () => {
             const res = await request().post('/api/tokens');

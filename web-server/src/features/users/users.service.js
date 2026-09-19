@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const User = require('./user.model');
 const config = require('../../config');
-
+const { AppError } = require('../../http/errors');
 
 async function hashPassword(password) {
     return await bcrypt.hash(String(password), config.bcryptRounds);
@@ -39,15 +39,18 @@ async function findUserByUsername(username) {
     return await User.findOne({ username: String(username) });
 }
 
-async function getUserById(id) {
-    return await User.findById(id);
-}
+async function getUser(id) {
+    const user = await User.findById(id);
 
-async function createUser(data) {
-    if (!data) {
-        return null;
+    if (!user) {
+        throw new AppError(404, 'User not found');
     }
 
+    return toSafeUser(user);
+}
+
+// `data` has been validated by users.schemas.createUserBody.
+async function createUser(data) {
     const {
         username,
         password,
@@ -58,17 +61,8 @@ async function createUser(data) {
         role
     } = data;
 
-    if (!username || !password || !displayName || !address || !email) {
-        return null;
-    }
-
-    if (!isValidPassword(password)) {
-        return null;
-    }
-
-    const existingUser = await findUserByUsername(username);
-    if (existingUser) {
-        return null;
+    if (await findUserByUsername(username)) {
+        throw new AppError(400, 'Username already taken');
     }
 
     const user = new User({
@@ -87,10 +81,8 @@ async function createUser(data) {
 
 module.exports = {
     createUser,
-    getUserById,
+    getUser,
     findUserByUsername,
-    hashPassword,
     verifyPassword,
     isValidPassword,
-    toSafeUser
 };

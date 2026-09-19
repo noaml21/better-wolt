@@ -2,14 +2,9 @@ const mongoose = require('mongoose');
 const Order = require('./order.model');
 const restaurantsService = require('../restaurants/restaurants.service');
 const usersService = require('../users/users.service');
+const { AppError } = require('../../http/errors');
 
 const INITIAL_ORDER_STATUS = 'בדרך 🛵';
-
-function orderError(message, statusCode) {
-    const error = new Error(message);
-    error.statusCode = statusCode;
-    return error;
-}
 
 function toApiOrder(order) {
     if (!order) {
@@ -36,7 +31,29 @@ function toApiOrder(order) {
     };
 }
 
+// Every order route answers 404 'Invalid username' when the token's user no
+// longer exists.
+async function findCaller(username) {
+    const user = await usersService.findUserByUsername(username);
+
+    if (!user) {
+        throw new AppError(404, 'Invalid username');
+    }
+
+    return user;
+}
+
+async function findOrder(id) {
+    if (!mongoose.isValidObjectId(id)) {
+        return null;
+    }
+
+    return Order.findById(id);
+}
+
 async function getUserOrders(username) {
+    await findCaller(username);
+
     const orders = await Order.find({
         username: String(username)
     });
@@ -44,39 +61,53 @@ async function getUserOrders(username) {
     return orders.map(toApiOrder);
 }
 
-async function getOrderById(id) {
-    if (!mongoose.isValidObjectId(id)) {
-        return null;
+async function getOrder(username, id) {
+    await findCaller(username);
+
+    const order = await findOrder(id);
+
+    if (!order) {
+        throw new AppError(404, 'Not Found');
     }
 
-    const order = await Order.findById(id);
+    if (String(order.username) !== String(username)) {
+        throw new AppError(404, 'Invalid username');
+    }
+
     return toApiOrder(order);
 }
 
-async function createOrder(data) {
-    if (!data || !data.username || !data.restaurant) {
-        throw orderError('Missing required order fields', 400);
+async function deleteOrder(username, id) {
+    await findCaller(username);
+
+    const order = await findOrder(id);
+
+    if (!order || String(order.username) !== String(username)) {
+        throw new AppError(404, 'Not Found');
     }
 
-    if (!Array.isArray(data.products) || data.products.length === 0) {
-        throw orderError('Order must contain at least one product', 400);
+    await order.deleteOne();
+}
+
+// Order input is validated here rather than with Zod (spec §4): the checks
+// below are complete and their order and messages are part of the contract.
+// Prices, totals, status and dates are always computed server-side.
+async function createOrder(username, data) {
+    if (!data || !data.restaurant || !Array.isArray(data.products)) {
+        throw new AppError(400, 'Bad Request');
     }
 
-    const user = await usersService.findUserByUsername(data.username);
+    const user = await findCaller(username);
 
-    if (!user) {
-        throw orderError('Invalid username', 404);
+    if (data.products.length === 0) {
+        throw new AppError(400, 'Order must contain at least one product');
     }
 
     if (!mongoose.isValidObjectId(data.restaurant)) {
-        throw orderError('Restaurant not found', 404);
+        throw new AppError(404, 'Restaurant not found');
     }
 
     const restaurant = await restaurantsService.getRestaurantById(data.restaurant);
-
-    if (!restaurant) {
-        throw orderError('Restaurant not found', 404);
-    }
 
     const menuProducts = new Map(
         (restaurant.products || []).map(product => [String(product.id), product])
@@ -85,20 +116,20 @@ async function createOrder(data) {
 
     for (const requestedProduct of data.products) {
         if (!requestedProduct || typeof requestedProduct !== 'object') {
-            throw orderError('Each product must include an id and quantity', 400);
+            throw new AppError(400, 'Each product must include an id and quantity');
         }
 
         const productId = String(requestedProduct.id || '');
         const quantity = requestedProduct.quantity;
 
         if (!Number.isInteger(quantity) || quantity <= 0) {
-            throw orderError('Quantity must be a positive integer', 400);
+            throw new AppError(400, 'Quantity must be a positive integer');
         }
 
         const menuProduct = menuProducts.get(productId);
 
         if (!menuProduct) {
-            throw orderError('Product not found in restaurant menu', 404);
+            throw new AppError(404, 'Product not found in restaurant menu');
         }
 
         requestedQuantities.set(
@@ -145,25 +176,9 @@ async function createOrder(data) {
     return toApiOrder(savedOrder);
 }
 
-async function deleteOrder(id) {
-    if (!mongoose.isValidObjectId(id)) {
-        return false;
-    }
-
-    const order = await Order.findById(id);
-
-    if (!order) {
-        return false;
-    }
-
-    await order.deleteOne();
-    return true;
-}
-
 module.exports = {
     getUserOrders,
-    getOrderById,
+    getOrder,
     createOrder,
-    deleteOrder,
-    toApiOrder
+    deleteOrder
 };

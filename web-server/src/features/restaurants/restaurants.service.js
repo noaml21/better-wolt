@@ -1,5 +1,6 @@
 const Restaurant = require('./restaurant.model');
 const usersService = require('../users/users.service');
+const { AppError } = require('../../http/errors');
 
 function toApiProduct(product) {
     if (!product) {
@@ -35,26 +36,31 @@ async function getAllRestaurants() {
     return restaurants.map(toApiRestaurant);
 }
 
-async function getRestaurantById(id) {
+const NAME_TAKEN = 'Restaurant with this name already exists';
+
+async function findRestaurantDocument(id) {
     const restaurant = await Restaurant.findById(id);
-    return toApiRestaurant(restaurant);
+
+    if (!restaurant) {
+        throw new AppError(404, 'Restaurant not found');
+    }
+
+    return restaurant;
 }
 
+async function getRestaurantById(id) {
+    return toApiRestaurant(await findRestaurantDocument(id));
+}
+
+// `data` has been validated by restaurants.schemas.createRestaurantBody;
+// `data.username` is the authenticated owner.
 async function createRestaurant(data) {
-    if (!data || !data.name || !data.username) {
-        throw new Error('Name and username are required');
+    if (!await usersService.findUserByUsername(data.username)) {
+        throw new AppError(400, 'Invalid username');
     }
 
-    const owner = await usersService.findUserByUsername(data.username);
-
-    if (!owner) {
-        throw new Error('Invalid username');
-    }
-
-    const existingRestaurant = await Restaurant.findOne({ name: data.name });
-
-    if (existingRestaurant) {
-        throw new Error('Restaurant with this name already exists');
+    if (await Restaurant.findOne({ name: data.name })) {
+        throw new AppError(400, NAME_TAKEN);
     }
 
     const restaurant = new Restaurant({
@@ -70,18 +76,15 @@ async function createRestaurant(data) {
     return toApiRestaurant(savedRestaurant);
 }
 
+// `data` has been validated by restaurants.schemas.updateRestaurantBody.
 async function updateRestaurant(id, data) {
-    const restaurant = await Restaurant.findById(id);
-
-    if (!restaurant) {
-        return null;
-    }
+    const restaurant = await findRestaurantDocument(id);
 
     if (data.name !== undefined && data.name !== restaurant.name) {
         const existingRestaurant = await Restaurant.findOne({ name: data.name });
 
         if (existingRestaurant && String(existingRestaurant.id) !== String(id)) {
-            throw new Error('Restaurant with this name already exists');
+            throw new AppError(400, NAME_TAKEN);
         }
 
         restaurant.name = data.name;
@@ -104,14 +107,8 @@ async function updateRestaurant(id, data) {
 }
 
 async function deleteRestaurant(id) {
-    const restaurant = await Restaurant.findById(id);
-
-    if (!restaurant) {
-        return false;
-    }
-
+    const restaurant = await findRestaurantDocument(id);
     await restaurant.deleteOne();
-    return true;
 }
 
 async function searchRestaurants(query) {

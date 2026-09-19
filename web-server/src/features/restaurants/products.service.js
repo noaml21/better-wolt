@@ -1,42 +1,41 @@
 const Restaurant = require('./restaurant.model');
+const { AppError } = require('../../http/errors');
 const { toApiProduct } = require('./restaurants.service');
 
-async function getMenu(restaurantId) {
+// Products are embedded in their restaurant document.
+async function findRestaurant(restaurantId, notFoundMessage) {
     const restaurant = await Restaurant.findById(restaurantId);
 
     if (!restaurant) {
-        return null;
+        throw new AppError(404, notFoundMessage);
     }
 
+    return restaurant;
+}
+
+function findProduct(restaurant, productId) {
+    const product = restaurant.products.id(productId);
+
+    if (!product) {
+        throw new AppError(404, 'Product not found');
+    }
+
+    return product;
+}
+
+async function getMenu(restaurantId) {
+    const restaurant = await findRestaurant(restaurantId, 'Restaurant not found');
     return (restaurant.products || []).map(toApiProduct);
 }
 
 async function getProduct(restaurantId, productId) {
-    const restaurant = await Restaurant.findById(restaurantId);
-
-    if (!restaurant) {
-        return null;
-    }
-
-    const product = restaurant.products.id(productId);
-
-    if (!product) {
-        return null;
-    }
-
-    return toApiProduct(product);
+    const restaurant = await findRestaurant(restaurantId, 'Product not found');
+    return toApiProduct(findProduct(restaurant, productId));
 }
 
+// `data` has been validated by restaurants.schemas.createProductBody.
 async function addProduct(restaurantId, data) {
-    const restaurant = await Restaurant.findById(restaurantId);
-
-    if (!restaurant) {
-        return null;
-    }
-
-    if (!data || !data.name || data.price === undefined) {
-        return null;
-    }
+    const restaurant = await findRestaurant(restaurantId, 'Restaurant not found');
 
     restaurant.products.push({
         name: data.name,
@@ -50,18 +49,10 @@ async function addProduct(restaurantId, data) {
     return toApiProduct(createdProduct);
 }
 
+// `data` has been validated by restaurants.schemas.updateProductBody.
 async function updateProduct(restaurantId, productId, data) {
-    const restaurant = await Restaurant.findById(restaurantId);
-
-    if (!restaurant) {
-        return null;
-    }
-
-    const product = restaurant.products.id(productId);
-
-    if (!product) {
-        return null;
-    }
+    const restaurant = await findRestaurant(restaurantId, 'Product not found');
+    const product = findProduct(restaurant, productId);
 
     if (data.name !== undefined) {
         product.name = data.name;
@@ -81,22 +72,10 @@ async function updateProduct(restaurantId, productId, data) {
 }
 
 async function deleteProduct(restaurantId, productId) {
-    const restaurant = await Restaurant.findById(restaurantId);
+    const restaurant = await findRestaurant(restaurantId, 'Product not found');
 
-    if (!restaurant) {
-        return false;
-    }
-
-    const product = restaurant.products.id(productId);
-
-    if (!product) {
-        return false;
-    }
-
-    product.deleteOne();
+    findProduct(restaurant, productId).deleteOne();
     await restaurant.save();
-
-    return true;
 }
 
 module.exports = {

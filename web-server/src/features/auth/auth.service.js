@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../../config');
+const { AppError } = require('../../http/errors');
 const usersService = require('../users/users.service');
 
 function createToken(payload) {
@@ -30,19 +31,17 @@ function toAuthUser(user) {
     };
 }
 
-async function login(username, password) {
-    if (!username || !password) {
-        return null;
-    }
+const INVALID_CREDENTIALS = 'Invalid username or password';
 
+async function login(username, password) {
     const user = await usersService.findUserByUsername(username);
 
     if (!user) {
-        return null;
+        throw new AppError(401, INVALID_CREDENTIALS);
     }
 
     if (!await usersService.verifyPassword(password, user.password)) {
-        return null;
+        throw new AppError(401, INVALID_CREDENTIALS);
     }
 
     const token = createToken({
@@ -60,6 +59,5 @@ async function login(username, password) {
 
 module.exports = {
     login,
-    createToken,
     verifyToken
 };

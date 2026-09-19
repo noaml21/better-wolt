@@ -1,134 +1,25 @@
 const ordersService = require('./orders.service');
-const usersService = require('../users/users.service');
 
 async function getUserOrders(req, res) {
-    const username = req.user.username;
-
-    try {
-        const user = await usersService.findUserByUsername(username);
-
-        if (!user) {
-            return res.status(404).json({
-                error: 'Invalid username'
-            });
-        }
-
-        const orders = await ordersService.getUserOrders(username);
-        return res.status(200).json(orders);
-
-    } catch (error) {
-        return res.status(500).json({
-            error: 'Error processing request'
-        });
-    }
+    return res.status(200).json(await ordersService.getUserOrders(req.user.username));
 }
 
 async function createOrder(req, res) {
-    const username = req.user.username;
+    const order = await ordersService.createOrder(req.user.username, req.body);
 
-    if (!req.body || !req.body.restaurant || !Array.isArray(req.body.products)) {
-        return res.status(400).json({
-            error: 'Bad Request'
-        });
-    }
-
-    try {
-        const user = await usersService.findUserByUsername(username);
-
-        if (!user) {
-            return res.status(404).json({
-                error: 'Invalid username'
-            });
-        }
-
-        const order = await ordersService.createOrder({
-            username: username,
-            restaurant: req.body.restaurant,
-            products: req.body.products
-        });
-
-        if (!order) {
-            return res.status(400).json({
-                error: 'Bad Request'
-            });
-        }
-
-        return res
-            .status(201)
-            .location(`/api/orders/${order.id}`)
-            .json(order);
-
-    } catch (error) {
-        return res.status(error.statusCode || 400).json({
-            error: error.message
-        });
-    }
+    return res
+        .status(201)
+        .location(`/api/orders/${order.id}`)
+        .json(order);
 }
 
 async function getOrder(req, res) {
-    const username = req.user.username;
-
-    try {
-        const user = await usersService.findUserByUsername(username);
-
-        if (!user) {
-            return res.status(404).json({
-                error: 'Invalid username'
-            });
-        }
-
-        const order = await ordersService.getOrderById(req.params.id);
-
-        if (!order) {
-            return res.status(404).json({
-                error: 'Not Found'
-            });
-        }
-
-        if (String(order.username) !== String(username)) {
-            return res.status(404).json({
-                error: 'Invalid username'
-            });
-        }
-
-        return res.status(200).json(order);
-
-    } catch (error) {
-        return res.status(500).json({
-            error: 'Error processing request'
-        });
-    }
+    return res.status(200).json(await ordersService.getOrder(req.user.username, req.params.id));
 }
 
 async function deleteOrder(req, res) {
-    const username = req.user.username;
-
-    try {
-        const user = await usersService.findUserByUsername(username);
-
-        if (!user) {
-            return res.status(404).json({
-                error: 'Invalid username'
-            });
-        }
-
-        const order = await ordersService.getOrderById(req.params.id);
-
-        if (!order || String(order.username) !== String(username)) {
-            return res.status(404).json({
-                error: 'Not Found'
-            });
-        }
-
-        await ordersService.deleteOrder(order.id);
-
-        return res.status(204).send();
-
-    } catch (error) {
-        return res.status(500).json({
-            error: 'Error processing request'
-        });
-    }
+    await ordersService.deleteOrder(req.user.username, req.params.id);
+    return res.status(204).send();
 }
 
 module.exports = {

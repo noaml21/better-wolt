@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const path = require('path');
 const config = require('./config');
+const { AppError } = require('./http/errors');
 const { apiNotFound, errorHandler } = require('./http/errorHandler');
 const usersRouter = require('./features/users/users.routes');
 const tokensRouter = require('./features/auth/auth.routes');
@@ -19,7 +20,7 @@ app.use(cors({
             return callback(null, true);
         }
 
-        return callback(new Error(`Not allowed by CORS: ${origin}`));
+        return callback(new AppError(403, 'Origin not allowed'));
     },
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

@@ -31,24 +31,34 @@ describe('app-level behavior', () => {
             assert.equal(res.status, 200);
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-2] disallowed origin -> 500 HTML from the default error handler', async () => {
+        // Regression: was 500 HTML from Express's default error handler
+        test('[BF-2] disallowed origin -> 403 JSON', async () => {
             const res = await request().get('/api/restaurants').set('Origin', 'http://evil.example');
 
-            assert.equal(res.status, 500);
-            assert.match(res.headers['content-type'], /text\/html/);
+            assert.equal(res.status, 403);
+            assert.deepEqual(res.body, { error: 'Origin not allowed' });
         });
     });
 
-    // PINNED: old behavior, flipped in Phase 3
-    test('[BF-2] malformed JSON body -> 400 HTML from the default error handler', async () => {
+    // Regression: was 400 HTML from Express's default error handler
+    test('[BF-2] malformed JSON body -> 400 JSON', async () => {
         const res = await request()
             .post('/api/tokens')
             .set('Content-Type', 'application/json')
             .send('{bad');
 
         assert.equal(res.status, 400);
-        assert.match(res.headers['content-type'], /text\/html/);
+        assert.deepEqual(res.body, { error: 'Invalid JSON' });
+    });
+
+    test('[BF-2] body over the parser limit keeps 413, now as JSON', async () => {
+        const res = await request()
+            .post('/api/users')
+            .set('Content-Type', 'application/json')
+            .send(JSON.stringify({ image: 'x'.repeat(6 * 1024 * 1024) }));
+
+        assert.equal(res.status, 413);
+        assert.deepEqual(res.body, { error: 'Payload too large' });
     });
 
     // Regression: was 200 with the SPA index.html

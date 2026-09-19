@@ -77,6 +77,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
   (c) `router.use(requireAuth)` removed from `routes/orders.js` → 34 of 35 order tests failed;
   (d) `getOrder` skipping the username check → `GET another user's order -> 404` failed.
 - Local suite time is dominated by bcrypt at cost 12 (~650 ms per hash/compare with bcryptjs); addressed in Task 2.5.
+- **Phase 2 exit (2026-09-19):** 132 API tests green (6 s with `BCRYPT_ROUNDS=4`); test diff since Phase 1 = the seed import path plus the `BCRYPT_ROUNDS` line in `helpers/env.js` (assertions untouched); `process.env` only in `config.js`; no layer folders left; `docker compose up --build` + Appendix A 1–6 PASS. Extra commit `cdfaf85`: search and orders now reach restaurant data through `restaurants.service` instead of importing its model (§3.1 rule), search.service folded into it.
 
 ## Rules that apply to every phase
 
@@ -226,9 +227,9 @@ Create `.github/workflows/ci.yml`, triggered on `push` and `pull_request`, all j
 | 2.6 | Move to feature folders **one feature per commit**, each named `refactor(structure): move <x> to features/<x>`: **a** search → `features/search/search.{routes,controller,service}.js`; **b** tokens → `features/auth/auth.{routes,controller,service}.js`, and `middleware/auth.js` → `http/auth.js`; **c** users → `features/users/users.{routes,controller,service}.js` + `user.model.js`; **d** restaurants (+ embedded products) → `features/restaurants/` with `restaurant.model.js`, `restaurants.{routes,controller,service}.js`, `products.{controller,service}.js`; **e** orders → `features/orders/orders.{routes,controller,service}.js` + `order.model.js`; **f** `services/seedWorldCupRestaurant.js` → `seed/worldCup.js` (update the import in `seed.test.js` and `server.js`). `app.js` mounts each feature router at the same path. Remove the emptied directories. |
 
 **Exit:**
-- [ ] `npm test` green; `git diff <phase-1-end>..HEAD --stat -- web-server/test` shows only the one seed import line.
-- [ ] Layout matches ARCHITECTURE.md §2; no `models/ controllers/ services/ routes/ middleware/ config/` directories remain; `grep -rn "process.env" web-server/src` matches only `config.js`.
-- [ ] `docker compose build backend` and Appendix A steps 1–6 succeed.
+- [x] `npm test` green; `git diff <phase-1-end>..HEAD --stat -- web-server/test` shows only the one seed import line.
+- [x] Layout matches ARCHITECTURE.md §2; no `models/ controllers/ services/ routes/ middleware/ config/` directories remain; `grep -rn "process.env" web-server/src` matches only `config.js`.
+- [x] `docker compose build backend` and Appendix A steps 1–6 succeed.
 
 **Rollback:** each task is an isolated commit; revert newest-first. A move commit that fails tests is reverted, not patched.
 

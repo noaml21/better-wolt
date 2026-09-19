@@ -12,7 +12,7 @@ async function startServer() {
         await seedWorldCupRestaurant();
 
         app.listen(PORT, () => {
-            console.log(`Ex3 web server running on port ${PORT}`);
+            console.log(`Better Wolt API listening on port ${PORT}`);
         });
     } catch (error) {
         console.error('Failed to start server:', error.message);

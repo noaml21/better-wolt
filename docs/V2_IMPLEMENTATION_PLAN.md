@@ -32,7 +32,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 0.2 | Remove `react-script` | ☑ | |
 | 0.3 | Node 24 baseline | ☑ | |
 | 0.4 | Client dev proxy | ☑ | |
-| 0.5 | Env docs + drop "ex3" naming | ☐ | |
+| 0.5 | Env docs + drop "ex3" naming | ☑ | |
 | 1.1 | Test infra (`mongo-test`, helpers, smoke) | ☐ | |
 | 1.2 | Auth/users tests | ☐ | |
 | 1.3 | Restaurants/products tests | ☐ | |

@@ -1,5 +1,5 @@
 {
-  "name": "better-wolt-ex3",
+  "name": "better-wolt-api",
   "version": "1.0.0",
   "description": "Wolt-style food delivery REST API server",
   "main": "server.js",

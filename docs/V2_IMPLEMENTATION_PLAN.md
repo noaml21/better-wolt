@@ -28,7 +28,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 
 | Task | Description | Done | Commit |
 |---|---|---|---|
-| 0.1 | Remove `cords` | ☐ | |
+| 0.1 | Remove `cords` | ☑ | |
 | 0.2 | Remove `react-script` | ☐ | |
 | 0.3 | Node 24 baseline | ☐ | |
 | 0.4 | Client dev proxy | ☐ | |

@@ -1,4 +1,4 @@
-const tokens = require('../models/tokens');
+const tokens = require('../services/tokens');
 
 function requireAuth(req, res, next) {
     const authHeader = req.headers.authorization;

@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API tests (MongoDB 7)
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    defaults:
+      run:
+        working-directory: web-server
+    env:
+      TEST_MONGODB_URI: mongodb://127.0.0.1:27017/better_wolt_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web-server/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  web:
+    name: Web tests and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-server/client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web-server/client/package-lock.json
+      - run: npm ci
+      - run: npm test -- --watchAll=false
+      - run: npm run build
+
+  docker:
+    name: Backend image build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build ./web-server
+
+  mobile:
+    name: Mobile install and bundle
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npx expo export --platform android --output-dir "$RUNNER_TEMP/expo-out"

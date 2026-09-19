@@ -1,5 +1,5 @@
-const Restaurant = require('../models/Restaurant');
-const { toApiProduct } = require('./restaurants');
+const Restaurant = require('./restaurant.model');
+const { toApiProduct } = require('./restaurants.service');
 
 async function getMenu(restaurantId) {
     const restaurant = await Restaurant.findById(restaurantId);

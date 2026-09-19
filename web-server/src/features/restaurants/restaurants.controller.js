@@ -1,4 +1,4 @@
-const restaurantsService = require('../services/restaurants');
+const restaurantsService = require('./restaurants.service');
 
 async function getAllRestaurants(req, res) {
   try {

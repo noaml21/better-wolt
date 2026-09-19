@@ -1,5 +1,5 @@
-const productsService = require('../services/products');
-const restaurantsService = require('../services/restaurants');
+const productsService = require('./products.service');
+const restaurantsService = require('./restaurants.service');
 
 async function getMenu(req, res) {
     try {

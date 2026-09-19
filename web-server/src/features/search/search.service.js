@@ -1,5 +1,5 @@
-const Restaurant = require('../../models/Restaurant');
-const restaurantsService = require('../../services/restaurants');
+const Restaurant = require('../restaurants/restaurant.model');
+const restaurantsService = require('../restaurants/restaurants.service');
 
 async function searchRestaurants(query) {
     const normalizedQuery = String(query || '').trim();

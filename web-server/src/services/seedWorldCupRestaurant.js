@@ -1,4 +1,4 @@
-const Restaurant = require('../models/Restaurant');
+const Restaurant = require('../features/restaurants/restaurant.model');
 
 const WORLD_CUP_RESTAURANT_NAME = 'חגיגת מונדיאל';
 const LEGACY_PRODUCT_NAMES = new Set([

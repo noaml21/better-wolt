@@ -1,7 +1,7 @@
 const express = require('express');
-const restaurantsController = require('../controllers/restaurants');
-const productsController = require('../controllers/products');
-const { requireAuth } = require('../http/auth');
+const restaurantsController = require('./restaurants.controller');
+const productsController = require('./products.controller');
+const { requireAuth } = require('../../http/auth');
 
 const router = express.Router();
 

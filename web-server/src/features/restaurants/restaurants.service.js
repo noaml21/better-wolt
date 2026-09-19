@@ -1,5 +1,5 @@
-const Restaurant = require('../models/Restaurant');
-const usersService = require('../features/users/users.service');
+const Restaurant = require('./restaurant.model');
+const usersService = require('../users/users.service');
 
 function toApiProduct(product) {
     if (!product) {

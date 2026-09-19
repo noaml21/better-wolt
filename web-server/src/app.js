@@ -5,7 +5,7 @@ const path = require('path');
 const config = require('./config');
 const usersRouter = require('./features/users/users.routes');
 const tokensRouter = require('./features/auth/auth.routes');
-const restaurantsRouter = require('./routes/restaurants');
+const restaurantsRouter = require('./features/restaurants/restaurants.routes');
 const ordersRouter = require('./routes/orders');
 const searchRouter = require('./features/search/search.routes');
 

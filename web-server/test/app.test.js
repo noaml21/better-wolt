@@ -74,13 +74,27 @@ describe('app-level behavior', () => {
         }
     });
 
-    // PINNED: old behavior, flipped in Phase 3
-    test('[BF-9] a 200 KB JSON body is parsed on any route', async () => {
+    // Regression: every route accepted JSON bodies up to 5 MB
+    test('[BF-9] a 200 KB JSON body is rejected outside registration', async () => {
         const res = await request()
             .post('/api/tokens')
             .send({ username: 'nobody_here', password: 'password123', padding: 'x'.repeat(200 * 1024) });
 
-        assert.equal(res.status, 401);
+        assert.equal(res.status, 413);
+        assert.deepEqual(res.body, { error: 'Payload too large' });
+    });
+
+    test('[BF-9] registration still accepts a large avatar', async () => {
+        const res = await request().post('/api/users').send({
+            username: 'avatar_user',
+            password: 'password123',
+            displayName: 'Avatar',
+            address: 'Here',
+            email: 'a@example.com',
+            image: `data:image/jpeg;base64,${'A'.repeat(1024 * 1024)}`,
+        });
+
+        assert.equal(res.status, 201);
     });
 
     test('non-API paths serve the SPA index.html', async () => {

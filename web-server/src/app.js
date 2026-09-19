@@ -27,7 +27,11 @@ app.use(cors({
 }));
 
 app.disable('etag');
-app.use(express.json({ limit: '5mb' }));
+// Registration may carry a base64 avatar, so only that route gets a large
+// body limit; it is registered first, and the global parser then skips the
+// already-parsed body. Everything else uses the 100 KB default.
+app.post('/api/users', express.json({ limit: '5mb' }));
+app.use(express.json());
 
 app.use('/api/users', usersRouter);
 app.use('/api/tokens', tokensRouter);

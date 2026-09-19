@@ -36,7 +36,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 1.1 | Test infra (`mongo-test`, helpers, smoke) | ☑ | |
 | 1.2 | Auth/users tests | ☑ | |
 | 1.3 | Restaurants/products tests | ☑ | |
-| 1.4 | Orders tests | ☐ | |
+| 1.4 | Orders tests | ☑ | |
 | 1.5 | Search tests | ☐ | |
 | 1.6 | Seed tests | ☐ | |
 | 1.7 | App-level tests + BF pins | ☐ | |

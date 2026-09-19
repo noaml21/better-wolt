@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const path = require('path');
+const config = require('./config');
 const usersRouter = require('./routes/users');
 const tokensRouter = require('./routes/tokens');
 const restaurantsRouter = require('./routes/restaurants');
@@ -11,16 +12,9 @@ const searchRouter = require('./routes/search');
 const app = express();
 
 
-const allowedOrigins = (
-    process.env.CORS_ORIGINS ||
-    'http://localhost:3000,http://localhost:8080,http://localhost:8081,http://localhost:19006'
-)
-    .split(',')
-    .map((origin) => origin.trim());
-
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (!origin || config.corsOrigins.includes(origin)) {
             return callback(null, true);
         }
 

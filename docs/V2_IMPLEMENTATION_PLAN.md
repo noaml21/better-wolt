@@ -46,7 +46,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 2.2 | Delete dead code | ☑ | |
 | 2.3 | Drop header-based identity | ☑ | |
 | 2.4 | One `toApiProduct` | ☑ | |
-| 2.5 | `config.js` + `db.js` | ☐ | |
+| 2.5 | `config.js` + `db.js` | ☑ | |
 | 2.6a–f | Feature-folder moves (one per commit) | ☐ | |
 | 3.1 | BF-1: `AppError`, error handler, `/api` 404 | ☐ | |
 | 3.2 | BF-2: JSON parse + CORS errors | ☐ | |
@@ -222,7 +222,7 @@ Create `.github/workflows/ci.yml`, triggered on `push` and `pull_request`, all j
 | 2.2 | Delete dead code: `updateOrder` (controller **and** service), `getAllUsers`, `userOwnsRestaurant`, `getRestaurantDocumentById`, `getRestaurantByName`, the `req.action` middleware. Confirm each is unreferenced with `grep` and list the greps in the commit message. |
 | 2.3 | Orders controller reads `req.user.username` only (delete `getRequestUsername`); remove the `x-user-id`/`username` header injection in `middleware/auth.js`. Behavior-preserving: every orders route is behind `requireAuth`, which already overwrote those headers. Keep the per-request "user still exists" lookup — it produces the pinned deleted-user `404`. |
 | 2.4 | One `toApiProduct` (kept in `services/restaurants.js`; `services/products.js` imports it). |
-| 2.5 | Add `src/config.js` exporting `{ port, mongoUri, jwtSecret, corsOrigins }` with today's defaults, throwing `JWT_SECRET environment variable is required` as today. Replace direct `process.env` reads in `server.js`, `app.js`, `config/db.js`, `services/tokens.js`. Move `config/db.js` → `src/db.js` (`connectDB()` uses `config.mongoUri`). `server.js` keeps `require('dotenv').config()` as its first line. |
+| 2.5 | Add `src/config.js` exporting `{ port, mongoUri, jwtSecret, corsOrigins, bcryptRounds }` with today's defaults (`bcryptRounds` from `BCRYPT_ROUNDS`, default 12, integer 4–31; the test env sets 4 — see decision log), throwing `JWT_SECRET environment variable is required` as today. Replace direct `process.env` reads in `server.js`, `app.js`, `config/db.js`, `services/tokens.js`. Move `config/db.js` → `src/db.js` (`connectDB()` uses `config.mongoUri`). `server.js` keeps `require('dotenv').config()` as its first line. |
 | 2.6 | Move to feature folders **one feature per commit**, each named `refactor(structure): move <x> to features/<x>`: **a** search → `features/search/search.{routes,controller,service}.js`; **b** tokens → `features/auth/auth.{routes,controller,service}.js`, and `middleware/auth.js` → `http/auth.js`; **c** users → `features/users/users.{routes,controller,service}.js` + `user.model.js`; **d** restaurants (+ embedded products) → `features/restaurants/` with `restaurant.model.js`, `restaurants.{routes,controller,service}.js`, `products.{controller,service}.js`; **e** orders → `features/orders/orders.{routes,controller,service}.js` + `order.model.js`; **f** `services/seedWorldCupRestaurant.js` → `seed/worldCup.js` (update the import in `seed.test.js` and `server.js`). `app.js` mounts each feature router at the same path. Remove the emptied directories. |
 
 **Exit:**

@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
+const config = require('./config');
 
 async function connectDB() {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/better_wolt';
-
-    await mongoose.connect(mongoUri);
+    await mongoose.connect(config.mongoUri);
 
     console.log('MongoDB connected successfully');
 }

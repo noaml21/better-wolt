@@ -1,10 +1,10 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const config = require('../config');
 
-const BCRYPT_SALT_ROUNDS = 12;
 
 async function hashPassword(password) {
-    return await bcrypt.hash(String(password), BCRYPT_SALT_ROUNDS);
+    return await bcrypt.hash(String(password), config.bcryptRounds);
 }
 
 async function verifyPassword(password, passwordHash) {

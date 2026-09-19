@@ -82,6 +82,8 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 - **Checkpoint (2026-09-19, session paused):** 3.1 (BF-1) and 3.2 (BF-2) are committed and green (133 API tests). 3.2 also maps `entity.too.large` to `413 Payload too large`, which was planned for 3.10. That preserves today's 413 status for bodies over 5 MB and only changes its format, so 3.10 now only changes the limits.
   **3.3 (BF-3):** the first flipped test hung because it asserted inside a loop over pre-built supertest requests. supertest opens a listening server per request and closes it only when the request is awaited, so the first failed assertion left 5 servers open and the test process never exited. Fixed by settling all requests with `Promise.all` before asserting. Then it failed cleanly (400/500 vs 404), and the fix made it pass. For `GET …/products/:pId`, an invalid restaurant id uses `Product not found`, matching an unknown restaurant id on that route.
 
+- **Phase 3 exit (2026-09-19):** BF-1…BF-9 each landed as one commit whose flipped test was seen failing first (quoted in each commit body). 142 API tests green; `grep -rn PINNED web-server/test` is empty; no controller has an HTTP `try/catch`. 3.5 (refactor) passed with zero test edits. `npm audit` after in-range fixes (`c79303e`): 0 vulnerabilities. Deviations: `413` JSON mapping moved into 3.2 (see above); the Zod helpers `requestBody`/`requiredString`/`optionalString` live in `http/validate.js`; the rate limiter is `http/rateLimit.js` (used by the auth and users features).
+
 ## Rules that apply to every phase
 
 - **Entry check (every session):** on the right branch; `git status` clean or containing only this task's changes; the last commit's test run green (`npm run test:db:up && npm test` in `web-server/`).
@@ -267,10 +269,10 @@ Create `.github/workflows/ci.yml`, triggered on `push` and `pull_request`, all j
 | 3.10 (BF-9) | Global `express.json()` at the default 100 KB; `express.json({ limit: '5mb' })` registered for `POST /api/users` **before** the global parser (restaurant `image` is a URL, so only avatars need the large limit). `errorHandler`: `entity.too.large` → `413 Payload too large`. | flip `[BF-9]` (200 KB → `413`); add: a 1 MB avatar body to `POST /api/users` is not rejected with `413`. |
 
 **Exit:**
-- [ ] No test asserts old BF behavior (`grep -rn "PINNED" web-server/test` is empty); each BF commit body quotes its failing assertion.
-- [ ] No controller contains `try/catch` for HTTP mapping; all errors flow through `errorHandler`.
-- [ ] ARCHITECTURE.md §4 updated: the † markers replaced by the new behavior.
-- [ ] `npm audit --omit=dev` reviewed; findings triaged in the decision log (none silently ignored).
+- [x] No test asserts old BF behavior (`grep -rn "PINNED" web-server/test` is empty); each BF commit body quotes its failing assertion.
+- [x] No controller contains `try/catch` for HTTP mapping; all errors flow through `errorHandler`.
+- [x] ARCHITECTURE.md §4 updated: the † markers replaced by the new behavior.
+- [x] `npm audit --omit=dev` reviewed; findings triaged in the decision log (none silently ignored).
 
 **Rollback:** revert the single commit; its test flip reverts with it, restoring the pinned old-behavior test, so the suite stays green. 3.1 is a prerequisite for 3.2–3.10, and 3.3/3.4 for 3.5 — revert dependents first.
 

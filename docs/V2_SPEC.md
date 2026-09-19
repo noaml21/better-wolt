@@ -174,3 +174,4 @@ header middleware (harmless, affects static files only).
 | 2026-09-19 | Review: replaced "three green CI runs" with one serial + one parallel run; kept the mutation spot-check. |
 | 2026-09-19 | Implementation: test MongoDB lives in `docker-compose.test.yml` (project `better-wolt-test`), not a profile in `docker-compose.yml` — Compose interpolates the whole file, so the backend's required `JWT_SECRET` blocked starting only `mongo-test`. |
 | 2026-09-19 | Implementation: `config.bcryptRounds` (`BCRYPT_ROUNDS`, default 12) so the test env can hash at cost 4 — at cost 12 bcryptjs takes ~0.7 s per hash and the API suite took 187 s (now ~6 s). Production default unchanged. |
+| 2026-09-19 | Audit triage (Phase 3 exit): body-parser GHSA-v422-hmwv-36x6 (low) and qs GHSA-x5fp-wj9c-mxmx / GHSA-4mjr-xmp4-gh2g (moderate) were not exploitable here (valid limits, no urlencoded parsing) but were fixed in range; `npm audit` reports 0. |

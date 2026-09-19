@@ -42,14 +42,15 @@ web-server/
     db.js                         connectDB()
     http/                         only plumbing used by several features
       auth.js                     requireAuth
-      errors.js                   AppError(status, message)                  (Phase 3)
-      errorHandler.js             one JSON error middleware                  (Phase 3)
-      validate.js                 validate({ body }), objectIdParam(name, msg) (Phase 3)
+      errors.js                   AppError(status, message)
+      errorHandler.js             apiNotFound + the one JSON error middleware
+      validate.js                 validate({ body }), objectIdParam(name, msg), Zod helpers
+      rateLimit.js                authRateLimit() for login and registration
     features/
       auth/         auth.routes.js  auth.controller.js  auth.service.js  auth.schemas.js
       users/        users.{routes,controller,service,schemas}.js  user.model.js
       restaurants/  restaurants.{routes,controller,service,schemas}.js  products.{controller,service}.js
-                    restaurant.model.js  requireRestaurantOwner.js       (owner check: Phase 3)
+                    restaurant.model.js  requireRestaurantOwner.js
       orders/       orders.{routes,controller,service}.js  order.model.js  (validation stays in the service)
       search/       search.{routes,controller}.js    (the query lives in restaurants.service)
     seed/worldCup.js              idempotent seed of the World Cup restaurant
@@ -77,7 +78,7 @@ Mongoose models directly.
 | File | Responsibility | Must not |
 |---|---|---|
 | `*.routes.js` | Map method + path → middleware chain (`requireAuth`, `validate`, controller). | Contain logic. |
-| `*.controller.js` | Read validated `req`, call a service, choose the success status/body. | Query the DB, hand-write validation, `try/catch` for HTTP mapping *(from Phase 3)*. |
+| `*.controller.js` | Read validated `req`, call a service, choose the success status/body. | Query the DB, hand-write validation, `try/catch` for HTTP mapping. |
 | `*.service.js` | Business rules and DB access; throw `AppError` for expected failures; return plain API-shaped objects. | Touch `req`/`res`. |
 | `*.model.js` | Mongoose schema + the `toApi…` mapper for that entity. | Contain business rules. |
 | `*.schemas.js` | Zod schemas for that feature's inputs. | Import Express. |
@@ -86,17 +87,17 @@ A feature creates only the files it needs (search has only routes and a controll
 `restaurants.service.searchRestaurants`). Only the seed, which is not a feature, imports another folder's model. Put code in `http/` only when a second feature
 actually uses it; until then it stays in its feature folder.
 
-### 3.2 Request lifecycle **(V2, Phase 3)**
+### 3.2 Request lifecycle
 `cors → body parser → /api routers (requireAuth → validate → controller → service) → /api 404 → SPA static + fallback → errorHandler`.
 Express 5 forwards a rejected promise from an async handler to the error middleware, so handlers simply `throw new AppError(404, 'Restaurant not found')`.
 
-### 3.3 Errors **(V2, Phase 3)**
+### 3.3 Errors
 Every error response is `{ "error": "<message>" }`. `AppError(status, message)` is the only way services signal expected failures.
 `errorHandler` also maps: invalid JSON → `400 Invalid JSON`; oversize body → `413 Payload too large`; disallowed CORS origin →
 `403 Origin not allowed`; rate limit → `429 Too many requests`; anything unexpected → logged, `500 Error processing request`.
 Driver/Mongoose messages are never returned to clients.
 
-### 3.4 Validation **(V2, Phase 3)**
+### 3.4 Validation
 Zod schemas per feature validate the body in `validate({ body })`; the first issue's message becomes `400 {error}`.
 Path ids use `objectIdParam(name, notFoundMessage)` → an invalid id is a `404`, the same as a missing document. Where a message is
 in §4.3, the schema reproduces it exactly. Order input is the exception: `orders.service.createOrder` keeps its existing checks.
@@ -108,8 +109,8 @@ Route middleware order (one rule for every route): `requireAuth` (401) → `vali
 - `requireAuth` verifies the bearer token and sets `req.user = { id, username, displayName, role, iat, exp }` (rejects: `401`).
 - Role checks are a one-line check in the controller (`req.user.role !== 'restaurant'` → `AppError(403, …)`); there is one such
   check today, so there is no role middleware.
-- `features/restaurants/requireRestaurantOwner.js` *(V2, Phase 3)* loads the restaurant once, sets `req.restaurant`, and returns
-  `403 Forbidden` unless `restaurant.username === req.user.username`. Today this check is copy-pasted in five handlers. Another
+- `features/restaurants/requireRestaurantOwner.js` loads the restaurant once, sets `req.restaurant`, and returns
+  `403 Forbidden` unless `restaurant.username === req.user.username` (used on the five owner routes). Another
   feature that needs the same rule may import it (it is the restaurants feature's public middleware).
 - Authorization rules are in [V2_SPEC.md §3.2](V2_SPEC.md#32-authorization-matrix).
 
@@ -120,7 +121,6 @@ Route middleware order (one rule for every route): `requireAuth` (401) → `vali
 ## 4. API contract
 
 Base path `/api`. JSON in, JSON out. Errors: `{ "error": string }`. `201` responses carry a `Location` header. Ids are Mongo ObjectId strings.
-Rows marked † change in Phase 3 (BF-n); the "Now" column is the current behavior pinned by Phase 1 tests.
 
 ### 4.1 Entities
 ```text
@@ -136,32 +136,37 @@ JWT claims{ id, username, displayName, role, iat, exp }  (HS256, 24 h)
 
 ### 4.2 Endpoints
 
-| Method + path | Auth | Success | Errors (Now) |
+| Method + path | Auth | Success | Errors |
 |---|---|---|---|
-| `POST /users` body `{username,password,displayName,address,email,image?,role?}` | – | `201 {id}` | `400` missing/weak password/duplicate; `500` bad types or role †BF-4 |
+| `POST /users` body `{username,password,displayName,address,email,image?,role?}` | – | `201 {id}` | `400` missing / weak password / duplicate / wrong type / unknown role; `413` body > 5 MB; `429` |
 | `GET /users/:id` | self only | `200 User` | `401`, `403` (not self), `404` |
-| `POST /tokens` body `{username,password}` | – | `200 Login` | `400` missing, `401` invalid; `429` after BF-6 |
-| `GET /restaurants` | – | `200 Restaurant[]` | `500` |
-| `POST /restaurants` body `{name,phone?,address?,image?}` | role `restaurant` | `201 Restaurant` | `400`, `401`, `403`, duplicate name `400` |
-| `GET /restaurants/:id` | – | `200 Restaurant` | `404` (incl. invalid id) |
-| `PATCH /restaurants/:id` | owner | **`204`** (no body) | `403`, `404`, `400`; invalid id → `400` cast text †BF-3 |
-| `DELETE /restaurants/:id` | owner | `204` | `403`, `404`; invalid id `500` †BF-3 |
-| `GET /restaurants/:id/products` | – | `200 Product[]` | `404`; invalid id `500` †BF-3 |
-| `POST /restaurants/:id/products` body `{name,price,description?}` | owner | `201 Product` | `400`, `403`, `404`; invalid id `500` †BF-3; price `-5` accepted, `"abc"` `500` †BF-4 |
-| `GET /restaurants/:id/products/:pId` | – | `200 Product` | `404`; invalid id `500` †BF-3 |
-| `PATCH /restaurants/:id/products/:pId` | owner | **`200 Product`** | `400` (no body), `403`, `404`; invalid id `500` †BF-3; price `"abc"` `500` †BF-4 |
-| `DELETE /restaurants/:id/products/:pId` | owner | `204` | `403`, `404`; invalid id `500` †BF-3 |
+| `POST /tokens` body `{username,password}` | – | `200 Login` | `400` missing or wrong type, `401` invalid credentials, `429` |
+| `GET /restaurants` | – | `200 Restaurant[]` | – |
+| `POST /restaurants` body `{name,phone?,address?,image?}` | role `restaurant` | `201 Restaurant` | `400` (missing name, wrong type, duplicate name), `401`, `403` |
+| `GET /restaurants/:id` | – | `200 Restaurant` | `404` (unknown or invalid id) |
+| `PATCH /restaurants/:id` body `{name?,phone?,address?,image?}` | owner | **`204`** (no body) | `400`, `401`, `403`, `404` |
+| `DELETE /restaurants/:id` | owner | `204` | `401`, `403`, `404` |
+| `GET /restaurants/:id/products` | – | `200 Product[]` | `404` |
+| `POST /restaurants/:id/products` body `{name,price,description?}` | owner | `201 Product` | `400` (missing fields, price not a number ≥ 0, wrong type), `401`, `403`, `404` |
+| `GET /restaurants/:id/products/:pId` | – | `200 Product` | `404 Product not found` (also for an unknown/invalid restaurant id) |
+| `PATCH /restaurants/:id/products/:pId` body `{name?,price?,description?}` | owner | **`200 Product`** | `400`, `401`, `403`, `404` |
+| `DELETE /restaurants/:id/products/:pId` | owner | `204` | `401`, `403`, `404` |
 | `POST /orders` body `{restaurant, products:[{id, quantity}]}` | user | `201 Order` | `400`, `401`, `404` |
-| `GET /orders` | user | `200 Order[]` (own) | `401`, `404` |
+| `GET /orders` | user | `200 Order[]` (own) | `401`, `404` (deleted user) |
 | `GET /orders/:id` | owner | `200 Order` | `401`, `404` (also for other users' orders) |
 | `DELETE /orders/:id` | owner | `204` | `401`, `404` |
-| `GET /search/:query` | – | `200 Restaurant[]` | `400` blank; `.*` matches all, `(` → `500` †BF-5 |
+| `GET /search/:query` | – | `200 Restaurant[]` (literal, case-insensitive substring of name, address, product name or description) | `400` blank |
 | `GET /health` *(Phase 5)* | – | `200 {status:'ok'}` | `503` |
 
-Unknown `/api/*` path: `200` SPA HTML today †BF-1 → `404 {error:'Not found'}`.
-The statuses above are for single-fault requests. When a request is wrong in several ways, which error wins is not contract
-(spec §5).
+Any route: unknown `/api/*` path → `404 Not found`; malformed JSON → `400 Invalid JSON`; body over 100 KB (5 MB for
+`POST /users`) → `413 Payload too large`; disallowed browser `Origin` → `403 Origin not allowed`; unexpected failure →
+`500 Error processing request`. `POST /users` and `POST /tokens` answer `429 Too many requests` after `AUTH_RATE_LIMIT_MAX`
+attempts per IP per 15 minutes (failed logins only for `/tokens`).
+
+The statuses above are for single-fault requests. When a request is wrong in several ways the order is
+`401` → body `400` → id/unknown `404` → role/ownership `403`, but that order is not contract (spec §5).
 Note the existing asymmetry (restaurant `PATCH` → `204`, product `PATCH` → `200`); it is kept.
+Behavior changed in V2 (BF-1…BF-9) is listed in [V2_SPEC.md §5](V2_SPEC.md#5-approved-behavior-changes).
 
 ### 4.3 Error strings that are contract (clients display them)
 `Missing required fields: username, password, displayName, address, email` · `Password must be 8-72 UTF-8 bytes and contain at least one letter and one digit` ·
@@ -170,7 +175,9 @@ Note the existing asymmetry (restaurant `PATCH` → `204`, product `PATCH` → `
 `Only restaurant owners can create restaurants` · `Restaurant with this name already exists` · `Restaurant not found` · `Product not found` ·
 `Missing required fields: name, price` · `Missing search query` · `Bad Request` · `Order must contain at least one product` ·
 `Quantity must be a positive integer` · `Each product must include an id and quantity` · `Product not found in restaurant menu` ·
-`Invalid username` (order routes, deleted user or someone else's order) · `Not Found` (order not found) · `Error processing request`.
+`Invalid username` (order routes, deleted user or someone else's order) · `Not Found` (order not found) · `Error processing request` ·
+`Not found` (unknown `/api` path) · `Invalid JSON` · `Payload too large` · `Origin not allowed` · `Too many requests` ·
+`Role must be customer or restaurant` · `<field> must be a string` · `Price must be a non-negative number`.
 
 ## 5. Data model (unchanged in V2)
 

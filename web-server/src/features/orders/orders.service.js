@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Order = require('./order.model');
-const Restaurant = require('../restaurants/restaurant.model');
+const restaurantsService = require('../restaurants/restaurants.service');
 const usersService = require('../users/users.service');
 
 const INITIAL_ORDER_STATUS = 'בדרך 🛵';
@@ -72,7 +72,7 @@ async function createOrder(data) {
         throw orderError('Restaurant not found', 404);
     }
 
-    const restaurant = await Restaurant.findById(data.restaurant);
+    const restaurant = await restaurantsService.getRestaurantById(data.restaurant);
 
     if (!restaurant) {
         throw orderError('Restaurant not found', 404);

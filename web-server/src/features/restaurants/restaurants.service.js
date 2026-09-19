@@ -114,12 +114,33 @@ async function deleteRestaurant(id) {
     return true;
 }
 
+async function searchRestaurants(query) {
+    const normalizedQuery = String(query || '').trim();
+
+    if (!normalizedQuery) {
+        return [];
+    }
+
+    const regex = new RegExp(normalizedQuery, 'i');
+
+    const restaurants = await Restaurant.find({
+        $or: [
+            { name: regex },
+            { address: regex },
+            { 'products.name': regex },
+            { 'products.description': regex }
+        ]
+    });
+
+    return restaurants.map(toApiRestaurant);
+}
+
 module.exports = {
     getAllRestaurants,
     getRestaurantById,
     createRestaurant,
     updateRestaurant,
     deleteRestaurant,
-    toApiRestaurant,
+    searchRestaurants,
     toApiProduct
 };

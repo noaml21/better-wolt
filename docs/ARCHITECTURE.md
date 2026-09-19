@@ -51,7 +51,7 @@ web-server/
       restaurants/  restaurants.{routes,controller,service,schemas}.js  products.{controller,service}.js
                     restaurant.model.js  requireRestaurantOwner.js       (owner check: Phase 3)
       orders/       orders.{routes,controller,service}.js  order.model.js  (validation stays in the service)
-      search/       search.{routes,controller,service}.js
+      search/       search.{routes,controller}.js    (the query lives in restaurants.service)
     seed/worldCup.js              idempotent seed of the World Cup restaurant
   test/                           black-box integration tests (flat), helpers/
   client/                         React web app (unchanged layout)
@@ -82,7 +82,8 @@ Mongoose models directly.
 | `*.model.js` | Mongoose schema + the `toApi…` mapper for that entity. | Contain business rules. |
 | `*.schemas.js` | Zod schemas for that feature's inputs. | Import Express. |
 
-A feature creates only the files it needs (search has no model or schemas). Put code in `http/` only when a second feature
+A feature creates only the files it needs (search has only routes and a controller; it calls
+`restaurants.service.searchRestaurants`). Only the seed, which is not a feature, imports another folder's model. Put code in `http/` only when a second feature
 actually uses it; until then it stays in its feature folder.
 
 ### 3.2 Request lifecycle **(V2, Phase 3)**

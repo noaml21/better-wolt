@@ -134,6 +134,22 @@ npx expo start --android
 
 The existing mobile API configuration reads `EXPO_PUBLIC_API_URL` when supplied and otherwise falls back to `http://10.0.2.2:8080/api`, which maps the Android emulator to the backend running on the host machine.
 
+## Testing
+
+The API integration tests run against a real MongoDB 7 (Docker required for the local database):
+
+```bash
+cd web-server
+npm ci
+npm run test:db:up     # throwaway MongoDB on 127.0.0.1:27018 (in memory)
+npm test
+npm run test:db:down
+```
+
+To use another MongoDB 7 instance instead, set `TEST_MONGODB_URI` (each test file creates and drops its own `bw_test_*` database).
+
+Web client tests: `cd web-server/client && npm test -- --watchAll=false`.
+
 ## Special World Cup Feature
 
 The World Cup experience is an intentional product and UI feature beyond the core restaurant-browsing and ordering flow. It presents country-themed dishes through dedicated web and mobile interfaces, with supporting media in the web experience.

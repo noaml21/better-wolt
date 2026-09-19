@@ -68,6 +68,16 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 5.4 | `AGENTS.md` | ☐ | |
 | 5.5 | README links + accuracy pass | ☐ | |
 
+### Progress notes
+
+- **Phase 0 (2026-09-19):** verified on Node 24.21.0 / npm 11.19.0 — `npm ci` in all three packages, client build, `expo export --platform android`, `docker compose build backend` and `mobile`, Appendix A steps 1–6 PASS.
+- **Phase 1 exit (2026-09-19):** 132 API tests green in parallel and with `--test-concurrency=1`; 9 web tests green; first CI run green (api, web, docker, mobile). `git diff 287b303..HEAD -- web-server/src web-server/server.js` empty. Mutation spot-check — all four caught, each undone by hand and `git status --short web-server/src` empty afterwards:
+  (a) owner check removed from `deleteProduct` → `delete by another owner or a customer -> 403 and kept` failed;
+  (b) `createOrder` using a client-sent price → `client-sent price, … are ignored` failed;
+  (c) `router.use(requireAuth)` removed from `routes/orders.js` → 34 of 35 order tests failed;
+  (d) `getOrder` skipping the username check → `GET another user's order -> 404` failed.
+- Local suite time is dominated by bcrypt at cost 12 (~650 ms per hash/compare with bcryptjs); addressed in Task 2.5.
+
 ## Rules that apply to every phase
 
 - **Entry check (every session):** on the right branch; `git status` clean or containing only this task's changes; the last commit's test run green (`npm run test:db:up && npm test` in `web-server/`).
@@ -189,12 +199,12 @@ Create `.github/workflows/ci.yml`, triggered on `push` and `pull_request`, all j
 - **mobile:** `mobile`: `npm ci`, `npx expo export --platform android --output-dir "$RUNNER_TEMP/expo-out"` (bundle compiles). If it proves unworkable in CI, reduce it to `npm ci` and record why in the decision log — do not silently drop the job.
 
 ### Phase 1 exit criteria (all required)
-- [ ] Every row of the matrix above has passing tests; every BF-1…BF-9 has a `[BF-n]` pin.
-- [ ] `npm test` green locally and CI green on the final Phase 1 commit.
-- [ ] Order-independence check: `node --test --test-concurrency=1 test/*.test.js` is also green (serial vs. parallel catches shared-state leaks — this replaces any "N green runs" rule).
-- [ ] `git diff <phase-0-end>..HEAD -- web-server/src web-server/server.js` is **empty**.
-- [ ] **Mutation spot-check** (not committed; it is the only proof that tests written against working code can fail): for each mutation — (a) remove the owner check in `deleteProduct`; (b) make `createOrder` use a client-sent `price`; (c) remove `router.use(requireAuth)` from `routes/orders.js`; (d) make `getOrder` skip the username comparison — edit the file, confirm `npm test` fails with a relevant assertion, undo the edit by hand, and confirm `git status --short web-server/src` is empty. Record the four results in the Progress notes. If a mutation survives, add the missing test before exiting the phase.
-- [ ] README gets a short "Testing" section (`npm run test:db:up && npm test`, and the `TEST_MONGODB_URI` override).
+- [x] Every row of the matrix above has passing tests; every BF-1…BF-9 has a `[BF-n]` pin.
+- [x] `npm test` green locally and CI green on the final Phase 1 commit.
+- [x] Order-independence check: `node --test --test-concurrency=1 test/*.test.js` is also green (serial vs. parallel catches shared-state leaks — this replaces any "N green runs" rule).
+- [x] `git diff <phase-0-end>..HEAD -- web-server/src web-server/server.js` is **empty**.
+- [x] **Mutation spot-check** (not committed; it is the only proof that tests written against working code can fail): for each mutation — (a) remove the owner check in `deleteProduct`; (b) make `createOrder` use a client-sent `price`; (c) remove `router.use(requireAuth)` from `routes/orders.js`; (d) make `getOrder` skip the username comparison — edit the file, confirm `npm test` fails with a relevant assertion, undo the edit by hand, and confirm `git status --short web-server/src` is empty. Record the four results in the Progress notes. If a mutation survives, add the missing test before exiting the phase.
+- [x] README gets a short "Testing" section (`npm run test:db:up && npm test`, and the `TEST_MONGODB_URI` override).
 
 **Rollback:** revert individual test commits; they cannot affect runtime. If CI is unfixable, revert 1.9 only — the local suite remains the gate.
 

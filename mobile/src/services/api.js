@@ -106,7 +106,7 @@ export async function getUserOrders(token) {
     return result;
   }
 
-  return result.map(normalizeOrder);
+  return result.map(normalizeEntity);
 }
 
 export async function createRestaurant(token, restaurantData) {
@@ -146,8 +146,6 @@ export function createOrder(token, payload) {
   );
 }
 
-// export const register = (userData) => request('/users', 'POST', userData);
-// export const login = (credentials) => request('/tokens', 'POST', credentials);
 export function register(userData) {
   return request(
     '/users',
@@ -270,22 +268,4 @@ function normalizeRestaurant(restaurant) {
     ...normalized,
     products,
   };
-}
-
-function normalizeOrder(order) {
-  const normalized = normalizeEntity(order);
-
-  if (!normalized || typeof normalized !== 'object') {
-    return normalized;
-  }
-
-  return normalized;
-}
-
-function normalizeRestaurantList(result) {
-  if (!Array.isArray(result)) {
-    return result;
-  }
-
-  return result.map(normalizeRestaurant);
 }

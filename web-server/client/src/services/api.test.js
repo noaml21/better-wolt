@@ -1,4 +1,4 @@
-import { createOrder, deleteOrder, getRestaurants } from './api';
+import { createOrder, deleteOrder, getQuery, getRestaurants, login } from './api';
 
 function mockResponse(status, body) {
   const text = body === undefined ? '' : JSON.stringify(body);
@@ -46,10 +46,28 @@ test('omits the Authorization header without a token', async () => {
   expect(options.headers.Authorization).toBeUndefined();
 });
 
-test('throws the server error message on failure', async () => {
+test('throws the server error message and status on failure', async () => {
   global.fetch.mockResolvedValue(mockResponse(404, { error: 'Restaurant not found' }));
 
   await expect(getRestaurants()).rejects.toThrow('Restaurant not found');
+  await expect(getRestaurants()).rejects.toMatchObject({ status: 404 });
+});
+
+test('surfaces rate limiting (429) with the server message', async () => {
+  global.fetch.mockResolvedValue(mockResponse(429, { error: 'Too many requests' }));
+
+  await expect(login({ username: 'a', password: 'b' })).rejects.toMatchObject({
+    message: 'Too many requests',
+    status: 429,
+  });
+});
+
+test('encodes the search query as one path segment', async () => {
+  global.fetch.mockResolvedValue(mockResponse(200, []));
+
+  await getQuery('fish & chips/#1?');
+
+  expect(global.fetch.mock.calls[0][0]).toBe('/api/search/fish%20%26%20chips%2F%231%3F');
 });
 
 test('falls back to the status code when the error body is not JSON', async () => {

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { registerUser } from '../services/api'
+import { register } from '../services/api'
 const RegisterPage = () => {
     // איחדנו את כל השדות לאובייקט State אחד כדי שיהיה נוח לנהל אותם
     const [formData, setFormData] = useState({
@@ -65,7 +65,7 @@ const RegisterPage = () => {
                 role: formData.role
             };
 
-            await registerUser(payload);
+            await register(payload);
 
             alert('הרשמה עברה ולידציה בהצלחה! מעביר להתחברות...');
             navigate('/login');

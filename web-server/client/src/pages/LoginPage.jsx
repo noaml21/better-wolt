@@ -29,7 +29,9 @@ const LoginPage = () => {
             await login(username, password);
             navigate('/');
         } catch (error) {
-            setError('שם משתמש או סיסמה לא נכונים.');
+            // Wrong credentials keep the friendly message; anything else
+            // (e.g. 429 Too many requests) shows the server's error text.
+            setError(error.status === 401 ? 'שם משתמש או סיסמה לא נכונים.' : error.message);
         }
     };
 

@@ -40,7 +40,9 @@ async function request(endpoint, method = 'GET', data = null) {
             // response body is not JSON or is empty
         }
 
-        throw new Error(message);
+        const error = new Error(message);
+        error.status = response.status;
+        throw error;
     }
 
     if (response.status === 204) {
@@ -73,43 +75,8 @@ export const getUserOrders = () => request('/orders', 'GET');
 export const deleteOrder = (id) => request(`/orders/${id}`, 'DELETE', null);
 export const getOrderById = (id) => request(`/orders/${id}`,'GET');
 // query
-export const getQuery = (query) => request(`/search/${query}`, 'GET');
+export const getQuery = (query) => request(`/search/${encodeURIComponent(query)}`, 'GET');
 // auth
 export const register = (userData) => request('/users', 'POST', userData);
 
 export const login = (credentials) => request('/tokens', 'POST', credentials);
-
-export const registerUser = async (userData) => {
-    const response = await fetch(`${BASE_URL}/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-        let message = `Error: ${response.status}`;
-
-        try {
-            const errorData = await response.json();
-            if (errorData.error) {
-                message = errorData.error;
-            }
-        } catch (error) {
-            // no JSON body
-        }
-
-        throw new Error(message);
-    }
-
-    if (response.status === 204) {
-        return null;
-    }
-
-    const text = await response.text();
-
-    if (!text) {
-        return null;
-    }
-
-    return JSON.parse(text);
-};

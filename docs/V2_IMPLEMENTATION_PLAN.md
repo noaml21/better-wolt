@@ -59,7 +59,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 3.8 | BF-7: timing-safe login | ☑ | |
 | 3.9 | BF-8: HS256 only | ☑ | |
 | 3.10 | BF-9: body-size limits | ☑ | |
-| 4.1 | Align both API clients to the contract | ☐ | |
+| 4.1 | Align both API clients to the contract | ☑ | |
 | 4.2 | World Cup client cleanup | ☐ | |
 | 4.3 | Delete dead client code | ☐ | |
 | 5.1 | Non-root image + Mongo on localhost | ☐ | |

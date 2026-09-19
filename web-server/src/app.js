@@ -6,7 +6,7 @@ const config = require('./config');
 const usersRouter = require('./features/users/users.routes');
 const tokensRouter = require('./features/auth/auth.routes');
 const restaurantsRouter = require('./features/restaurants/restaurants.routes');
-const ordersRouter = require('./routes/orders');
+const ordersRouter = require('./features/orders/orders.routes');
 const searchRouter = require('./features/search/search.routes');
 
 const app = express();

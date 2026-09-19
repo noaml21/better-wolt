@@ -35,12 +35,9 @@ const INVALID_CREDENTIALS = 'Invalid username or password';
 
 async function login(username, password) {
     const user = await usersService.findUserByUsername(username);
+    const passwordMatches = await usersService.verifyPassword(password, user && user.password);
 
-    if (!user) {
-        throw new AppError(401, INVALID_CREDENTIALS);
-    }
-
-    if (!await usersService.verifyPassword(password, user.password)) {
+    if (!user || !passwordMatches) {
         throw new AppError(401, INVALID_CREDENTIALS);
     }
 

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const User = require('./user.model');
 const config = require('../../config');
@@ -7,7 +8,22 @@ async function hashPassword(password) {
     return await bcrypt.hash(String(password), config.bcryptRounds);
 }
 
+// Hash of a random secret, made once on first use at the configured cost.
+let dummyHashPromise;
+
+function dummyHash() {
+    dummyHashPromise = dummyHashPromise || hashPassword(crypto.randomBytes(16).toString('hex'));
+    return dummyHashPromise;
+}
+
+// Without a hash (unknown username) this still runs one bcrypt compare, so
+// response time does not reveal whether an account exists.
 async function verifyPassword(password, passwordHash) {
+    if (!passwordHash) {
+        await bcrypt.compare(String(password), await dummyHash());
+        return false;
+    }
+
     return await bcrypt.compare(String(password), passwordHash);
 }
 

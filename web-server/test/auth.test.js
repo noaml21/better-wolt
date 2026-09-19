@@ -198,16 +198,19 @@ describe('auth and users', () => {
 
         // [BF-6] login/registration throttling is covered in rate-limit.test.js.
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-7] unknown username skips bcrypt (timing difference)', async (t) => {
+        // Regression: an unknown username returned before any bcrypt work, so
+        // response time revealed whether the account exists
+        test('[BF-7] unknown username runs the same bcrypt compare as a wrong password', async (t) => {
             const registered = await registerUser();
             const compare = t.mock.method(bcrypt, 'compare');
 
             await request().post('/api/tokens').send({ username: registered.username, password: 'wrongpass1' });
             assert.equal(compare.mock.callCount(), 1, 'known user runs one compare');
 
-            await request().post('/api/tokens').send({ username: 'nobody_here', password: 'wrongpass1' });
-            assert.equal(compare.mock.callCount(), 1, 'unknown user runs no compare');
+            const res = await request().post('/api/tokens').send({ username: 'nobody_here', password: 'wrongpass1' });
+            assert.equal(compare.mock.callCount(), 2, 'unknown user also runs one compare');
+            assert.equal(res.status, 401);
+            assert.deepEqual(res.body, { error: 'Invalid username or password' });
         });
     });
 

@@ -1,0 +1,18 @@
+# Throwaway MongoDB for the API integration tests (data lives in memory).
+# Kept separate from docker-compose.yml so it starts without JWT_SECRET.
+# Start/stop from web-server/: npm run test:db:up / npm run test:db:down
+name: better-wolt-test
+
+services:
+  mongo-test:
+    image: mongo:7
+    container_name: better-wolt-mongo-test
+    ports:
+      - "127.0.0.1:27018:27017"
+    tmpfs:
+      - /data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 3s
+      timeout: 5s
+      retries: 20

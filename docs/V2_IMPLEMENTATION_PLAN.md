@@ -33,7 +33,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 0.3 | Node 24 baseline | ☑ | |
 | 0.4 | Client dev proxy | ☑ | |
 | 0.5 | Env docs + drop "ex3" naming | ☑ | |
-| 1.1 | Test infra (`mongo-test`, helpers, smoke) | ☐ | |
+| 1.1 | Test infra (`mongo-test`, helpers, smoke) | ☑ | |
 | 1.2 | Auth/users tests | ☐ | |
 | 1.3 | Restaurants/products tests | ☐ | |
 | 1.4 | Orders tests | ☐ | |
@@ -102,17 +102,19 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 
 ## Phase 1 — Safety net (characterization tests + CI)
 
-**Entry:** Phase 0 exit met. **Rule for the whole phase: zero changes under `web-server/src/` and `web-server/server.js`.** Only tests, `package.json` dev tooling/scripts, `docker-compose.yml`, CI files, and the README "Testing" section change.
+**Entry:** Phase 0 exit met. **Rule for the whole phase: zero changes under `web-server/src/` and `web-server/server.js`.** Only tests, `package.json` dev tooling/scripts, `docker-compose.test.yml`, CI files, and the README "Testing" section change.
 
 ### Task 1.1 — Test infrastructure
 
-**Files:** create `web-server/test/helpers/{env,db,api}.js`, `web-server/test/smoke.test.js`; modify `docker-compose.yml`, `web-server/package.json`.
+**Files:** create `web-server/test/helpers/{env,db,api}.js`, `web-server/test/smoke.test.js`, `docker-compose.test.yml`; modify `web-server/package.json`.
 
-**Compose (add):**
+**Compose — separate file `docker-compose.test.yml`** (as built: a profile in `docker-compose.yml` does not work, because Compose interpolates the whole file and the backend's required `JWT_SECRET` aborts `up mongo-test`; the separate file has its own project name so `down` never touches the dev stack):
 ```yaml
+name: better-wolt-test
+services:
   mongo-test:
     image: mongo:7
-    profiles: ["test"]
+    container_name: better-wolt-mongo-test
     ports: ["127.0.0.1:27018:27017"]
     tmpfs: ["/data/db"]
     healthcheck:
@@ -125,8 +127,8 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 **Scripts (`web-server/package.json`):**
 ```json
 "test": "node --test test/*.test.js",
-"test:db:up": "docker compose -f ../docker-compose.yml --profile test up -d --wait mongo-test",
-"test:db:down": "docker compose -f ../docker-compose.yml --profile test down mongo-test"
+"test:db:up": "docker compose -f ../docker-compose.test.yml up -d --wait",
+"test:db:down": "docker compose -f ../docker-compose.test.yml down"
 ```
 (`test/*.test.js` is shell-expanded and flat on purpose: it never picks up `client/` tests.)
 

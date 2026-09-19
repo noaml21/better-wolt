@@ -121,7 +121,7 @@ header middleware (harmless, affects static files only).
 
 ## 6. Testing strategy
 
-- **Real MongoDB 7.** Locally via Docker Compose (`mongo-test` service, profile `test`, tmpfs, port 27018); in CI via a `mongo:7`
+- **Real MongoDB 7.** Locally via Docker Compose (`docker-compose.test.yml`, service `mongo-test`, tmpfs, port 27018); in CI via a `mongo:7`
   service container. `TEST_MONGODB_URI` overrides for any Mongo 7 instance.
 - **Runner:** Node's built-in `node:test` + `supertest` (dev dependency). No Jest on the backend.
 - **Black-box:** tests call the Express `app` over HTTP and read/write through the API. Exceptions, all listed here: the seed test
@@ -172,3 +172,4 @@ header middleware (harmless, affects static files only).
 | 2026-09-19 | Review: dropped `requireRole` (one call site) and Zod for orders (existing validation is complete); `requireRestaurantOwner` lives in the restaurants feature. |
 | 2026-09-19 | Review: multi-fault error precedence and unexpected-error responses are not contract (§5). |
 | 2026-09-19 | Review: replaced "three green CI runs" with one serial + one parallel run; kept the mutation spot-check. |
+| 2026-09-19 | Implementation: test MongoDB lives in `docker-compose.test.yml` (project `better-wolt-test`), not a profile in `docker-compose.yml` — Compose interpolates the whole file, so the backend's required `JWT_SECRET` blocked starting only `mongo-test`. |

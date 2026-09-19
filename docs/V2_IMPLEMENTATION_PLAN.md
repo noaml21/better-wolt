@@ -52,7 +52,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 3.2 | BF-2: JSON parse + CORS errors | ☑ | |
 | 3.3 | BF-3: invalid ids → 404 | ☑ | |
 | 3.4a | BF-4: user/auth input validation | ☑ | |
-| 3.4b | BF-4: restaurant/product input validation | ☐ | |
+| 3.4b | BF-4: restaurant/product input validation | ☑ | |
 | 3.5 | Refactor: controllers without HTTP `try/catch`, owner middleware | ☐ | |
 | 3.6 | BF-5: literal search | ☐ | |
 | 3.7 | BF-6: auth rate limit | ☐ | |

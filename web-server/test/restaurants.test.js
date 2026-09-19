@@ -100,6 +100,30 @@ describe('restaurants and products', () => {
             assert.deepEqual(res.body, { error: 'Name is required' });
         });
 
+        test('[BF-4] non-string restaurant fields -> 400', async () => {
+            await actors();
+
+            for (const field of ['name', 'phone', 'address', 'image']) {
+                const res = await request()
+                    .post('/api/restaurants')
+                    .set(auth(owner.token))
+                    .send({ name: 'Ok', [field]: 42 });
+
+                assert.equal(res.status, 400, field);
+                assert.deepEqual(res.body, { error: `${field} must be a string` });
+            }
+        });
+
+        test('[BF-4] update without body -> 400 (was 400 with a JavaScript TypeError message)', async () => {
+            await actors();
+            const created = await createRestaurantAs(owner);
+
+            const res = await request().patch(`/api/restaurants/${created.id}`).set(auth(owner.token));
+
+            assert.equal(res.status, 400);
+            assert.deepEqual(res.body, { error: 'Missing required field: body' });
+        });
+
         test('duplicate name -> 400', async () => {
             await actors();
             await createRestaurantAs(owner, { name: 'Taken' });
@@ -434,8 +458,8 @@ describe('restaurants and products', () => {
             assert.equal((await request().get(path)).status, 200);
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-4] negative price is accepted', async () => {
+        // Regression: was 201 with price -5 stored
+        test('[BF-4] negative price -> 400', async () => {
             await actors();
             const restaurant = await createRestaurantAs(owner);
 
@@ -444,12 +468,12 @@ describe('restaurants and products', () => {
                 .set(auth(owner.token))
                 .send({ name: 'Free money', price: -5 });
 
-            assert.equal(res.status, 201);
-            assert.equal(res.body.price, -5);
+            assert.equal(res.status, 400);
+            assert.deepEqual(res.body, { error: 'Price must be a non-negative number' });
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-4] non-numeric price on create -> 500', async () => {
+        // Regression: was 500 (NaN rejected by Mongoose on save)
+        test('[BF-4] non-numeric price on create -> 400', async () => {
             await actors();
             const restaurant = await createRestaurantAs(owner);
 
@@ -458,21 +482,42 @@ describe('restaurants and products', () => {
                 .set(auth(owner.token))
                 .send({ name: 'Bad', price: 'abc' });
 
-            assert.equal(res.status, 500);
+            assert.equal(res.status, 400);
+            assert.deepEqual(res.body, { error: 'Price must be a non-negative number' });
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-4] non-numeric price on update -> 500', async () => {
+        // Regression: was 500 (NaN rejected by Mongoose on save)
+        test('[BF-4] non-numeric or negative price on update -> 400 and unchanged', async () => {
             await actors();
             const restaurant = await createRestaurantAs(owner);
-            const product = await addProductAs(owner, restaurant.id);
+            const product = await addProductAs(owner, restaurant.id, { price: 10 });
+            const path = `/api/restaurants/${restaurant.id}/products/${product.id}`;
 
-            const res = await request()
-                .patch(`/api/restaurants/${restaurant.id}/products/${product.id}`)
-                .set(auth(owner.token))
-                .send({ price: 'abc' });
+            for (const price of ['abc', -1]) {
+                const res = await request().patch(path).set(auth(owner.token)).send({ price });
 
-            assert.equal(res.status, 500);
+                assert.equal(res.status, 400, String(price));
+                assert.deepEqual(res.body, { error: 'Price must be a non-negative number' });
+            }
+            assert.equal((await request().get(path)).body.price, 10);
+        });
+
+        test('[BF-4] non-string product name or description -> 400', async () => {
+            await actors();
+            const restaurant = await createRestaurantAs(owner);
+
+            for (const [body, error] of [
+                [{ name: { a: 1 }, price: 1 }, 'name must be a string'],
+                [{ name: 'Ok', price: 1, description: 5 }, 'description must be a string'],
+            ]) {
+                const res = await request()
+                    .post(`/api/restaurants/${restaurant.id}/products`)
+                    .set(auth(owner.token))
+                    .send(body);
+
+                assert.equal(res.status, 400);
+                assert.deepEqual(res.body, { error });
+            }
         });
     });
 

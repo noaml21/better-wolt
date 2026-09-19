@@ -48,7 +48,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 2.4 | One `toApiProduct` | ☑ | |
 | 2.5 | `config.js` + `db.js` | ☑ | |
 | 2.6a–f | Feature-folder moves (one per commit) | ☑ | |
-| 3.1 | BF-1: `AppError`, error handler, `/api` 404 | ☐ | |
+| 3.1 | BF-1: `AppError`, error handler, `/api` 404 | ☑ | |
 | 3.2 | BF-2: JSON parse + CORS errors | ☐ | |
 | 3.3 | BF-3: invalid ids → 404 | ☐ | |
 | 3.4a | BF-4: user/auth input validation | ☐ | |

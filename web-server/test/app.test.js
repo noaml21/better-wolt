@@ -51,12 +51,17 @@ describe('app-level behavior', () => {
         assert.match(res.headers['content-type'], /text\/html/);
     });
 
-    // PINNED: old behavior, flipped in Phase 3
-    test('[BF-1] unknown /api path falls through to the SPA (200 HTML)', async () => {
-        const res = await request().get('/api/does-not-exist');
-
-        assert.equal(res.status, 200);
-        assert.match(res.headers['content-type'], /text\/html/);
+    // Regression: was 200 with the SPA index.html
+    test('[BF-1] unknown /api path -> 404 JSON', async () => {
+        for (const res of [
+            await request().get('/api/does-not-exist'),
+            await request().post('/api/restaurants/x/y/z').send({}),
+            await request().get('/api'),
+        ]) {
+            assert.equal(res.status, 404, res.req.path);
+            assert.match(res.headers['content-type'], /application\/json/);
+            assert.deepEqual(res.body, { error: 'Not found' });
+        }
     });
 
     // PINNED: old behavior, flipped in Phase 3

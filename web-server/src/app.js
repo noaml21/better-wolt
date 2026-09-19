@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const path = require('path');
 const config = require('./config');
+const { apiNotFound, errorHandler } = require('./http/errorHandler');
 const usersRouter = require('./features/users/users.routes');
 const tokensRouter = require('./features/auth/auth.routes');
 const restaurantsRouter = require('./features/restaurants/restaurants.routes');
@@ -32,6 +33,7 @@ app.use('/api/tokens', tokensRouter);
 app.use('/api/restaurants', restaurantsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/search', searchRouter);
+app.use('/api', apiNotFound);
 
 app.use((req, res, next) => {
     res.setHeader('Connection', 'keep-alive');
@@ -46,5 +48,7 @@ app.use(express.static(path.join(__dirname, '../client/build')));
 app.use((req, res) => {
     res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
+
+app.use(errorHandler);
 
 module.exports = app;

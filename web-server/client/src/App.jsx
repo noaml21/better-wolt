@@ -12,7 +12,6 @@ import ActiveOrderWidget from './components/ActiveOrderWidget';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import SearchResultsPage from './pages/searchResultPage';
 import './App.css';
-import './services/api'
 
 import HomePage from './pages/HomePage';
 import RestaurantsPage from './pages/RestaurantsPage';

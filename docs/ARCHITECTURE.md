@@ -206,7 +206,7 @@ Read only in `src/config.js` *(V2, Phase 2)*.
 | `PORT` | `8080` | Listen port |
 | `BCRYPT_ROUNDS` | `12` | bcrypt cost factor (integer 4–31); the test suite uses 4 |
 | `CORS_ORIGINS` | `http://localhost:3000,http://localhost:8080,http://localhost:8081,http://localhost:19006` | Comma-separated allowlist |
-| `AUTH_RATE_LIMIT_MAX` | `20` *(Phase 3)* | Attempts per 15 min per IP on login/register |
+| `AUTH_RATE_LIMIT_MAX` | `20` | Attempts per 15 min per IP on login (failed only) and registration (all) |
 | `NODE_ENV` | – | `production` in the Docker image |
 | `TEST_MONGODB_URI` | `mongodb://127.0.0.1:27018/better_wolt_test` | Tests only |
 | `EXPO_PUBLIC_API_URL` | `http://10.0.2.2:8080/api` | Mobile API base |

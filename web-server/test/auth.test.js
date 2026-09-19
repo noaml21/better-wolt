@@ -196,17 +196,7 @@ describe('auth and users', () => {
             assert.deepEqual(res.body, { error: 'Missing required field: body' });
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-6] repeated failed logins are never throttled', async () => {
-            const registered = await registerUser();
-
-            for (let attempt = 0; attempt < 25; attempt += 1) {
-                const res = await request()
-                    .post('/api/tokens')
-                    .send({ username: registered.username, password: 'wrongpass1' });
-                assert.equal(res.status, 401, `attempt ${attempt + 1}`);
-            }
-        });
+        // [BF-6] login/registration throttling is covered in rate-limit.test.js.
 
         // PINNED: old behavior, flipped in Phase 3
         test('[BF-7] unknown username skips bcrypt (timing difference)', async (t) => {

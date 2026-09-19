@@ -55,7 +55,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 3.4b | BF-4: restaurant/product input validation | ☑ | |
 | 3.5 | Refactor: controllers without HTTP `try/catch`, owner middleware | ☑ | |
 | 3.6 | BF-5: literal search | ☑ | |
-| 3.7 | BF-6: auth rate limit | ☐ | |
+| 3.7 | BF-6: auth rate limit | ☑ | |
 | 3.8 | BF-7: timing-safe login | ☐ | |
 | 3.9 | BF-8: HS256 only | ☐ | |
 | 3.10 | BF-9: body-size limits | ☐ | |

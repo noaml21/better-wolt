@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const db = require('./helpers/db');
 const { request, auth, createCustomer } = require('./helpers/api');
 // The one non-HTTP import allowed in the suite (spec §6): the seed has no endpoint.
-const seedWorldCupRestaurant = require('../src/services/seedWorldCupRestaurant');
+const seedWorldCupRestaurant = require('../src/seed/worldCup');
 
 const NAME = 'חגיגת מונדיאל';
 const LEGACY = ['חבילת מונדיאל זוגית', 'נשנושי מחצית'];

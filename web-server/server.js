@@ -3,7 +3,7 @@ require('dotenv').config();
 const app = require('./src/app');
 const config = require('./src/config');
 const connectDB = require('./src/db');
-const seedWorldCupRestaurant = require('./src/services/seedWorldCupRestaurant');
+const seedWorldCupRestaurant = require('./src/seed/worldCup');
 
 async function startServer() {
     try {

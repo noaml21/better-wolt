@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { createOrder, getRestaurants } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+// Seeded by the server (web-server/src/seed/worldCup.js). The restaurant name
+// and the dish names below are part of the API contract (docs/ARCHITECTURE.md §6).
+const WORLD_CUP_RESTAURANT_NAME = 'חגיגת מונדיאל';
+
 const worldCupData = [
     { key: 'france', team: 'צרפת', dishName: 'פרנץ\' טוסט מתוק', price: 30, flag: 'https://flagcdn.com/w80/fr.png', image: 'https://cdn-icons-png.flaticon.com/512/3014/3014502.png' },
     { key: 'germany', team: 'גרמניה', dishName: 'המבורגר בווארי', price: 30, flag: 'https://flagcdn.com/w80/de.png', image: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png' },
@@ -55,10 +59,10 @@ const WorldCupFeature = () => {
 
         try {
             const serverRestaurants = await getRestaurants();
-            const worldCupRestaurant = serverRestaurants.find(r => r.name === 'חגיגת מונדיאל');
+            const worldCupRestaurant = serverRestaurants.find(r => r.name === WORLD_CUP_RESTAURANT_NAME);
 
             if (!worldCupRestaurant) {
-                alert("שגיאה: מסעדת 'חגיגת מונדיאל 🏆' עדיין לא הוקמה במערכת.\nאנא צרו אותה פעם אחת דרך כפתור 'צור מסעדה חדשה'.");
+                alert('תפריט המונדיאל אינו זמין כרגע. נסו שוב מאוחר יותר.');
                 return;
             }
 

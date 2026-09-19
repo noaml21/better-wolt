@@ -222,10 +222,13 @@ export function deleteProduct(
   );
 }
 
+// Seeded by the server (web-server/src/seed/worldCup.js). The restaurant name
+// and the dish names in WorldCupScreen are part of the API contract
+// (docs/ARCHITECTURE.md §6).
+const WORLD_CUP_RESTAURANT_NAME = 'חגיגת מונדיאל';
+
 export async function getWorldCupRestaurant() {
-  const results = await searchRestaurants(
-    'חגיגת מונדיאל'
-  );
+  const results = await searchRestaurants(WORLD_CUP_RESTAURANT_NAME);
 
   if (!Array.isArray(results)) {
     throw new Error(
@@ -236,8 +239,7 @@ export async function getWorldCupRestaurant() {
   return (
     results.find(
       (restaurant) =>
-        restaurant?.name?.trim() ===
-        'חגיגת מונדיאל'
+        restaurant?.name?.trim() === WORLD_CUP_RESTAURANT_NAME
     ) || null
   );
 }

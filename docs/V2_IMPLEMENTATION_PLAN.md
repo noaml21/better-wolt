@@ -50,7 +50,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 2.6a–f | Feature-folder moves (one per commit) | ☑ | |
 | 3.1 | BF-1: `AppError`, error handler, `/api` 404 | ☑ | |
 | 3.2 | BF-2: JSON parse + CORS errors | ☑ | |
-| 3.3 | BF-3: invalid ids → 404 | ☐ | |
+| 3.3 | BF-3: invalid ids → 404 | ☑ | |
 | 3.4a | BF-4: user/auth input validation | ☐ | |
 | 3.4b | BF-4: restaurant/product input validation | ☐ | |
 | 3.5 | Refactor: controllers without HTTP `try/catch`, owner middleware | ☐ | |
@@ -80,8 +80,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 - **Phase 2 exit (2026-09-19):** 132 API tests green (6 s with `BCRYPT_ROUNDS=4`); test diff since Phase 1 = the seed import path plus the `BCRYPT_ROUNDS` line in `helpers/env.js` (assertions untouched); `process.env` only in `config.js`; no layer folders left; `docker compose up --build` + Appendix A 1–6 PASS. Extra commit `cdfaf85`: search and orders now reach restaurant data through `restaurants.service` instead of importing its model (§3.1 rule), search.service folded into it.
 
 - **Checkpoint (2026-09-19, session paused):** 3.1 (BF-1) and 3.2 (BF-2) are committed and green (133 API tests). 3.2 also maps `entity.too.large` to `413 Payload too large`, which was planned for 3.10. That preserves today's 413 status for bodies over 5 MB and only changes its format, so 3.10 now only changes the limits.
-  **3.3 (BF-3) is in progress and NOT committed:** only step 1 is done. `web-server/test/restaurants.test.js` has uncommitted edits in the working tree: the two `[BF-3]` pins are flipped to expect `404` with the missing-document message on each route (`GET …/products/:pId` with an invalid restaurant id expects `Product not found`; all other routes expect `Restaurant not found`), and a new `[BF-3] invalid product id under a valid restaurant` case is added. The fix (`src/http/validate.js` `objectIdParam` on the `restaurants.routes.js` id routes) is not written. The last run of that test file did not finish within 120 s, and the cause was not investigated. Every earlier full run of the file took about 3 s.
-  **Next action:** `npm run test:db:up`, then `node --test test/restaurants.test.js` (look for a request that never resolves in the new cases). Once it fails cleanly, apply the 3.3 fix and commit per the fix protocol.
+  **3.3 (BF-3):** the first flipped test hung because it asserted inside a loop over pre-built supertest requests. supertest opens a listening server per request and closes it only when the request is awaited, so the first failed assertion left 5 servers open and the test process never exited. Fixed by settling all requests with `Promise.all` before asserting. Then it failed cleanly (400/500 vs 404), and the fix made it pass. For `GET …/products/:pId`, an invalid restaurant id uses `Product not found`, matching an unknown restaurant id on that route.
 
 ## Rules that apply to every phase
 

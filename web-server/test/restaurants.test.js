@@ -484,32 +484,52 @@ describe('restaurants and products', () => {
             assert.deepEqual(res.body, { error: 'Restaurant not found' });
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-3] PATCH /restaurants/:id -> 400 with Mongoose cast text', async () => {
+        // Regression: was 400 with the raw Mongoose CastError text
+        test('[BF-3] PATCH /restaurants/:id -> 404, no driver text', async () => {
             await actors();
 
             const res = await request().patch(`/api/restaurants/${BAD_ID}`).set(auth(owner.token)).send({ name: 'x' });
 
-            assert.equal(res.status, 400);
-            assert.match(res.body.error, /Cast|ObjectId/);
+            assert.equal(res.status, 404);
+            assert.deepEqual(res.body, { error: 'Restaurant not found' });
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-3] other restaurant/product routes -> 500', async () => {
+        // Regression: these were 500 Error processing request
+        test('[BF-3] other restaurant/product routes -> 404 with the missing-document message', async () => {
             await actors();
             const product = { name: uniqueName('Dish'), price: 1 };
             const cases = [
-                request().get(`/api/restaurants/${BAD_ID}/products`),
-                request().get(`/api/restaurants/${BAD_ID}/products/${MISSING_ID}`),
-                request().delete(`/api/restaurants/${BAD_ID}`).set(auth(owner.token)),
-                request().post(`/api/restaurants/${BAD_ID}/products`).set(auth(owner.token)).send(product),
-                request().patch(`/api/restaurants/${BAD_ID}/products/${MISSING_ID}`).set(auth(owner.token)).send({ price: 1 }),
-                request().delete(`/api/restaurants/${BAD_ID}/products/${MISSING_ID}`).set(auth(owner.token)),
+                ['Restaurant not found', request().get(`/api/restaurants/${BAD_ID}/products`)],
+                ['Product not found', request().get(`/api/restaurants/${BAD_ID}/products/${MISSING_ID}`)],
+                ['Restaurant not found', request().delete(`/api/restaurants/${BAD_ID}`).set(auth(owner.token))],
+                ['Restaurant not found', request().post(`/api/restaurants/${BAD_ID}/products`).set(auth(owner.token)).send(product)],
+                ['Restaurant not found', request().patch(`/api/restaurants/${BAD_ID}/products/${MISSING_ID}`).set(auth(owner.token)).send({ price: 1 })],
+                ['Restaurant not found', request().delete(`/api/restaurants/${BAD_ID}/products/${MISSING_ID}`).set(auth(owner.token))],
             ];
 
-            for (const res of await Promise.all(cases)) {
-                assert.equal(res.status, 500, `${res.req.method} ${res.req.path}`);
-                assert.deepEqual(res.body, { error: 'Error processing request' });
+            // Settle every request first: supertest opens a server per request and only
+            // closes it once awaited, so asserting mid-loop would leak open servers.
+            const responses = await Promise.all(cases.map(([, pending]) => pending));
+
+            for (const [index, res] of responses.entries()) {
+                const [message] = cases[index];
+                assert.equal(res.status, 404, `${res.req.method} ${res.req.path}`);
+                assert.deepEqual(res.body, { error: message }, `${res.req.method} ${res.req.path}`);
+            }
+        });
+
+        test('[BF-3] invalid product id under a valid restaurant -> 404 on every product route', async () => {
+            await actors();
+            const restaurant = await createRestaurantAs(owner);
+            const path = `/api/restaurants/${restaurant.id}/products/${BAD_ID}`;
+
+            for (const res of [
+                await request().get(path),
+                await request().patch(path).set(auth(owner.token)).send({ price: 1 }),
+                await request().delete(path).set(auth(owner.token)),
+            ]) {
+                assert.equal(res.status, 404, res.req.method);
+                assert.deepEqual(res.body, { error: 'Product not found' });
             }
         });
     });

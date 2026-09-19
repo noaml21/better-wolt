@@ -1,4 +1,4 @@
-const searchService = require('../services/search');
+const searchService = require('./search.service');
 
 async function search(req, res) {
   const query = String(req.params.query || '').trim();

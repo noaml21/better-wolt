@@ -7,7 +7,7 @@ const usersRouter = require('./routes/users');
 const tokensRouter = require('./routes/tokens');
 const restaurantsRouter = require('./routes/restaurants');
 const ordersRouter = require('./routes/orders');
-const searchRouter = require('./routes/search');
+const searchRouter = require('./features/search/search.routes');
 
 const app = express();
 

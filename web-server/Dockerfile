@@ -1,7 +1,7 @@
 # Builds the React web client, then runs the Node/Express API server.
 # The Express server also serves client/build for the web application.
 
-FROM node:20-bookworm-slim AS web-build
+FROM node:24-bookworm-slim AS web-build
 WORKDIR /app/client
 
 COPY client/package*.json ./
@@ -11,7 +11,7 @@ COPY client/ ./
 RUN npm run build
 
 
-FROM node:20-bookworm-slim AS backend
+FROM node:24-bookworm-slim AS backend
 WORKDIR /app
 
 ENV NODE_ENV=production

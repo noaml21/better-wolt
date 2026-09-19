@@ -260,18 +260,25 @@ describe('auth and users', () => {
             assert.deepEqual(res.body, { error: 'Invalid or expired token' });
         });
 
-        // PINNED: old behavior, flipped in Phase 3
-        test('[BF-8] HS512 token signed with the secret is accepted', async () => {
+        // Regression: HS384/HS512 tokens signed with the secret were accepted
+        test('[BF-8] only HS256 tokens are accepted', async () => {
             const customer = await createCustomer();
-            const hs512 = jwt.sign(
-                { id: customer.id, username: customer.username, role: 'customer' },
-                'test-secret',
-                { algorithm: 'HS512', expiresIn: '1h' }
-            );
 
-            const res = await request().get('/api/orders').set(auth(hs512));
+            for (const algorithm of ['HS384', 'HS512']) {
+                const token = jwt.sign(
+                    { id: customer.id, username: customer.username, role: 'customer' },
+                    'test-secret',
+                    { algorithm, expiresIn: '1h' }
+                );
 
-            assert.equal(res.status, 200);
+                const res = await request().get('/api/orders').set(auth(token));
+
+                assert.equal(res.status, 401, algorithm);
+                assert.deepEqual(res.body, { error: 'Invalid or expired token' });
+            }
+
+            const ok = await request().get('/api/orders').set(auth(customer.token));
+            assert.equal(ok.status, 200, 'issued HS256 token still works');
         });
     });
 

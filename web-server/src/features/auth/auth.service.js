@@ -5,13 +5,14 @@ const usersService = require('../users/users.service');
 
 function createToken(payload) {
     return jwt.sign(payload, config.jwtSecret, {
+        algorithm: 'HS256',
         expiresIn: '24h'
     });
 }
 
 function verifyToken(token) {
     try {
-        return jwt.verify(token, config.jwtSecret);
+        return jwt.verify(token, config.jwtSecret, { algorithms: ['HS256'] });
     } catch (error) {
         return null;
     }

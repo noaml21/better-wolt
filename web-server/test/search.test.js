@@ -63,23 +63,32 @@ describe('GET /api/search/:query', () => {
         assert.deepEqual(res.body, { error: 'Missing search query' });
     });
 
-    // PINNED: old behavior, flipped in Phase 3
-    test('[BF-5] ".*" is treated as a regex and matches everything', async () => {
+    // Regression: was treated as a regex and matched every restaurant
+    test('[BF-5] ".*" is matched literally', async () => {
         await seed();
 
         const res = await search('.*');
 
         assert.equal(res.status, 200);
-        assert.deepEqual(names(res), ['Napoli Pizza', 'Tokyo Bar']);
+        assert.deepEqual(res.body, []);
     });
 
-    // PINNED: old behavior, flipped in Phase 3
-    test('[BF-5] "(" is an invalid regex -> 500', async () => {
+    // Regression: was an invalid regex -> 500
+    test('[BF-5] "(" is matched literally -> 200', async () => {
         await seed();
 
         const res = await search('(');
 
-        assert.equal(res.status, 500);
-        assert.deepEqual(res.body, { error: 'Error processing request' });
+        assert.equal(res.status, 200);
+        assert.deepEqual(res.body, []);
+    });
+
+    test('[BF-5] regex characters in names are matched literally', async () => {
+        const owner = await createOwner();
+        await createRestaurantAs(owner, { name: 'A.B Grill (Downtown)' });
+        await createRestaurantAs(owner, { name: 'AxB Grill' });
+
+        assert.deepEqual(names(await search('A.B')), ['A.B Grill (Downtown)']);
+        assert.deepEqual(names(await search('(downtown)')), ['A.B Grill (Downtown)']);
     });
 });

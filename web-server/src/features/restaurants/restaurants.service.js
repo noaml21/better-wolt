@@ -118,7 +118,9 @@ async function searchRestaurants(query) {
         return [];
     }
 
-    const regex = new RegExp(normalizedQuery, 'i');
+    // The query is plain text: escape regex syntax so it is matched literally.
+    const escaped = normalizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escaped, 'i');
 
     const restaurants = await Restaurant.find({
         $or: [

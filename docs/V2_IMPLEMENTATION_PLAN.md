@@ -84,6 +84,8 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 
 - **Phase 3 exit (2026-09-19):** BF-1…BF-9 each landed as one commit whose flipped test was seen failing first (quoted in each commit body). 142 API tests green; `grep -rn PINNED web-server/test` is empty; no controller has an HTTP `try/catch`. 3.5 (refactor) passed with zero test edits. `npm audit` after in-range fixes (`c79303e`): 0 vulnerabilities. Deviations: `413` JSON mapping moved into 3.2 (see above); the Zod helpers `requestBody`/`requiredString`/`optionalString` live in `http/validate.js`; the rate limiter is `http/rateLimit.js` (used by the auth and users features).
 
+- **Phase 4 (2026-09-19):** 4.1–4.3 committed. Web Jest 11/11, `CI=true npm run build` OK, mobile `expo export --platform android` OK. `docker compose up --build` + Appendix A steps 1–6 PASS. A headless Chrome `--dump-dom` of `/`, `/restaurants`, `/search?q=pizza` and `/login` shows the React app rendering (navbar present; World Cup entry on `/`). **Not done:** the interactive steps 7–12 (web clicks through cart/order/owner flows; Android emulator). No browser automation or emulator was available to the implementing agent, so they are left for human review.
+
 ## Rules that apply to every phase
 
 - **Entry check (every session):** on the right branch; `git status` clean or containing only this task's changes; the last commit's test run green (`npm run test:db:up && npm test` in `web-server/`).
@@ -288,7 +290,7 @@ Create `.github/workflows/ci.yml`, triggered on `push` and `pull_request`, all j
 | 4.2 | World Cup: web `WorldCupFeature.jsx` — remove the stale alert telling users to create the restaurant manually (the server seeds it); replace it with a plain "not available" message. Both clients reference the restaurant name through one named constant per client (`WORLD_CUP_RESTAURANT_NAME`), matching the name documented in ARCHITECTURE.md §6. | Appendix A steps 9 and 12. |
 | 4.3 | Delete `mobile/src/screens/EditProfileScreen.js` after re-confirming with `grep` that nothing imports it (it calls a nonexistent `/users/update-profile` route through a nonexistent default `api` export). Remove the no-op `import './services/api'` in `App.jsx`. Any other dead code found in 4.1 is removed only if `grep` confirms it is unreferenced. | `npm run build`, web tests, mobile CI job green. |
 
-**Exit:** [ ] web + mobile CI jobs green; [ ] Appendix A completed on web and on an Android emulator, results noted in Progress; [ ] both clients show the server's `error` text for every status in §4.
+**Exit:** [x] web + mobile CI jobs green; [ ] Appendix A completed on web and on an Android emulator, results noted in Progress — **steps 1–6 done (API); steps 7–12 need a human** (see notes); [x] both clients show the server's `error` text for every status in §4.
 **Rollback:** revert commits; no backend or data change is involved.
 
 ---

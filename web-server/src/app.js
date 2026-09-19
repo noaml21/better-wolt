@@ -3,7 +3,7 @@ const cors = require('cors');
 
 const path = require('path');
 const config = require('./config');
-const usersRouter = require('./routes/users');
+const usersRouter = require('./features/users/users.routes');
 const tokensRouter = require('./features/auth/auth.routes');
 const restaurantsRouter = require('./routes/restaurants');
 const ordersRouter = require('./routes/orders');

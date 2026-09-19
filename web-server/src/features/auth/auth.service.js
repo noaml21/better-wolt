@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../../config');
-const usersService = require('../../services/users');
+const usersService = require('../users/users.service');
 
 function createToken(payload) {
     return jwt.sign(payload, config.jwtSecret, {

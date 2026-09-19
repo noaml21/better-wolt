@@ -1,5 +1,5 @@
 const ordersService = require('../services/orders');
-const usersService = require('../services/users');
+const usersService = require('../features/users/users.service');
 
 async function getUserOrders(req, res) {
     const username = req.user.username;

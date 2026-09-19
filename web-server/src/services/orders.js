@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Restaurant = require('../models/Restaurant');
-const usersService = require('./users');
+const usersService = require('../features/users/users.service');
 
 const INITIAL_ORDER_STATUS = 'בדרך 🛵';
 

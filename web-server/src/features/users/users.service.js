@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
-const User = require('../models/User');
-const config = require('../config');
+const User = require('./user.model');
+const config = require('../../config');
 
 
 async function hashPassword(password) {

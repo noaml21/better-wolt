@@ -1,16 +1,8 @@
 const ordersService = require('../services/orders');
 const usersService = require('../services/users');
 
-function getRequestUsername(req) {
-    if (req.user && req.user.username) {
-        return req.user.username;
-    }
-
-    return req.headers['x-user-id'] || req.header('username');
-}
-
 async function getUserOrders(req, res) {
-    const username = getRequestUsername(req);
+    const username = req.user.username;
 
     try {
         const user = await usersService.findUserByUsername(username);
@@ -74,7 +66,7 @@ async function createOrder(req, res) {
 }
 
 async function getOrder(req, res) {
-    const username = getRequestUsername(req);
+    const username = req.user.username;
 
     try {
         const user = await usersService.findUserByUsername(username);
@@ -109,7 +101,7 @@ async function getOrder(req, res) {
 }
 
 async function deleteOrder(req, res) {
-    const username = getRequestUsername(req);
+    const username = req.user.username;
 
     try {
         const user = await usersService.findUserByUsername(username);

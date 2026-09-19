@@ -22,10 +22,6 @@ function requireAuth(req, res, next) {
 
     req.user = payload;
 
-    // Compatibility with old controllers that read these headers.
-    req.headers['x-user-id'] = payload.username;
-    req.headers.username = payload.username;
-
     return next();
 }
 

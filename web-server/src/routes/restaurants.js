@@ -1,7 +1,7 @@
 const express = require('express');
 const restaurantsController = require('../controllers/restaurants');
 const productsController = require('../controllers/products');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth } = require('../http/auth');
 
 const router = express.Router();
 

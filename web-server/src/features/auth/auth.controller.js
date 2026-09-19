@@ -1,4 +1,4 @@
-const tokensService = require('../services/tokens');
+const tokensService = require('./auth.service');
 
 async function login(req, res) {
     if (!req.body) {

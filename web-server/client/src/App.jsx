@@ -2,7 +2,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui';
-import './styles/legacy.css';
 import TopBar from './components/layout/TopBar';
 import AppFooter from './components/layout/AppFooter';
 import ProtectedRoute from './components/ProtectedRoute';

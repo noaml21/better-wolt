@@ -13,8 +13,8 @@ the first unchecked box without conversation history.
       Playwright at 1440×900 and 390×844, findings recorded as A1–A14 in the design spec, spec and plan written.
 - [x] **Phase 1 — Web foundations.** Tokens, type, reset, RTL shell, `components/ui` primitives, top bar, toasts, 404.
 - [x] **Phase 2 — Web discovery.** Home, restaurant cards, listing, search, sponsored slot, skeletons and empty states.
-- [ ] **Phase 3 — Web restaurant, cart and orders.** Restaurant page, menu, cart with steppers, checkout, orders, tracking.
-- [ ] **Phase 4 — Web auth and owner flows.** Login, register, restaurant create/edit, menu management, role states.
+- [x] **Phase 3 — Web restaurant, cart and orders.** Restaurant page, menu, cart with steppers, checkout, orders, tracking.
+- [x] **Phase 4 — Web auth and owner flows.** Login, register, restaurant create/edit, menu management, role states.
 - [ ] **Phase 5 — Mobile foundations.** Theme, `src/ui` primitives, tab navigation, screen header, safe areas, toasts.
 - [ ] **Phase 6 — Mobile customer flows.** Home, search, restaurant details, cart, orders, tracking.
 - [ ] **Phase 7 — Mobile owner flows and World Cup.** Restaurant/product forms, the campaign on both clients.
@@ -71,8 +71,9 @@ Exit: place an order end-to-end in the browser, land on tracking, see it in hist
 
 ### Phase 4 — Web auth and owner flows
 `LoginPage` / `RegisterPage` as a split layout with tied labels, inline validation, `aria-describedby`, and the server's
-contract strings shown verbatim. Owner: `/restaurant/:id/manage` replaces both modals — restaurant details form and menu
-management (create, edit, delete with a real confirm dialog). Role-aware empty and forbidden states.
+contract strings shown verbatim. Owner management happens **on the restaurant page itself** rather than at a separate
+`/restaurant/:id/manage` route (the plan's original idea): the owner sees edit/delete on the hero and add/edit/delete on
+each dish, so the menu is managed where it is read and there is no second copy of it to keep in sync.
 Exit: register → create restaurant → add dishes → order from another account.
 
 ### Phase 5 — Mobile foundations

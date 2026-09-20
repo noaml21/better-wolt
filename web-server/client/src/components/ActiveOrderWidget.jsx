@@ -1,62 +1,75 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserOrders } from '../services/api';
+import { getSecondsLeft, isActive } from '../services/orderStatus';
+import Icon from './ui/Icon';
+import './ActiveOrderWidget.css';
 
-const ActiveOrderWidget = () => {
-    // 1. אתחול כמערך ריק כדי למנוע שגיאות null
-    const [activeOrders, setActiveOrders] = useState([]); 
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
+/* A single dock for orders on their way. It refreshes when the route
+   changes and once a minute — the server never advances a status, so
+   polling harder would only repeat the same answer (ARCHITECTURE §6). */
 
-    useEffect(() => {
-        if (!user || !user.username) return;
+const REFRESH_MS = 60000;
+const HIDDEN_PATHS = ['/tracking', '/login', '/register'];
 
-        const checkActiveOrder = async () => {
-            try {
-                const savedOrders = await getUserOrders();
+export default function ActiveOrderWidget() {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const [activeOrders, setActiveOrders] = useState([]);
 
-                const currentActive = savedOrders.filter(order =>
-                    order.status && order.status.includes('בדרך')
-                );
-
-                setActiveOrders(currentActive);
-            } catch (error) {
-                console.error("שגיאה בטעינת הזמנות פעילות:", error);
-                setActiveOrders([]);
-            }
-        };
-
-        checkActiveOrder();
-        const interval = setInterval(checkActiveOrder, 2000);
-        return () => clearInterval(interval);
-    }, [user]);
-
-    // 2. תנאי הסתרה: 
-    // - אם אין הזמנות
-    // - או שאנחנו בעמוד מעקב
-    // - או שאנחנו בעמודי התחברות/הרשמה
-    const isHidden = location.pathname.includes('/tracking') || 
-                     ['/login', '/register'].some(path => location.pathname.includes(path));
-
-    if (activeOrders.length === 0 || isHidden) {
-        return null;
+  const refresh = useCallback(async () => {
+    if (!isAuthenticated) {
+      setActiveOrders([]);
+      return;
     }
 
-    return (
-        <div className="active-orders-container">
-            {activeOrders.map(order => (
-                <div key={order.id} className="active-order-widget" onClick={() => navigate(`/tracking/${order.id}`)}>
-                    <div className="widget-icon">🛵</div>
-                    <div className="widget-info">
-                        <strong>הזמנה בדרך!</strong>
-                        <span>{order.restaurantName || 'המשלוח שלך'}</span>
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-};
+    try {
+      const orders = await getUserOrders();
 
-export default ActiveOrderWidget;
+      setActiveOrders(Array.isArray(orders) ? orders.filter(isActive) : []);
+    } catch (error) {
+      setActiveOrders([]);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh, location.pathname]);
+
+  useEffect(() => {
+    const timer = window.setInterval(refresh, REFRESH_MS);
+
+    return () => window.clearInterval(timer);
+  }, [refresh]);
+
+  const hidden = HIDDEN_PATHS.some((path) => location.pathname.startsWith(path));
+
+  if (hidden || activeOrders.length === 0) {
+    return null;
+  }
+
+  const [order] = activeOrders;
+  const minutesLeft = Math.ceil(getSecondsLeft(order) / 60);
+
+  return (
+    <div className="bw-dock">
+      <Link to={`/tracking/${order.id}`} className="bw-dock__pill">
+        <span className="bw-dock__icon" aria-hidden="true">
+          <Icon name="scooter" size={20} />
+        </span>
+
+        <span className="bw-dock__text">
+          <strong>
+            {activeOrders.length > 1 ? `${activeOrders.length} הזמנות בדרך` : 'ההזמנה בדרך'}
+          </strong>
+          <span>
+            {order.restaurantName} · עוד {minutesLeft} דק׳
+          </span>
+        </span>
+
+        <Icon name="back" size={18} />
+      </Link>
+    </div>
+  );
+}

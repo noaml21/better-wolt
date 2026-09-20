@@ -1,0 +1,28 @@
+.bw-restaurant-page__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bw-space-7);
+  align-items: start;
+}
+
+.bw-restaurant-page__cart {
+  display: none;
+}
+
+/* The cart only becomes a panel when there is room for it beside the menu. */
+@media (min-width: 1100px) {
+  .bw-restaurant-page__layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .bw-restaurant-page__cart {
+    display: block;
+  }
+}
+
+/* Room for the docked cart bar. */
+@media (max-width: 1099px) {
+  .bw-restaurant-page {
+    padding-block-end: var(--bw-space-11);
+  }
+}

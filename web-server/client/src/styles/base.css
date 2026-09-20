@@ -187,6 +187,12 @@ button {
   letter-spacing: -0.01em;
 }
 
+.bw-order-number {
+  unicode-bidi: isolate;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+
 .bw-meta {
   color: var(--bw-ink-muted);
   font-size: var(--bw-caption);

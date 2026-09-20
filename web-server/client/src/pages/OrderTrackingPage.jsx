@@ -1,87 +1,173 @@
-import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { getOrderById } from '../services/api';
-const OrderTrackingPage = () => {
-    const { orderId } = useParams();
-    const { user } = useAuth();
-    const [timeLeft, setTimeLeft] = useState(null);
-    const timerRef = useRef(null);
+import {
+  formatCountdown,
+  formatOrderNumber,
+  getProgress,
+  getSecondsLeft,
+  getStageIndex,
+  stages,
+} from '../services/orderStatus';
+import {
+  Card,
+  EmptyState,
+  ErrorState,
+  Icon,
+  LinkButton,
+  Skeleton,
+  formatPrice,
+} from '../components/ui';
+import './OrderTrackingPage.css';
 
-    useEffect(() => {
-        if (!user?.username || !orderId) return;
+/* The showpiece. Progress is derived from the order's startTime, which is
+   what the clients have always done — the server does not advance status
+   (ARCHITECTURE §6). The countdown recomputes from the timestamp on every
+   tick rather than decrementing, so a backgrounded tab stays correct. */
 
-        const loadOrder = async () => {
-            try {
-                const order = await getOrderById(orderId);
+export default function OrderTrackingPage() {
+  const { orderId } = useParams();
+  const [order, setOrder] = useState(null);
+  const [status, setStatus] = useState('loading');
+  const [secondsLeft, setSecondsLeft] = useState(null);
 
-                if (order && order.startTime) {
-                    const elapsed = Math.floor((new Date().getTime() - order.startTime) / 1000);
-                    const remaining = Math.max(0, 1800 - elapsed);
-                    setTimeLeft(remaining);
-                } else {
-                    setTimeLeft(1800);
-                }
-            } catch (error) {
-                console.error("לא הצלחנו לטעון את ההזמנה מהשרת:", error);
-                setTimeLeft(0);
-            }
-        };
+  const load = useCallback(async () => {
+    setStatus('loading');
 
-        loadOrder();
+    try {
+      const data = await getOrderById(orderId);
 
-        // טיימר
-        timerRef.current = setInterval(() => {
-            setTimeLeft((prev) => {
-                // אם הערך הוא 0 או שעדיין לא חושב
-                if (!prev) {
-                    clearInterval(timerRef.current); // 1. עוצרים את פעולת ה-setInterval ברקע
-                    return 0; // 2. מבטיחים שה-State יישאר בדיוק על 0 ולא ירד למינוס
-                }
+      setOrder(data);
+      setSecondsLeft(getSecondsLeft(data));
+      setStatus('ready');
+    } catch (error) {
+      setStatus(error.status === 404 ? 'missing' : 'error');
+    }
+  }, [orderId]);
 
-                // כל עוד יש זמן, מורידים שנייה אחת
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(timerRef.current);
-    }, [orderId, user]);
-    // מאזין אקטיבי לטיימר - משנה סטטוס רק כשהזמן מגיע ל-0
-    // אם עדיין לא נטען
-    if (timeLeft === null) return <div className="page-content">טוען נתונים...</div>;
+  useEffect(() => {
+    load();
+  }, [load]);
 
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    const formattedSeconds = seconds < 10 ? `0${seconds}` : seconds;
-    const progressPercent = ((1800 - timeLeft) / 1800) * 100;
+  useEffect(() => {
+    if (!order) {
+      return undefined;
+    }
 
+    const timer = window.setInterval(() => setSecondsLeft(getSecondsLeft(order)), 1000);
+
+    return () => window.clearInterval(timer);
+  }, [order]);
+
+  if (status === 'loading') {
     return (
-        <div className="page-content tracking-page">
-            <h2>מעקב הזמנה</h2>
-            <p className="tracking-id">הזמנה #{orderId}</p>
-
-            <div className="eta-container">
-                <div className="eta-circle">
-                    <span className="time">{minutes}:{formattedSeconds}</span>
-                    <span className="label">דקות להגעה</span>
-                </div>
-            </div>
-
-            <div className="progress-container">
-                <div className="progress-bar" style={{ width: `${progressPercent}%` }}></div>
-            </div>
-
-            <div className="tracking-status">
-                {timeLeft > 1500 ? 'המסעדה מכינה את ההזמנה שלך 🍳' :
-                    timeLeft > 0 ? 'השליח בדרך אליך 🛵' : 'בתיאבון! ההזמנה הגיעה 🎉'}
-            </div>
-
-            <div style={{ marginTop: '2rem' }}>
-                <Link to="/orders">
-                    <button className="secondary-btn">צפה בהיסטוריית הזמנות</button>
-                </Link>
-            </div>
-        </div>
+      <div className="bw-page bw-page--narrow" aria-busy="true">
+        <Skeleton height={260} radius="lg" />
+      </div>
     );
-};
+  }
 
-export default OrderTrackingPage;
+  if (status === 'missing') {
+    return (
+      <div className="bw-page bw-page--narrow">
+        <EmptyState
+          icon="bag"
+          title="ההזמנה הזו לא נמצאה"
+          description="ייתכן שהיא נמחקה, או ששייכת לחשבון אחר."
+          action={<LinkButton to="/orders">להזמנות שלי</LinkButton>}
+        />
+      </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="bw-page bw-page--narrow">
+        <ErrorState description="לא הצלחנו להביא את פרטי ההזמנה." onRetry={load} />
+      </div>
+    );
+  }
+
+  const stageIndex = getStageIndex(secondsLeft);
+  const progress = getProgress(secondsLeft);
+  const arrived = secondsLeft <= 0;
+  const stage = stages[stageIndex];
+
+  return (
+    <div className="bw-page bw-page--narrow bw-tracking">
+      <header className="bw-tracking__intro">
+        <h1>{arrived ? 'ההזמנה הגיעה' : 'ההזמנה בדרך'}</h1>
+        <p className="bw-meta">
+          {order.restaurantName}
+          {' · '}
+          <span className="bw-order-number">{formatOrderNumber(order.id)}</span>
+        </p>
+      </header>
+
+      <section className={`bw-tracking__stage ${arrived ? 'bw-tracking__stage--arrived' : ''}`}>
+        <p className="bw-tracking__countdown-label">{arrived ? 'ההזמנה הגיעה' : 'זמן משוער להגעה'}</p>
+
+        <p className="bw-tracking__countdown bw-display" aria-live="off">
+          {arrived ? <Icon name="check" size={64} strokeWidth={2.2} /> : formatCountdown(secondsLeft)}
+        </p>
+
+        <p className="bw-tracking__status" role="status">
+          {stage.note}
+        </p>
+
+        <div className="bw-tracking__rail">
+          <div className="bw-tracking__track" aria-hidden="true">
+            <span className="bw-tracking__fill" style={{ width: `${progress}%` }} />
+            <span className="bw-tracking__rider" style={{ insetInlineStart: `${progress}%` }}>
+              <Icon name={arrived ? 'check' : 'scooter'} size={20} />
+            </span>
+          </div>
+
+          <ol className="bw-tracking__stops">
+            {stages.map((item, index) => (
+              <li
+                key={item.key}
+                className={`bw-tracking__stop ${index <= stageIndex ? 'bw-tracking__stop--done' : ''}`}
+                aria-current={index === stageIndex ? 'step' : undefined}
+              >
+                {item.label}
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <Card className="bw-tracking__summary">
+        <h2>מה בהזמנה</h2>
+
+        <ul className="bw-tracking__items">
+          {(order.orderItems || []).map((item) => (
+            <li key={item.productId}>
+              <span className="bw-tracking__item-name">
+                <span className="bw-tracking__item-quantity" dir="ltr">
+                  {item.quantity}×
+                </span>
+                {item.name}
+              </span>
+              <span>{formatPrice(item.price * item.quantity)}</span>
+            </li>
+          ))}
+        </ul>
+
+        <p className="bw-tracking__total">
+          <span>סך הכול</span>
+          <strong>{formatPrice(order.total)}</strong>
+        </p>
+      </Card>
+
+      <div className="bw-actions">
+        <LinkButton to="/orders" variant="secondary">
+          לכל ההזמנות
+        </LinkButton>
+        <LinkButton to="/restaurants" variant="ghost">
+          להזמין עוד משהו
+        </LinkButton>
+      </div>
+    </div>
+  );
+}

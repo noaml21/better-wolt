@@ -1,0 +1,58 @@
+.bw-dock {
+  position: fixed;
+  inset-block-end: var(--bw-space-5);
+  inset-inline-end: var(--bw-space-5);
+  z-index: 58;
+  max-width: calc(100vw - var(--bw-space-8));
+}
+
+.bw-dock__pill {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+  padding: var(--bw-space-2) var(--bw-space-4) var(--bw-space-2) var(--bw-space-3);
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+  box-shadow: var(--bw-e3);
+  transition: transform var(--bw-base) var(--bw-ease);
+}
+
+.bw-dock__pill:hover {
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.bw-dock__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-amber);
+  color: var(--bw-on-amber);
+}
+
+.bw-dock__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--bw-caption);
+}
+
+.bw-dock__text strong {
+  font-size: var(--bw-body);
+}
+
+.bw-dock__text span {
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Never sit on top of the docked cart bar. */
+body.bw-has-cart-bar .bw-dock {
+  inset-block-end: calc(var(--bw-space-5) + 76px + env(safe-area-inset-bottom));
+}

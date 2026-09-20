@@ -1,0 +1,127 @@
+.bw-restaurant-hero {
+  margin-block-end: var(--bw-space-7);
+}
+
+.bw-restaurant-hero__media {
+  position: relative;
+  height: 240px;
+  overflow: hidden;
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-sunken);
+}
+
+.bw-restaurant-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bw-restaurant-hero__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: var(--bw-font-display);
+  font-size: 6rem;
+  color: var(--bw-ink);
+  opacity: 0.16;
+}
+
+.bw-restaurant-hero__card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  width: calc(100% - var(--bw-space-8));
+  margin-inline: auto;
+  margin-block-start: -56px;
+  padding: var(--bw-space-6);
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-surface);
+  box-shadow: var(--bw-e2);
+}
+
+.bw-restaurant-hero__headline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--bw-space-4);
+}
+
+.bw-restaurant-hero__headline h1 {
+  font-size: var(--bw-h1);
+}
+
+.bw-restaurant-hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-3) var(--bw-space-5);
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+  font-weight: 500;
+}
+
+.bw-restaurant-hero__facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+
+.bw-restaurant-hero__free {
+  color: var(--bw-herb);
+}
+
+.bw-restaurant-hero__owner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+  margin-block-start: var(--bw-space-2);
+  padding-block-start: var(--bw-space-4);
+  border-block-start: 1px solid var(--bw-line);
+}
+
+.bw-restaurant-hero__owner-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+  font-weight: 600;
+}
+
+.bw-restaurant-hero__owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-2);
+}
+
+@media (min-width: 900px) {
+  .bw-restaurant-hero__media {
+    height: 340px;
+  }
+
+  .bw-restaurant-hero__card {
+    width: calc(100% - var(--bw-space-10));
+    margin-block-start: -72px;
+    padding: var(--bw-space-7);
+  }
+}
+
+@media (max-width: 599px) {
+  .bw-restaurant-hero__media {
+    height: 190px;
+  }
+
+  .bw-restaurant-hero__card {
+    width: calc(100% - var(--bw-space-4));
+    margin-block-start: -40px;
+    padding: var(--bw-space-5);
+  }
+
+  .bw-restaurant-hero__headline h1 {
+    font-size: var(--bw-h2);
+  }
+}

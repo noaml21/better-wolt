@@ -1,5 +1,6 @@
 export { default as Button, IconButton, LinkButton } from './Button';
 export { default as Card } from './Card';
+export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as Dialog } from './Dialog';
 export { default as Field, RadioGroup } from './Field';
 export { default as Icon } from './Icon';

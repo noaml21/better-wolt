@@ -1,0 +1,43 @@
+.bw-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+
+.bw-logo__mark {
+  flex-shrink: 0;
+}
+
+.bw-logo__tag {
+  fill: var(--bw-flame);
+}
+
+.bw-logo__hole {
+  fill: var(--bw-paper);
+}
+
+.bw-logo__letter {
+  fill: var(--bw-on-flame);
+}
+
+.bw-logo__word {
+  font-family: var(--bw-font-display);
+  font-size: 1.3rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--bw-ink);
+  white-space: nowrap;
+}
+
+.bw-logo__word-accent {
+  color: var(--bw-ink);
+}
+
+.bw-logo--sm .bw-logo__mark {
+  width: 28px;
+  height: 28px;
+}
+
+.bw-logo--sm .bw-logo__word {
+  font-size: 1.05rem;
+}

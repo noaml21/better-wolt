@@ -1,0 +1,20 @@
+.bw-spinner {
+  display: inline-block;
+  border: 2px solid currentColor;
+  border-block-start-color: transparent;
+  border-radius: var(--bw-radius-pill);
+  opacity: 0.9;
+  animation: bw-spin 700ms linear infinite;
+}
+
+@keyframes bw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-spinner {
+    animation: bw-spin 1.6s linear infinite;
+  }
+}

@@ -1,0 +1,26 @@
+.bw-card {
+  position: relative;
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-md);
+  background-color: var(--bw-surface);
+  box-shadow: var(--bw-e1);
+}
+
+.bw-card--interactive {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow var(--bw-base) var(--bw-ease),
+    transform var(--bw-base) var(--bw-ease), border-color var(--bw-base) var(--bw-ease);
+}
+
+.bw-card--interactive:hover {
+  transform: translateY(-2px);
+  border-color: transparent;
+  box-shadow: var(--bw-e2);
+  text-decoration: none;
+}
+
+.bw-card--interactive:active {
+  transform: translateY(0);
+}

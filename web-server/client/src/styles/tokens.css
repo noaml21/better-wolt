@@ -1,0 +1,132 @@
+/* Better Wolt V3 design tokens — docs/V3_DESIGN_SPEC.md §4.
+   Every colour, radius, shadow, duration and type step in the web client
+   comes from here. Components never hardcode these values. */
+
+:root {
+  /* --- Colour: light theme --- */
+  --bw-paper: #fbf7f3;
+  --bw-surface: #ffffff;
+  --bw-sunken: #f3ede6;
+  --bw-ink: #1f1330;
+  --bw-ink-muted: #655b72;
+  --bw-line: #e7dfd7;
+  --bw-flame: #d93a1e;
+  --bw-flame-deep: #b82f17;
+  --bw-amber: #f0a215;
+  --bw-herb: #0e7a57;
+  --bw-danger: #a61b2b;
+
+  /* Tints, used for soft fills (tags, banners, pills). */
+  --bw-flame-tint: #fdece8;
+  --bw-amber-tint: #fdf1da;
+  --bw-herb-tint: #e2f2ec;
+  --bw-danger-tint: #f9e6e8;
+  --bw-ink-tint: #efebf2;
+
+  /* Text on a coloured fill. Contrast is verified in the spec §4.1:
+     white on flame 4.59:1, ink on amber 8.28:1, white on herb 5.33:1. */
+  --bw-on-flame: #ffffff;
+  --bw-on-amber: var(--bw-ink);
+  --bw-on-herb: #ffffff;
+  --bw-on-ink: #fbf7f3;
+
+  /* Scrim behind dialogs and sheets. */
+  --bw-scrim: rgba(31, 19, 48, 0.55);
+
+  /* --- Type --- */
+  --bw-font-display: 'Suez One', 'Heebo', Georgia, serif;
+  --bw-font-ui: 'Rubik', 'Heebo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --bw-display-xl: 3.5rem;
+  --bw-display-l: 2.5rem;
+  --bw-h1: 2rem;
+  --bw-h2: 1.5rem;
+  --bw-h3: 1.1875rem;
+  --bw-body-l: 1.0625rem;
+  --bw-body: 0.9375rem;
+  --bw-caption: 0.8125rem;
+  --bw-micro: 0.75rem;
+
+  --bw-lh-display: 1.06;
+  --bw-lh-heading: 1.22;
+  --bw-lh-body: 1.6;
+
+  /* --- Space (4px base) --- */
+  --bw-space-1: 4px;
+  --bw-space-2: 8px;
+  --bw-space-3: 12px;
+  --bw-space-4: 16px;
+  --bw-space-5: 20px;
+  --bw-space-6: 24px;
+  --bw-space-7: 32px;
+  --bw-space-8: 40px;
+  --bw-space-9: 56px;
+  --bw-space-10: 72px;
+  --bw-space-11: 96px;
+
+  /* --- Radius: varies by role, not one value everywhere --- */
+  --bw-radius-xs: 6px;
+  --bw-radius-sm: 10px;
+  --bw-radius-md: 14px;
+  --bw-radius-lg: 20px;
+  --bw-radius-pill: 999px;
+
+  /* --- Elevation, tinted with the ink hue --- */
+  --bw-e1: 0 1px 2px rgba(31, 19, 48, 0.06), 0 1px 1px rgba(31, 19, 48, 0.04);
+  --bw-e2: 0 4px 12px rgba(31, 19, 48, 0.08);
+  --bw-e3: 0 12px 28px rgba(31, 19, 48, 0.14);
+
+  /* --- Motion --- */
+  --bw-fast: 120ms;
+  --bw-base: 180ms;
+  --bw-slow: 320ms;
+  --bw-story: 600ms;
+  --bw-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --bw-ease-out: cubic-bezier(0.4, 0, 1, 1);
+
+  /* --- Layout --- */
+  --bw-content-max: 1200px;
+  --bw-gutter: var(--bw-space-4);
+  --bw-topbar-height: 64px;
+  --bw-focus-ring: 2px solid var(--bw-flame-deep);
+}
+
+@media (min-width: 900px) {
+  :root {
+    --bw-gutter: var(--bw-space-7);
+    --bw-topbar-height: 72px;
+  }
+}
+
+body.dark {
+  --bw-paper: #14101e;
+  --bw-surface: #1e1830;
+  --bw-sunken: #171223;
+  --bw-ink: #f6f1ec;
+  --bw-ink-muted: #aba2b6;
+  --bw-line: #2e2742;
+  --bw-flame: #ff6a4d;
+  --bw-flame-deep: #ff8a73;
+  --bw-amber: #ffc24d;
+  --bw-herb: #3bc694;
+  --bw-danger: #ff7a80;
+
+  --bw-flame-tint: #35202b;
+  --bw-amber-tint: #362b1c;
+  --bw-herb-tint: #17302b;
+  --bw-danger-tint: #35202a;
+  --bw-ink-tint: #272038;
+
+  --bw-on-flame: #14101e;
+  --bw-on-amber: #14101e;
+  --bw-on-herb: #14101e;
+  --bw-on-ink: #14101e;
+
+  --bw-scrim: rgba(6, 4, 12, 0.7);
+
+  --bw-e1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --bw-e2: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --bw-e3: 0 12px 28px rgba(0, 0, 0, 0.55);
+
+  --bw-focus-ring: 2px solid var(--bw-flame);
+}

@@ -1,0 +1,162 @@
+.bw-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: var(--bw-space-5);
+  border: 1px solid transparent;
+  border-radius: var(--bw-radius-sm);
+  font-weight: 600;
+  font-size: var(--bw-body);
+  text-decoration: none;
+  transition: background-color var(--bw-fast) var(--bw-ease),
+    border-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease),
+    transform var(--bw-fast) var(--bw-ease), box-shadow var(--bw-fast) var(--bw-ease);
+}
+
+.bw-button__content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+}
+
+.bw-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.bw-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bw-button--loading {
+  cursor: progress;
+  opacity: 1;
+}
+
+.bw-button--loading .bw-button__content {
+  visibility: hidden;
+}
+
+.bw-button__spinner {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(50%, -50%);
+}
+
+/* Sizes ------------------------------------------------------------- */
+
+.bw-button--sm {
+  min-height: 36px;
+  padding-inline: var(--bw-space-4);
+  font-size: var(--bw-caption);
+}
+
+.bw-button--lg {
+  min-height: 52px;
+  padding-inline: var(--bw-space-7);
+  font-size: var(--bw-body-l);
+}
+
+.bw-button--full {
+  width: 100%;
+}
+
+/* Variants ---------------------------------------------------------- */
+
+.bw-button--primary {
+  background-color: var(--bw-flame);
+  color: var(--bw-on-flame);
+}
+
+.bw-button--primary:hover:not(:disabled) {
+  background-color: var(--bw-flame-deep);
+}
+
+.bw-button--secondary {
+  background-color: var(--bw-surface);
+  border-color: var(--bw-line);
+  color: var(--bw-ink);
+}
+
+.bw-button--secondary:hover:not(:disabled) {
+  border-color: var(--bw-ink-muted);
+  box-shadow: var(--bw-e1);
+}
+
+.bw-button--ghost {
+  background-color: transparent;
+  color: var(--bw-ink);
+}
+
+.bw-button--ghost:hover:not(:disabled) {
+  background-color: var(--bw-ink-tint);
+}
+
+.bw-button--danger {
+  background-color: transparent;
+  border-color: var(--bw-danger);
+  color: var(--bw-danger);
+}
+
+.bw-button--danger:hover:not(:disabled) {
+  background-color: var(--bw-danger-tint);
+}
+
+/* Icon-only --------------------------------------------------------- */
+
+.bw-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--bw-radius-pill);
+  background-color: transparent;
+  color: var(--bw-ink);
+  transition: background-color var(--bw-fast) var(--bw-ease),
+    border-color var(--bw-fast) var(--bw-ease), transform var(--bw-fast) var(--bw-ease);
+}
+
+.bw-icon-button--sm {
+  width: 36px;
+  height: 36px;
+}
+
+.bw-icon-button:hover:not(:disabled) {
+  background-color: var(--bw-ink-tint);
+}
+
+.bw-icon-button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.bw-icon-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bw-icon-button--outline {
+  border-color: var(--bw-line);
+  background-color: var(--bw-surface);
+}
+
+.bw-icon-button--solid {
+  background-color: var(--bw-flame);
+  color: var(--bw-on-flame);
+}
+
+.bw-icon-button--solid:hover:not(:disabled) {
+  background-color: var(--bw-flame-deep);
+}
+
+.bw-icon-button--danger {
+  color: var(--bw-danger);
+}
+
+.bw-icon-button--danger:hover:not(:disabled) {
+  background-color: var(--bw-danger-tint);
+}

@@ -1,59 +1,69 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Navbar from './components/Navbar';
+import { ToastProvider } from './components/ui';
+import './styles/legacy.css';
+import TopBar from './components/layout/TopBar';
+import AppFooter from './components/layout/AppFooter';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import RestaurantPage from './pages/RestaurantPage';
-import OrdersPage from './pages/OrdersPage';
 import ActiveOrderWidget from './components/ActiveOrderWidget';
-import OrderTrackingPage from './pages/OrderTrackingPage';
-import SearchResultsPage from './pages/searchResultPage';
-import './App.css';
-
 import HomePage from './pages/HomePage';
 import RestaurantsPage from './pages/RestaurantsPage';
+import RestaurantPage from './pages/RestaurantPage';
+import SearchResultsPage from './pages/SearchResultsPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import OrdersPage from './pages/OrdersPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
+import NotFoundPage from './pages/NotFoundPage';
 
-
-function App() {
+export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <div className="app-container">
-            <Navbar />
-            <ActiveOrderWidget />
-            <main>
-              <Routes>
-                {/* ראוט 1: דף הבית (הכותרת הגדולה בלבד) */}
-                <Route path="/" element={<HomePage />} />
-                
-                {/* ראוט 2: דף המסעדות (אליו הכפתור יעביר אותנו) */}
-                <Route path="/restaurants" element={<RestaurantsPage />} />
-                
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/restaurant/:id" element={<RestaurantPage />} />
-                <Route path="/search" element={<SearchResultsPage />} />
-                <Route path="/tracking/:orderId" element={
-                  <ProtectedRoute>
-                    <OrderTrackingPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/orders" element={
-                  <ProtectedRoute>
-                    <OrdersPage />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </main>
-          </div>
-        </BrowserRouter>
+        <ToastProvider>
+          <BrowserRouter>
+            <div className="bw-app">
+              <a className="bw-skip-link" href="#main">
+                דילוג לתוכן הראשי
+              </a>
+
+              <TopBar />
+
+              <main id="main" tabIndex={-1}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/restaurants" element={<RestaurantsPage />} />
+                  <Route path="/restaurant/:id" element={<RestaurantPage />} />
+                  <Route path="/search" element={<SearchResultsPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route
+                    path="/orders"
+                    element={
+                      <ProtectedRoute>
+                        <OrdersPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tracking/:orderId"
+                    element={
+                      <ProtectedRoute>
+                        <OrderTrackingPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </main>
+
+              <AppFooter />
+              <ActiveOrderWidget />
+            </div>
+          </BrowserRouter>
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );
 }
-
-export default App;

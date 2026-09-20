@@ -1,0 +1,44 @@
+.bw-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-1);
+  padding: 3px;
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-surface);
+}
+
+.bw-stepper__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-flame-tint);
+  color: var(--bw-flame-deep);
+  transition: background-color var(--bw-fast) var(--bw-ease),
+    transform var(--bw-fast) var(--bw-ease);
+}
+
+.bw-stepper__button:hover {
+  background-color: var(--bw-flame);
+  color: var(--bw-on-flame);
+}
+
+.bw-stepper__button:active {
+  transform: scale(0.92);
+}
+
+.bw-stepper__value {
+  min-width: 26px;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bw-stepper--sm .bw-stepper__button {
+  width: 30px;
+  height: 30px;
+}

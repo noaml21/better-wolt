@@ -1,0 +1,141 @@
+/* The tag: a rectangle that comes to a point on the inline start edge,
+   with a punched hole — a market price tag. RTL-only app, so the point
+   sits on the right. */
+.bw-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-block: 3px;
+  padding-inline: 18px 10px;
+  border-radius: var(--bw-radius-xs);
+  font-family: var(--bw-font-display);
+  font-size: var(--bw-caption);
+  line-height: 1.5;
+  white-space: nowrap;
+  clip-path: polygon(100% 50%, calc(100% - 11px) 0, 0 0, 0 100%, calc(100% - 11px) 100%);
+}
+
+.bw-tag::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: 5px;
+  inset-block-start: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-surface);
+  transform: translateY(-50%);
+}
+
+.bw-tag--price {
+  background-color: var(--bw-amber-tint);
+  color: var(--bw-ink);
+}
+
+.bw-tag--promo {
+  background-color: var(--bw-herb-tint);
+  color: var(--bw-herb);
+}
+
+.bw-tag--hot {
+  background-color: var(--bw-flame);
+  color: var(--bw-on-flame);
+}
+
+.bw-tag--hot::after {
+  background-color: var(--bw-flame-tint);
+}
+
+/* Chip --------------------------------------------------------------- */
+
+.bw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  min-height: 40px;
+  padding-inline: var(--bw-space-4);
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-surface);
+  color: var(--bw-ink);
+  font-size: var(--bw-caption);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color var(--bw-fast) var(--bw-ease),
+    border-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
+}
+
+.bw-chip:hover {
+  border-color: var(--bw-ink-muted);
+}
+
+.bw-chip--selected {
+  background-color: var(--bw-ink);
+  border-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+}
+
+/* Status pill -------------------------------------------------------- */
+
+.bw-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  padding-block: 5px;
+  padding-inline: var(--bw-space-3);
+  border-radius: var(--bw-radius-pill);
+  font-size: var(--bw-micro);
+  font-weight: 600;
+}
+
+.bw-status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--bw-radius-pill);
+  background-color: currentColor;
+}
+
+.bw-status--active {
+  background-color: var(--bw-flame-tint);
+  color: var(--bw-flame-deep);
+}
+
+.bw-status--done {
+  background-color: var(--bw-herb-tint);
+  color: var(--bw-herb);
+}
+
+.bw-status--neutral {
+  background-color: var(--bw-ink-tint);
+  color: var(--bw-ink-muted);
+}
+
+/* Rating and meta ---------------------------------------------------- */
+
+.bw-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--bw-caption);
+  font-weight: 600;
+  color: var(--bw-ink);
+}
+
+.bw-rating__star {
+  color: var(--bw-amber);
+  fill: var(--bw-amber);
+}
+
+.bw-rating__count {
+  color: var(--bw-ink-muted);
+  font-weight: 400;
+}
+
+.bw-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-2);
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+}

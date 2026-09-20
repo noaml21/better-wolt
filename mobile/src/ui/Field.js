@@ -14,6 +14,7 @@ const Field = forwardRef(function Field(
     hint,
     required = false,
     multiline = false,
+    ltr = false,
     style,
     ...rest
   },
@@ -50,6 +51,7 @@ const Field = forwardRef(function Field(
         style={[
           styles.input,
           multiline && styles.multiline,
+          ltr && styles.inputLtr,
           focused && styles.inputFocused,
           error && styles.inputError,
           rest.style,
@@ -86,6 +88,8 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     color: colors.ink,
   },
   multiline: { minHeight: 104, textAlignVertical: 'top' },
+  /* A URL is not Hebrew: right-aligning one hides its start. */
+  inputLtr: { textAlign: 'left', writingDirection: 'ltr' },
   /* The focus ring the web client draws with `outline`
      (V3_DESIGN_SPEC §4.4). */
   inputFocused: { borderColor: colors.flameDeep, borderWidth: 2, paddingHorizontal: space[4] - 1 },

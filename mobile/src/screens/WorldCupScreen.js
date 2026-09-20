@@ -1,373 +1,287 @@
-import React, {
-  useCallback,
-  useState,
-} from 'react';
-
+import React, { useCallback, useMemo, useState } from 'react';
+import { Alert, FlatList, Image, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createStyles, rtl, space, useTheme } from '../theme';
+import { getWorldCupRestaurant } from '../services/api';
+import { teamByDish } from '../services/worldCup';
+import { dishCount } from '../services/presentation';
+import { useCart } from '../context/CartContext';
+import CartBar, { CART_BAR_SPACE } from '../components/CartBar';
 import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+  Button,
+  EmptyState,
+  ErrorState,
+  Icon,
+  IconButton,
+  QuantityStepper,
+  Screen,
+  Skeleton,
+  Tag,
+  formatPrice,
+  useToast,
+} from '../ui';
 
-import {
-  useFocusEffect,
-} from '@react-navigation/native';
+/* The campaign, as a screen of its own.
 
-import {
-  getWorldCupRestaurant,
-} from '../services/api';
+   The restaurant and the dish names come from the server and are
+   contract (ARCHITECTURE §6); the flags are presentation, matched by
+   dish name, and a dish the seed adds later still shows without one.
+   Ordering goes through the same cart as everywhere else — V2 ordered
+   with one tap straight past it.
 
-export default function WorldCupScreen({
-  navigation,
-}) {
-  const [restaurant, setRestaurant] =
-    useState(null);
+   There is no music here. The web client plays the campaign track on
+   request; shipping an audio engine and a 3.7 MB file inside the app to
+   match it is not worth it (V3_DESIGN_SPEC §8). */
 
-  const [loading, setLoading] =
-    useState(true);
+export default function WorldCupScreen({ navigation }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { showToast } = useToast();
+  const cart = useCart();
 
-  const [error, setError] =
-    useState('');
+  const [restaurant, setRestaurant] = useState(null);
+  const [status, setStatus] = useState('loading');
 
-  const loadWorldCupRestaurant =
-    useCallback(async () => {
-      try {
-        setLoading(true);
-        setError('');
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setStatus('loading');
+    }
 
-        const result =
-          await getWorldCupRestaurant();
+    try {
+      const data = await getWorldCupRestaurant();
 
-        setRestaurant(result);
-      } catch (err) {
-        console.error(
-          'Failed to load World Cup restaurant:',
-          err
-        );
-
-        setError(
-          err.message ||
-            'לא הצלחנו לטעון את מסעדת המונדיאל.'
-        );
-      } finally {
-        setLoading(false);
-      }
-    }, []);
+      setRestaurant(data);
+      setStatus(data ? 'ready' : 'missing');
+    } catch (error) {
+      setStatus('error');
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      loadWorldCupRestaurant();
-    }, [loadWorldCupRestaurant])
+      load({ silent: Boolean(restaurant) });
+    }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const openRestaurant = () => {
-    if (!restaurant?.id) {
+  const products = restaurant?.products || [];
+
+  /* The flat price is whatever the seed priced the dishes at, read back
+     from the server rather than written here. */
+  const flatPrice = useMemo(() => {
+    const prices = new Set(products.map((product) => Number(product.price)));
+
+    return prices.size === 1 ? [...prices][0] : null;
+  }, [products]);
+
+  const isCampaignCart = cart.restaurantId === String(restaurant?.id);
+  const cartHasOtherRestaurant = cart.itemsCount > 0 && !isCampaignCart;
+
+  const addToCart = (product) => {
+    if (cartHasOtherRestaurant) {
+      Alert.alert(
+        'להתחיל סל חדש?',
+        `בסל יש כבר מנות מ${cart.restaurant?.name}. הוספת מנה מכאן תחליף אותן.`,
+        [
+          { text: 'ביטול', style: 'cancel' },
+          {
+            text: 'סל חדש',
+            style: 'destructive',
+            onPress: () => {
+              cart.addItem(product, restaurant);
+              showToast(`${product.name} נוספה לסל`);
+            },
+          },
+        ]
+      );
+
       return;
     }
 
-    navigation?.navigate(
-      'RestaurantDetails',
-      {
-        restaurantId: restaurant.id,
-      }
-    );
+    cart.addItem(product, restaurant);
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <ActivityIndicator size="large" />
-
-        <Text style={styles.message}>
-          טוען את חגיגת המונדיאל...
-        </Text>
-      </SafeAreaView>
+      <Screen>
+        <View style={styles.skeleton}>
+          <Skeleton height={170} radius="lg" />
+          <Skeleton height={72} radius="md" />
+          <Skeleton height={72} radius="md" />
+        </View>
+      </Screen>
     );
   }
 
-  if (error) {
+  if (status !== 'ready') {
     return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <Text style={styles.errorTitle}>
-          משהו השתבש
-        </Text>
+      <Screen>
+        <View style={styles.backRow}>
+          <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />
+        </View>
 
-        <Text style={styles.message}>
-          {error}
-        </Text>
-
-        <Pressable
-          style={styles.retryButton}
-          onPress={
-            loadWorldCupRestaurant
-          }
-        >
-          <Text style={styles.retryText}>
-            נסי שוב
-          </Text>
-        </Pressable>
-      </SafeAreaView>
-    );
-  }
-
-  if (!restaurant) {
-    return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <Text style={styles.errorTitle}>
-          מסעדת המונדיאל לא נמצאה
-        </Text>
-
-        <Text style={styles.message}>
-          מסעדת ״חגיגת מונדיאל״ עדיין לא
-          קיימת בשרת.
-        </Text>
-
-        <Pressable
-          style={styles.retryButton}
-          onPress={
-            loadWorldCupRestaurant
-          }
-        >
-          <Text style={styles.retryText}>
-            בדיקה מחדש
-          </Text>
-        </Pressable>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.badge}>
-          WORLD CUP
-        </Text>
-
-        <Text style={styles.title}>
-          חגיגת מונדיאל
-        </Text>
-
-        <Text style={styles.subtitle}>
-          מנות מיוחדות לצפייה במשחקים
-        </Text>
-
-        {restaurant.image ? (
-          <Image
-            source={{
-              uri: restaurant.image,
-            }}
-            style={styles.image}
-            resizeMode="cover"
+        {status === 'missing' ? (
+          <EmptyState
+            icon="trophy"
+            title="חגיגת המונדיאל לא זמינה כרגע"
+            description="הקולקציה מגיעה מהשרת, והוא לא מחזיק אותה עכשיו."
+            actionLabel="לכל המסעדות"
+            onAction={() => navigation.navigate('Tabs', { screen: 'Home' })}
           />
         ) : (
-          <View style={styles.placeholder}>
-            <Text
-              style={styles.placeholderText}
-            >
-              ⚽
-            </Text>
-
-            <Text
-              style={
-                styles.placeholderLabel
-              }
-            >
-              חגיגת המונדיאל
-            </Text>
-          </View>
+          <ErrorState description="לא הצלחנו להביא את הקולקציה." onRetry={load} />
         )}
+      </Screen>
+    );
+  }
 
-        <View style={styles.card}>
-          <Text
-            style={styles.restaurantName}
-          >
-            {restaurant.name}
-          </Text>
+  const showCartBar = isCampaignCart && cart.itemsCount > 0;
 
-          {restaurant.address ? (
-            <Text
-              style={styles.restaurantDetail}
-            >
-              {restaurant.address}
-            </Text>
-          ) : null}
-
-          {restaurant.phone ? (
-            <Text
-              style={styles.restaurantDetail}
-            >
-              {restaurant.phone}
-            </Text>
-          ) : null}
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.orderButton,
-              pressed &&
-                styles.pressedButton,
-            ]}
-            onPress={openRestaurant}
-          >
-            <Text
-              style={styles.orderButtonText}
-            >
-              צפייה בתפריט והזמנה
-            </Text>
-          </Pressable>
+  const header = (
+    <View style={styles.hero}>
+      <View style={styles.heroTop}>
+        <IconButton
+          icon="forward"
+          label="חזרה"
+          variant="onInk"
+          onPress={navigation.goBack}
+          style={styles.heroBack}
+        />
+        <View style={styles.trophy}>
+          <Icon name="trophy" size={24} color={colors.onAmber} />
         </View>
       </View>
-    </SafeAreaView>
+
+      <Text style={styles.eyebrow}>קולקציה מיוחדת</Text>
+      <Text style={styles.title}>{restaurant.name}</Text>
+      <Text style={styles.lead}>
+        מנה אחת מכל נבחרת
+        {flatPrice !== null ? `, במחיר אחיד של ${formatPrice(flatPrice)}` : ''}. מזמינים כמו מכל
+        מסעדה אחרת.
+      </Text>
+      <Text style={styles.count}>{dishCount(products.length)}</Text>
+    </View>
+  );
+
+  return (
+    <Screen topInset={false}>
+      <FlatList
+        data={products}
+        keyExtractor={(product) => String(product.id)}
+        ListHeaderComponent={header}
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: (showCartBar ? CART_BAR_SPACE : space[4]) + insets.bottom },
+        ]}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => {
+          const team = teamByDish.get(item.name);
+          const quantity = isCampaignCart ? cart.quantities[item.id] || 0 : 0;
+
+          return (
+            <View style={styles.dish}>
+              <View style={styles.flag}>
+                {team ? (
+                  <Image source={{ uri: team.flag }} style={styles.flagImage} resizeMode="cover" />
+                ) : (
+                  <Icon name="trophy" size={20} color={colors.inkMuted} />
+                )}
+              </View>
+
+              <View style={styles.dishText}>
+                {team ? <Text style={styles.team}>{team.team}</Text> : null}
+                <Text style={styles.dishName}>{item.name}</Text>
+                <Tag style={styles.price}>{formatPrice(item.price)}</Tag>
+              </View>
+
+              <View style={styles.dishAction}>
+                {quantity > 0 ? (
+                  <QuantityStepper
+                    value={quantity}
+                    label={item.name}
+                    onDecrease={() => cart.decreaseItem(item.id)}
+                    onIncrease={() => addToCart(item)}
+                  />
+                ) : (
+                  <Button size="sm" icon="plus" onPress={() => addToCart(item)}>
+                    הוספה
+                  </Button>
+                )}
+              </View>
+            </View>
+          );
+        }}
+      />
+
+      {showCartBar ? (
+        <CartBar
+          itemsCount={cart.itemsCount}
+          subtotal={cart.subtotal}
+          onPress={() => navigation.navigate('Tabs', { screen: 'Cart' })}
+        />
+      ) : null}
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
+const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+  skeleton: { gap: space[4], padding: space[4] },
+  backRow: { ...rtl.row, paddingHorizontal: space[4] },
+  list: { paddingHorizontal: space[4] },
 
-  content: {
-    flex: 1,
-    padding: 20,
+  hero: {
+    gap: space[2],
+    marginHorizontal: -space[4],
+    marginBottom: space[5],
+    paddingHorizontal: space[4],
+    paddingTop: space[9],
+    paddingBottom: space[6],
+    backgroundColor: colors.ink,
   },
-
-  badge: {
-    alignSelf: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: '#542163',
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800',
-  },
-
-  title: {
-    marginTop: 16,
-    fontSize: 31,
-    fontWeight: '900',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  subtitle: {
-    marginTop: 6,
-    marginBottom: 20,
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'right',
-  },
-
-  image: {
-    width: '100%',
-    height: 230,
-    borderRadius: 20,
-  },
-
-  placeholder: {
-    width: '100%',
-    height: 230,
+  heroTop: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between' },
+  heroBack: { marginStart: -space[2] },
+  trophy: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: '#E7E2EA',
+    backgroundColor: colors.amber,
   },
+  eyebrow: { ...type.micro, ...rtl.text, marginTop: space[3], color: colors.amber, letterSpacing: 0.4 },
+  title: { ...type.h1, ...rtl.text, color: colors.onInk },
+  lead: { ...type.body, ...rtl.text, color: colors.onInk, opacity: 0.78 },
+  count: { ...type.caption, ...rtl.text, color: colors.onInk, opacity: 0.6 },
 
-  placeholderText: {
-    fontSize: 65,
-  },
-
-  placeholderLabel: {
-    marginTop: 10,
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#351440',
-  },
-
-  card: {
-    marginTop: 20,
-    padding: 18,
-    borderRadius: 18,
-    backgroundColor: '#FFFFFF',
-    elevation: 3,
-  },
-
-  restaurantName: {
-    fontSize: 23,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  restaurantDetail: {
-    marginTop: 7,
-    fontSize: 15,
-    color: '#666666',
-    textAlign: 'right',
-  },
-
-  orderButton: {
-    marginTop: 20,
-    paddingVertical: 14,
+  dish: {
+    ...rtl.row,
     alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
+    gap: space[3],
+    padding: space[4],
+    marginBottom: space[3],
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+    ...shadow.e1,
   },
-
-  pressedButton: {
-    opacity: 0.8,
-  },
-
-  orderButtonText: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-
-  centerContainer: {
-    flex: 1,
-    padding: 24,
+  /* A flag keeps its own 3:2 proportion; cropping it to a square
+     mangles the ones with vertical bands. */
+  flag: {
+    width: 52,
+    height: 35,
+    borderRadius: radius.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7F4FA',
+    backgroundColor: colors.sunken,
+    overflow: 'hidden',
   },
+  flagImage: { width: '100%', height: '100%' },
+  dishText: { flex: 1, gap: 2, alignItems: 'flex-end' },
+  team: { ...type.micro, ...rtl.text, color: colors.inkMuted },
+  dishName: { ...type.h3, ...rtl.text, color: colors.ink },
+  price: { marginTop: space[1] },
+  dishAction: {},
 
-  message: {
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 21,
-    color: '#666666',
-    textAlign: 'center',
-  },
-
-  errorTitle: {
-    fontSize: 21,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'center',
-  },
-
-  retryButton: {
-    marginTop: 22,
-    paddingHorizontal: 25,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  retryText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-});
+}));

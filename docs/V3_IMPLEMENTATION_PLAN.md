@@ -17,7 +17,7 @@ the first unchecked box without conversation history.
 - [x] **Phase 4 — Web auth and owner flows.** Login, register, restaurant create/edit, menu management, role states.
 - [x] **Phase 5 — Mobile foundations.** Theme, `src/ui` primitives, tab navigation, screen header, safe areas, toasts.
 - [x] **Phase 6 — Mobile customer flows.** Home, search, restaurant details, cart, orders, tracking.
-- [ ] **Phase 7 — Mobile owner flows and World Cup.** Restaurant/product forms, the campaign on both clients.
+- [x] **Phase 7 — Mobile owner flows and World Cup.** Restaurant/product forms, the campaign on both clients.
 - [ ] **Phase 8 — Polish and QA.** Responsive sweep, accessibility pass, motion/reduced-motion, dark theme, final
       verification and screenshots.
 
@@ -101,7 +101,16 @@ the new primitives, so neither half compiles alone. Built as described, plus:
 ### Phase 7 — Mobile owner flows and World Cup
 `RestaurantFormScreen` and `ProductFormScreen` rebuilt on the primitives with image picking and validation.
 `/world-cup` (web) and `WorldCupScreen` (mobile) as a designed campaign: flag grid, opt-in sound, cart-based ordering.
-Dish names and the restaurant name stay exactly as seeded.
+Dish names and the restaurant name stay exactly as seeded. Built as described, plus:
+
+- The restaurant form picks a photo from the gallery and sends it inline, but refuses one over ~90 KB with a way out
+  (paste a link). Only `POST /api/users` parses a large body; everything else is on Express's 100 KB default, so an
+  oversized photo would come back as a 413 with no explanation.
+- The campaign's flat price is read back from the products, not written into either client.
+- Web `/world-cup` plays the existing `public/music.mp3` **on request only** and stops it when the page is left. The
+  mobile screen has no audio: an audio dependency plus a 3.7 MB asset in the app bundle is not worth a jingle.
+- Both campaign screens share the ordinary cart, so the campaign is no longer a one-tap path around it.
+- The mobile cart is emptied when the signed-in account changes; it used to survive a sign-out.
 
 ### Phase 8 — Polish and QA
 Responsive sweep at 390/768/1024/1440/1920, keyboard pass, contrast check, dark theme across both clients, motion

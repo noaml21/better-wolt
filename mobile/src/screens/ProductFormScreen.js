@@ -1,306 +1,141 @@
 import React, { useState } from 'react';
-
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-} from 'react-native';
-
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { createStyles } from '../theme';
+import { createProduct, updateProduct } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Button, Field, InlineMessage, Screen, ScreenHeader, useToast } from '../ui';
 
-import {
-  createProduct,
-  updateProduct,
-} from '../services/api';
+/* Add or edit a dish. Price is sent as a number: the API answers
+   "Price must be a non-negative number" for anything else (BF-4). */
 
-export default function ProductFormScreen({
-  route,
-  navigation,
-}) {
-  const restaurantId =
-    route?.params?.restaurantId;
-
-  const existingProduct =
-    route?.params?.product || null;
-
-  const isEditing = Boolean(
-    existingProduct?.id
-  );
-
+export default function ProductFormScreen({ navigation, route }) {
+  const styles = useStyles();
   const { token } = useAuth();
+  const { showToast } = useToast();
 
-  const [name, setName] = useState(
-    existingProduct?.name || ''
-  );
+  const restaurantId = route.params?.restaurantId;
+  const existing = route.params?.product || null;
+  const isEdit = Boolean(existing?.id);
 
-  const [description, setDescription] =
-    useState(
-      existingProduct?.description || ''
-    );
+  const [values, setValues] = useState({
+    name: existing?.name || '',
+    description: existing?.description || '',
+    price: existing?.price != null ? String(existing.price) : '',
+  });
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const [price, setPrice] = useState(
-    existingProduct?.price
-      ? String(existingProduct.price)
-      : ''
-  );
+  const change = (name) => (value) => {
+    setValues((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
+  };
 
-  const [submitting, setSubmitting] =
-    useState(false);
+  const submit = async () => {
+    const price = Number(values.price);
+    const next = {};
 
-  const submitForm = async () => {
-    const normalizedName = name.trim();
-    const normalizedDescription =
-      description.trim();
+    if (!values.name.trim()) next.name = 'צריך שם למנה';
+    if (!values.price.trim() || !Number.isFinite(price) || price < 0) {
+      next.price = 'המחיר צריך להיות מספר, 0 או יותר';
+    }
 
-    const numericPrice = Number(price);
+    setErrors(next);
 
-    if (!restaurantId) {
-      Alert.alert(
-        'חסרה מסעדה',
-        'לא ניתן לשמור מנה ללא מזהה מסעדה.'
-      );
-
+    if (Object.keys(next).length > 0) {
       return;
     }
 
-    if (!normalizedName) {
-      Alert.alert(
-        'חסר שם מנה',
-        'יש להזין שם למנה.'
-      );
+    setSaving(true);
+    setError('');
 
-      return;
-    }
-
-    if (
-      !Number.isFinite(numericPrice) ||
-      numericPrice <= 0
-    ) {
-      Alert.alert(
-        'מחיר לא תקין',
-        'יש להזין מחיר גדול מאפס.'
-      );
-
-      return;
-    }
-
-    if (!token) {
-      Alert.alert(
-        'נדרשת התחברות',
-        'יש להתחבר כבעל מסעדה כדי לבצע את הפעולה.'
-      );
-
-      return;
-    }
-
-    const productData = {
-      name: normalizedName,
-      description: normalizedDescription,
-      price: numericPrice,
+    const payload = {
+      name: values.name.trim(),
+      description: values.description.trim(),
+      price,
     };
 
     try {
-      setSubmitting(true);
-
-      if (isEditing) {
-        await updateProduct(
-          token,
-          restaurantId,
-          existingProduct.id,
-          productData
-        );
-
-        Alert.alert(
-          'המנה עודכנה',
-          'פרטי המנה עודכנו בהצלחה.'
-        );
+      if (isEdit) {
+        await updateProduct(token, restaurantId, existing.id, payload);
+        showToast('המנה עודכנה');
       } else {
-        await createProduct(
-          token,
-          restaurantId,
-          productData
-        );
-
-        Alert.alert(
-          'המנה נוספה',
-          'המנה נוספה לתפריט בהצלחה.'
-        );
+        await createProduct(token, restaurantId, payload);
+        showToast('המנה נוספה לתפריט');
       }
 
-      navigation?.goBack();
-    } catch (error) {
-      console.error(
-        'Failed to save product:',
-        error
-      );
-
-      if (
-        error.status === 401 ||
-        error.status === 403
-      ) {
-        Alert.alert(
-          'אין הרשאה',
-          'אין לך הרשאה לשנות את התפריט של מסעדה זו.'
-        );
-
-        return;
-      }
-
-      Alert.alert(
-        'שמירת המנה נכשלה',
-        error.message ||
-          'לא הצלחנו לשמור את המנה.'
-      );
-    } finally {
-      setSubmitting(false);
+      navigation.goBack();
+    } catch (requestError) {
+      setError(requestError.message);
+      setSaving(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+    <Screen>
+      <ScreenHeader
+        title={isEdit ? 'עריכת מנה' : 'הוספת מנה לתפריט'}
+        onBack={navigation.goBack}
+      />
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
       >
-        <Text style={styles.title}>
-          {isEditing
-            ? 'עריכת מנה'
-            : 'הוספת מנה'}
-        </Text>
-
-        <Text style={styles.label}>
-          שם המנה
-        </Text>
-
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="הזיני שם מנה"
-          style={styles.input}
-          textAlign="right"
-        />
-
-        <Text style={styles.label}>
-          תיאור
-        </Text>
-
-        <TextInput
-          value={description}
-          onChangeText={setDescription}
-          placeholder="הזיני תיאור קצר"
-          style={[
-            styles.input,
-            styles.descriptionInput,
-          ]}
-          textAlign="right"
-          multiline
-        />
-
-        <Text style={styles.label}>
-          מחיר
-        </Text>
-
-        <TextInput
-          value={price}
-          onChangeText={setPrice}
-          placeholder="לדוגמה: 39.90"
-          keyboardType="decimal-pad"
-          style={styles.input}
-          textAlign="right"
-        />
-
-        <Pressable
-          style={[
-            styles.saveButton,
-            submitting &&
-              styles.disabledButton,
-          ]}
-          disabled={submitting}
-          onPress={submitForm}
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
         >
-          {submitting ? (
-            <ActivityIndicator
-              color="#FFFFFF"
-            />
-          ) : (
-            <Text style={styles.saveText}>
-              {isEditing
-                ? 'שמירת שינויים'
-                : 'הוספת מנה'}
-            </Text>
-          )}
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+          {error ? <InlineMessage>{error}</InlineMessage> : null}
+
+          <Field
+            label="שם המנה"
+            value={values.name}
+            onChangeText={change('name')}
+            error={errors.name}
+            placeholder="לדוגמה: המבורגר קלאסי"
+            required
+          />
+
+          <Field
+            label="תיאור"
+            value={values.description}
+            onChangeText={change('description')}
+            hint="מה יש במנה, בשורה אחת."
+            placeholder="220 גרם אנטריקוט, חסה, עגבנייה, רוטב הבית"
+            multiline
+          />
+
+          <Field
+            label="מחיר בשקלים"
+            value={values.price}
+            onChangeText={change('price')}
+            error={errors.price}
+            keyboardType="decimal-pad"
+            placeholder="0"
+            required
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <View style={styles.footer}>
+        <Button size="lg" fullWidth loading={saving} onPress={submit}>
+          {isEdit ? 'שמירת השינויים' : 'הוספת המנה'}
+        </Button>
+      </View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
+const useStyles = createStyles(({ colors, space }) => ({
+  flex: { flex: 1 },
+  content: { padding: space[4], gap: space[4], paddingBottom: space[7] },
+  footer: {
+    padding: space[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+    backgroundColor: colors.surface,
   },
-
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-
-  title: {
-    marginBottom: 24,
-    fontSize: 29,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  label: {
-    marginTop: 15,
-    marginBottom: 7,
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  input: {
-    minHeight: 50,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: '#D9CEDD',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    fontSize: 16,
-    color: '#351440',
-  },
-
-  descriptionInput: {
-    minHeight: 110,
-    paddingTop: 14,
-    textAlignVertical: 'top',
-  },
-
-  saveButton: {
-    minHeight: 50,
-    marginTop: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  disabledButton: {
-    opacity: 0.6,
-  },
-
-  saveText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-});
+}));

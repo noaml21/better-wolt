@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 /* One cart, one restaurant, one line per product.
 
@@ -28,6 +29,13 @@ function withoutEmptyLines(cart) {
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(EMPTY);
+  const { user } = useAuth();
+
+  /* A cart belongs to whoever is signed in. Signing out or switching
+     accounts empties it rather than handing it to the next person. */
+  useEffect(() => {
+    setCart(EMPTY);
+  }, [user?.id]);
 
   /* Adding from another restaurant replaces the cart. The screen asks
      first; this only carries out the answer. */

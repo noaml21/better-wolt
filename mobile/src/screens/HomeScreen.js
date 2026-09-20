@@ -99,20 +99,22 @@ export default function HomeScreen({ navigation }) {
       ) : null}
 
       <View style={styles.sectionHeader}>
-        <View style={styles.sectionText}>
-          <Text style={styles.sectionTitle}>כל המסעדות</Text>
-          <Text style={styles.sectionDescription}>נבחרת המסעדות שמשלוחות אליכם עכשיו.</Text>
-        </View>
+        <Text style={styles.sectionTitle}>כל המסעדות</Text>
+        <Text style={styles.sectionDescription}>נבחרת המסעדות שמשלוחות אליכם עכשיו.</Text>
 
+        {/* The owner's action gets its own row: at phone width it has
+            nowhere to sit beside the heading without squeezing it. */}
         {isOwnerAccount ? (
-          <Button
-            size="sm"
-            variant="secondary"
-            icon="store"
-            onPress={() => navigation.navigate('RestaurantForm', {})}
-          >
-            מסעדה חדשה
-          </Button>
+          <View style={styles.sectionAction}>
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="store"
+              onPress={() => navigation.navigate('RestaurantForm', {})}
+            >
+              פתיחת מסעדה חדשה
+            </Button>
+          </View>
         ) : null}
       </View>
     </View>
@@ -191,14 +193,8 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
   searchPressed: { opacity: 0.9 },
   searchText: { ...type.body, color: colors.inkMuted },
   chips: { gap: space[2], paddingVertical: space[1] },
-  sectionHeader: {
-    ...rtl.row,
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    gap: space[3],
-    marginTop: space[2],
-  },
-  sectionText: { flex: 1, gap: 2 },
+  sectionHeader: { gap: 2, marginTop: space[2] },
+  sectionAction: { ...rtl.row, marginTop: space[3] },
   sectionTitle: { ...type.h2, ...rtl.text, color: colors.ink },
   sectionDescription: { ...type.caption, ...rtl.text, color: colors.inkMuted },
   empty: { gap: space[2], paddingVertical: space[8] },

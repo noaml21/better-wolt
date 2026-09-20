@@ -53,7 +53,7 @@ export default function HomePage() {
           />
         ) : (
           <div className="bw-home">
-            {campaign && <CampaignCard restaurant={campaign} />}
+            {campaign && <CampaignCard restaurant={campaign} to="/world-cup" />}
 
             <section aria-labelledby="bw-home-restaurants">
               <SectionHeader

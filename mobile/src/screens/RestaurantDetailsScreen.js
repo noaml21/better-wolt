@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, FlatList, Image, Pressable, Text, View } from 'react-native';
+import { Alert, FlatList, Image, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStyles, rtl, space, useTheme } from '../theme';
@@ -17,9 +17,9 @@ import {
   Rating,
   Screen,
   Skeleton,
-  formatPrice,
   useToast,
 } from '../ui';
+import CartBar, { CART_BAR_SPACE } from '../components/CartBar';
 import DishRow from '../components/DishRow';
 
 /* One restaurant: the photo, the facts, the menu, and — for the owner —
@@ -279,29 +279,17 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
         )}
         contentContainerStyle={[
           styles.list,
-          { paddingBottom: (showCartBar ? 96 : space[4]) + insets.bottom },
+          { paddingBottom: (showCartBar ? CART_BAR_SPACE : space[4]) + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       />
 
       {showCartBar ? (
-        <Pressable
+        <CartBar
+          itemsCount={cart.itemsCount}
+          subtotal={cart.subtotal}
           onPress={() => navigation.navigate('Tabs', { screen: 'Cart' })}
-          accessibilityRole="button"
-          accessibilityLabel={`צפייה בסל, ${dishCount(cart.itemsCount)}, ${formatPrice(cart.subtotal)}`}
-          style={({ pressed }) => [
-            styles.cartBar,
-            { bottom: insets.bottom + 12 },
-            pressed && styles.cartBarPressed,
-          ]}
-        >
-          <View style={styles.cartCount}>
-            <Text style={styles.cartCountText}>{cart.itemsCount}</Text>
-          </View>
-
-          <Text style={styles.cartLabel}>צפייה בסל</Text>
-          <Text style={styles.cartTotal}>{formatPrice(cart.subtotal)}</Text>
-        </Pressable>
+        />
       ) : null}
     </Screen>
   );
@@ -366,30 +354,4 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
   menuTitle: { ...type.h2, ...rtl.text, color: colors.ink },
   menuCount: { ...type.caption, ...rtl.text, color: colors.inkMuted },
 
-  cartBar: {
-    ...rtl.row,
-    position: 'absolute',
-    left: space[4],
-    right: space[4],
-    alignItems: 'center',
-    gap: space[3],
-    minHeight: 56,
-    paddingHorizontal: space[4],
-    borderRadius: radius.sm,
-    backgroundColor: colors.flame,
-    ...shadow.e3,
-  },
-  cartBarPressed: { opacity: 0.94, transform: [{ scale: 0.995 }] },
-  cartCount: {
-    minWidth: 26,
-    height: 26,
-    paddingHorizontal: space[1],
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.24)',
-  },
-  cartCountText: { ...type.caption, color: colors.onFlame, fontWeight: '800' },
-  cartLabel: { ...type.body, flex: 1, color: colors.onFlame, fontWeight: '700' },
-  cartTotal: { ...type.body, color: colors.onFlame, fontWeight: '800' },
 }));

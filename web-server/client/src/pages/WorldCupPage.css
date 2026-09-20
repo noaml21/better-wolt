@@ -1,0 +1,191 @@
+/* The campaign's own surface: the night band from the brand's ink, with
+   amber as the trophy colour. It is the one place in the product that
+   gets a dark hero, which is what makes it read as a campaign. */
+
+.bw-worldcup__hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  padding: var(--bw-space-8) var(--bw-space-6);
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+  overflow: hidden;
+}
+
+/* The flag mosaic fills the band on wide screens, where the text alone
+   leaves it empty. Below `md` it is hidden rather than shrunk: the
+   dishes carry the same flags a scroll away. */
+.bw-worldcup__flags {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .bw-worldcup__hero {
+    padding-inline-end: 42%;
+  }
+
+  .bw-worldcup__flags {
+    position: absolute;
+    inset-block: var(--bw-space-6);
+    inset-inline-end: var(--bw-space-6);
+    display: grid;
+    grid-template-columns: repeat(4, 52px);
+    align-content: center;
+    gap: var(--bw-space-3);
+  }
+
+  .bw-worldcup__flags img {
+    width: 52px;
+    height: 35px;
+    border-radius: var(--bw-radius-xs);
+    object-fit: cover;
+    box-shadow: var(--bw-e2);
+  }
+}
+
+.bw-worldcup__eyebrow {
+  color: var(--bw-amber);
+  font-size: var(--bw-micro);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.bw-worldcup__title {
+  font-size: var(--bw-display-l);
+  margin: 0;
+}
+
+.bw-worldcup__lead {
+  max-width: 48ch;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: var(--bw-body-l);
+  line-height: var(--bw-lh-body);
+}
+
+body.dark .bw-worldcup__lead {
+  color: rgba(20, 16, 30, 0.76);
+}
+
+.bw-worldcup__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-4);
+  flex-wrap: wrap;
+  margin-block-start: var(--bw-space-2);
+}
+
+.bw-worldcup__count {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: var(--bw-caption);
+}
+
+body.dark .bw-worldcup__count {
+  color: rgba(20, 16, 30, 0.7);
+}
+
+.bw-worldcup__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bw-space-7);
+  align-items: start;
+  margin-block-start: var(--bw-space-7);
+}
+
+.bw-worldcup__cart {
+  display: none;
+}
+
+.bw-worldcup__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--bw-space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bw-worldcup-dish {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-4);
+  padding: var(--bw-space-4);
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-md);
+  background-color: var(--bw-surface);
+  box-shadow: var(--bw-e1);
+}
+
+.bw-worldcup-dish__flag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 52px;
+  height: 35px;
+  border-radius: var(--bw-radius-xs);
+  background-color: var(--bw-sunken);
+  color: var(--bw-ink-muted);
+  overflow: hidden;
+}
+
+.bw-worldcup-dish__flag img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bw-worldcup-dish__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bw-space-1);
+  flex: 1;
+  min-width: 0;
+}
+
+.bw-worldcup-dish__team {
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-micro);
+  font-weight: 600;
+}
+
+.bw-worldcup-dish__name {
+  font-size: var(--bw-h3);
+  font-weight: 600;
+  line-height: var(--bw-lh-heading);
+  margin: 0;
+}
+
+.bw-worldcup-dish__action {
+  flex-shrink: 0;
+}
+
+@media (max-width: 599px) {
+  .bw-worldcup__hero {
+    padding: var(--bw-space-6) var(--bw-space-5);
+  }
+
+  .bw-worldcup__title {
+    font-size: var(--bw-h1);
+  }
+}
+
+/* The cart becomes a panel only when there is room beside the grid —
+   the same rule the restaurant page uses. */
+@media (min-width: 1100px) {
+  .bw-worldcup__layout {
+    grid-template-columns: minmax(0, 1fr) 340px;
+  }
+
+  .bw-worldcup__cart {
+    display: block;
+  }
+}
+
+@media (max-width: 1099px) {
+  .bw-worldcup {
+    padding-block-end: var(--bw-space-11);
+  }
+}

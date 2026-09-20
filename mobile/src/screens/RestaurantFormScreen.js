@@ -1,295 +1,228 @@
 import React, { useState } from 'react';
-
-import {
-  ActivityIndicator,
-  Alert,
-  Pressable,
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-} from 'react-native';
-
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
+import { createStyles } from '../theme';
+import { createRestaurant, updateRestaurant } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-
 import {
-  createRestaurant,
-  updateRestaurant,
-} from '../services/api';
+  Button,
+  Field,
+  Icon,
+  InlineMessage,
+  Screen,
+  ScreenHeader,
+  useToast,
+} from '../ui';
 
-export default function RestaurantFormScreen({
-  route,
-  navigation,
-}) {
-  const existingRestaurant =
-    route?.params?.restaurant || null;
+/* Open a restaurant, or edit one. The server owns validation and the
+   strings it returns are shown verbatim (ARCHITECTURE §4.3).
 
-  const isEditing = Boolean(
-    existingRestaurant?.id
-  );
+   A picked photo is sent inline as a data URL. Only POST /api/users
+   takes a large body; everything else parses at Express's 100 KB
+   default, so an image that will not fit is refused here with a way out
+   rather than by a 413 from the server. */
 
+const MAX_INLINE_IMAGE = 90_000;
+
+export default function RestaurantFormScreen({ navigation, route }) {
+  const styles = useStyles();
   const { token, user } = useAuth();
+  const { showToast } = useToast();
 
-  const [name, setName] = useState(
-    existingRestaurant?.name || ''
-  );
+  const existing = route.params?.restaurant || null;
+  const isEdit = Boolean(existing?.id);
 
-  const [phone, setPhone] = useState(
-    existingRestaurant?.phone || ''
-  );
+  const [values, setValues] = useState({
+    name: existing?.name || '',
+    address: existing?.address || '',
+    phone: existing?.phone || '',
+    image: existing?.image || '',
+  });
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const [address, setAddress] = useState(
-    existingRestaurant?.address || ''
-  );
+  const change = (name) => (value) => {
+    setValues((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
+  };
 
-  const [image, setImage] = useState(
-    existingRestaurant?.image || ''
-  );
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const submitForm = async () => {
-    const normalizedName = name.trim();
-    const normalizedPhone = phone.trim();
-    const normalizedAddress = address.trim();
-    const normalizedImage = image.trim();
-
-    if (!normalizedName) {
-      Alert.alert(
-        'חסר שם מסעדה',
-        'יש להזין שם למסעדה.'
-      );
+    if (!permission.granted) {
+      showToast('אין לנו גישה לגלריה. אפשר להדביק קישור לתמונה.', { tone: 'error' });
 
       return;
     }
 
-    if (!normalizedAddress) {
-      Alert.alert(
-        'חסרה כתובת',
-        'יש להזין כתובת למסעדה.'
-      );
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.4,
+    });
+
+    if (result.canceled || !result.assets?.length) {
+      return;
+    }
+
+    const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    if (base64.length > MAX_INLINE_IMAGE) {
+      setError('התמונה הזו כבדה מדי לשמירה. בחרו תמונה קטנה יותר, או הדביקו קישור.');
 
       return;
     }
 
-    if (!token) {
-      Alert.alert(
-        'נדרשת התחברות',
-        'יש להתחבר כבעל מסעדה כדי לבצע את הפעולה.'
-      );
+    setError('');
+    change('image')(`data:image/jpeg;base64,${base64}`);
+  };
+
+  const submit = async () => {
+    if (!values.name.trim()) {
+      setErrors({ name: 'צריך שם למסעדה כדי להמשיך' });
 
       return;
     }
 
-    const restaurantData = {
-      name: normalizedName,
-      phone: normalizedPhone,
-      address: normalizedAddress,
-      image: normalizedImage,
+    setSaving(true);
+    setError('');
+
+    const payload = {
+      name: values.name.trim(),
+      address: values.address.trim(),
+      phone: values.phone.trim(),
+      image: values.image.trim(),
       username: user?.username,
     };
 
     try {
-      setSubmitting(true);
-
-      if (isEditing) {
-        await updateRestaurant(
-          token,
-          existingRestaurant.id,
-          restaurantData
-        );
-
-        Alert.alert(
-          'המסעדה עודכנה',
-          'פרטי המסעדה עודכנו בהצלחה.'
-        );
+      if (isEdit) {
+        await updateRestaurant(token, existing.id, payload);
+        showToast('פרטי המסעדה עודכנו');
       } else {
-        await createRestaurant(
-          token,
-          restaurantData
-        );
-
-        Alert.alert(
-          'המסעדה נוצרה',
-          'המסעדה נוצרה בהצלחה.'
-        );
+        await createRestaurant(token, payload);
+        showToast('המסעדה נפתחה');
       }
 
-      navigation?.goBack();
-    } catch (error) {
-      console.error(
-        'Failed to save restaurant:',
-        error
-      );
-
-      if (
-        error.status === 401 ||
-        error.status === 403
-      ) {
-        Alert.alert(
-          'אין הרשאה',
-          'אין לך הרשאה לבצע את הפעולה.'
-        );
-
-        return;
-      }
-
-      Alert.alert(
-        'שמירת המסעדה נכשלה',
-        error.message ||
-          'לא הצלחנו לשמור את המסעדה.'
-      );
-    } finally {
-      setSubmitting(false);
+      navigation.goBack();
+    } catch (requestError) {
+      setError(requestError.message);
+      setSaving(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
+    <Screen>
+      <ScreenHeader
+        title={isEdit ? 'עריכת פרטי המסעדה' : 'פתיחת מסעדה חדשה'}
+        subtitle={isEdit ? 'השינויים יופיעו מיד בעמוד המסעדה' : 'אחר כך מוסיפים מנות לתפריט'}
+        onBack={navigation.goBack}
+      />
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.flex}
       >
-        <Text style={styles.title}>
-          {isEditing
-            ? 'עריכת מסעדה'
-            : 'יצירת מסעדה'}
-        </Text>
-
-        <Text style={styles.label}>
-          שם המסעדה
-        </Text>
-
-        <TextInput
-          value={name}
-          onChangeText={setName}
-          placeholder="הזיני שם מסעדה"
-          style={styles.input}
-          textAlign="right"
-        />
-
-        <Text style={styles.label}>
-          מספר טלפון
-        </Text>
-
-        <TextInput
-          value={phone}
-          onChangeText={setPhone}
-          placeholder="הזיני מספר טלפון"
-          keyboardType="phone-pad"
-          style={styles.input}
-          textAlign="right"
-        />
-
-        <Text style={styles.label}>
-          כתובת
-        </Text>
-
-        <TextInput
-          value={address}
-          onChangeText={setAddress}
-          placeholder="הזיני כתובת"
-          style={styles.input}
-          textAlign="right"
-        />
-
-        <Text style={styles.label}>
-          כתובת תמונה
-        </Text>
-
-        <TextInput
-          value={image}
-          onChangeText={setImage}
-          placeholder="הזיני URL של תמונה"
-          autoCapitalize="none"
-          keyboardType="url"
-          style={styles.input}
-          textAlign="right"
-        />
-
-        <Pressable
-          style={[
-            styles.saveButton,
-            submitting &&
-              styles.disabledButton,
-          ]}
-          disabled={submitting}
-          onPress={submitForm}
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
         >
-          {submitting ? (
-            <ActivityIndicator
-              color="#FFFFFF"
-            />
-          ) : (
-            <Text style={styles.saveText}>
-              {isEditing
-                ? 'שמירת שינויים'
-                : 'יצירת מסעדה'}
-            </Text>
-          )}
-        </Pressable>
-      </ScrollView>
-    </SafeAreaView>
+          {error ? <InlineMessage>{error}</InlineMessage> : null}
+
+          <Pressable
+            onPress={pickImage}
+            accessibilityRole="button"
+            accessibilityLabel={values.image ? 'החלפת תמונת המסעדה' : 'בחירת תמונה למסעדה'}
+            style={({ pressed }) => [styles.media, pressed && styles.pressed]}
+          >
+            {values.image ? (
+              <Image source={{ uri: values.image }} style={styles.mediaImage} resizeMode="cover" />
+            ) : (
+              <View style={styles.mediaEmpty}>
+                <Icon name="store" size={26} color={styles.mediaGlyph.color} />
+                <Text style={styles.mediaText}>בחירת תמונה מהגלריה</Text>
+                <Text style={styles.mediaHint}>תמונה רחבה של המקום או של מנה מובילה</Text>
+              </View>
+            )}
+          </Pressable>
+
+          <Field
+            label="שם המסעדה"
+            value={values.name}
+            onChangeText={change('name')}
+            error={errors.name}
+            placeholder="לדוגמה: פסטה פרסקה"
+            required
+          />
+
+          <Field
+            label="כתובת"
+            value={values.address}
+            onChangeText={change('address')}
+            placeholder="רחוב, מספר, עיר"
+          />
+
+          <Field
+            label="טלפון"
+            value={values.phone}
+            onChangeText={change('phone')}
+            keyboardType="phone-pad"
+            placeholder="03-0000000"
+          />
+
+          <Field
+            label="קישור לתמונה"
+            value={values.image.startsWith('data:') ? '' : values.image}
+            onChangeText={change('image')}
+            hint={values.image.startsWith('data:') ? 'נבחרה תמונה מהגלריה.' : 'אפשר גם להדביק קישור לתמונה.'}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            placeholder="https://"
+            ltr
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <View style={styles.footer}>
+        <Button size="lg" fullWidth loading={saving} onPress={submit}>
+          {isEdit ? 'שמירת השינויים' : 'פתיחת המסעדה'}
+        </Button>
+      </View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
+  flex: { flex: 1 },
+  content: { padding: space[4], gap: space[4], paddingBottom: space[7] },
 
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-
-  title: {
-    marginBottom: 24,
-    fontSize: 29,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  label: {
-    marginTop: 15,
-    marginBottom: 7,
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  input: {
-    minHeight: 50,
-    paddingHorizontal: 14,
+  media: {
+    height: 180,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#D9CEDD',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    fontSize: 16,
-    color: '#351440',
+    borderColor: colors.line,
+    backgroundColor: colors.sunken,
+    overflow: 'hidden',
   },
+  pressed: { opacity: 0.9 },
+  mediaImage: { width: '100%', height: '100%' },
+  mediaEmpty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space[1] },
+  mediaGlyph: { color: colors.inkMuted },
+  mediaText: { ...type.body, color: colors.ink, fontWeight: '700' },
+  mediaHint: { ...type.caption, color: colors.inkMuted },
 
-  saveButton: {
-    minHeight: 50,
-    marginTop: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
+  footer: {
+    padding: space[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+    backgroundColor: colors.surface,
   },
-
-  disabledButton: {
-    opacity: 0.6,
-  },
-
-  saveText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-});
+}));

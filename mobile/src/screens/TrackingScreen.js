@@ -141,13 +141,13 @@ export default function TrackingScreen({ navigation, route }) {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.stage, arrived && styles.stageArrived]}>
-          <Text style={styles.countdownLabel}>
+          <Text style={[styles.countdownLabel, arrived && styles.onArrived]}>
             {arrived ? 'ההזמנה הגיעה' : 'זמן משוער להגעה'}
           </Text>
 
           {arrived ? (
             <View style={styles.arrivedMark}>
-              <Icon name="check" size={44} color={colors.onInk} strokeWidth={2.2} />
+              <Icon name="check" size={44} color={colors.onHerb} strokeWidth={2.2} />
             </View>
           ) : (
             <Text style={styles.countdown} accessibilityLabel={`${Math.ceil(secondsLeft / 60)} דקות`}>
@@ -155,7 +155,7 @@ export default function TrackingScreen({ navigation, route }) {
             </Text>
           )}
 
-          <Text style={styles.note} accessibilityLiveRegion="polite">
+          <Text style={[styles.note, arrived && styles.onArrived]} accessibilityLiveRegion="polite">
             {stage.note}
           </Text>
 
@@ -173,7 +173,7 @@ export default function TrackingScreen({ navigation, route }) {
             {stages.map((item, index) => (
               <Text
                 key={item.key}
-                style={[styles.stop, index <= stageIndex && styles.stopDone]}
+                style={[styles.stop, index <= stageIndex && styles.stopDone, arrived && styles.onArrived]}
                 accessibilityState={{ selected: index === stageIndex }}
               >
                 {item.label}
@@ -230,19 +230,22 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
     gap: space[3],
     padding: space[5],
     borderRadius: radius.lg,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.night,
     ...shadow.e2,
   },
   stageArrived: { backgroundColor: colors.herb },
-  countdownLabel: { ...type.caption, textAlign: 'center', color: colors.onInk, opacity: 0.75 },
+  /* The delivered card is herb, and herb wants its own text colour —
+     the night text would drop under AA on it. */
+  onArrived: { color: colors.onHerb },
+  countdownLabel: { ...type.caption, textAlign: 'center', color: colors.onNight, opacity: 0.75 },
   countdown: {
     ...type.displayL,
     textAlign: 'center',
-    color: colors.onInk,
+    color: colors.onNight,
     fontVariant: ['tabular-nums'],
   },
   arrivedMark: { alignItems: 'center', paddingVertical: space[2] },
-  note: { ...type.body, textAlign: 'center', color: colors.onInk, fontWeight: '600' },
+  note: { ...type.body, textAlign: 'center', color: colors.onNight, fontWeight: '600' },
 
   rail: { height: 36, justifyContent: 'center', marginTop: space[4] },
   track: {
@@ -266,7 +269,7 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
   },
 
   stops: { ...rtl.row, justifyContent: 'space-between', marginTop: space[2] },
-  stop: { ...type.micro, color: colors.onInk, opacity: 0.5 },
+  stop: { ...type.micro, color: colors.onNight, opacity: 0.5 },
   stopDone: { opacity: 1, fontWeight: '800' },
 
   summary: { gap: space[3], padding: space[4] },

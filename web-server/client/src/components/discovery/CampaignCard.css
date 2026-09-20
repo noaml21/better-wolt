@@ -4,8 +4,8 @@
   gap: var(--bw-space-5);
   padding: var(--bw-space-5) var(--bw-space-6);
   border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-ink);
-  color: var(--bw-on-ink);
+  background-color: var(--bw-night);
+  color: var(--bw-on-night);
   text-decoration: none;
   transition: transform var(--bw-base) var(--bw-ease), box-shadow var(--bw-base) var(--bw-ease);
 }
@@ -49,10 +49,6 @@
 .bw-campaign__description {
   color: rgba(255, 255, 255, 0.74);
   font-size: var(--bw-caption);
-}
-
-body.dark .bw-campaign__description {
-  color: rgba(20, 16, 30, 0.72);
 }
 
 .bw-campaign__cta {

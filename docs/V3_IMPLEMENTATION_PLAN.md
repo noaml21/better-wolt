@@ -18,8 +18,11 @@ the first unchecked box without conversation history.
 - [x] **Phase 5 — Mobile foundations.** Theme, `src/ui` primitives, tab navigation, screen header, safe areas, toasts.
 - [x] **Phase 6 — Mobile customer flows.** Home, search, restaurant details, cart, orders, tracking.
 - [x] **Phase 7 — Mobile owner flows and World Cup.** Restaurant/product forms, the campaign on both clients.
-- [ ] **Phase 8 — Polish and QA.** Responsive sweep, accessibility pass, motion/reduced-motion, dark theme, final
+- [x] **Phase 8 — Polish and QA.** Responsive sweep, accessibility pass, motion/reduced-motion, dark theme, final
       verification and screenshots.
+
+**V3 is complete.** The checklist above is the resume point if work continues; what a device still has to confirm is
+under "Needs a device" below.
 
 ## Verification (run before every commit)
 
@@ -117,6 +120,42 @@ Responsive sweep at 390/768/1024/1440/1920, keyboard pass, contrast check, dark 
 review with reduced motion forced, console-error check on every route, final screenshots into `docs/screenshots/v3/`,
 README updated.
 
+What the pass actually ran, and what it found:
+
+- **Responsive sweep.** Nine web routes × five widths (390 / 768 / 1024 / 1440 / 1920), driven with Playwright:
+  **zero console errors and zero horizontal overflow** anywhere.
+- **Keyboard.** Tabbing through the home page: the skip link comes first and every control takes the shared
+  `2px solid flame-deep` ring. Three inputs were suppressing it (`outline: none` in `Field`, the hero search and the
+  top-bar search) — the field keeps its border-and-halo emphasis, and the two search pills now take the ring on the
+  wrapper with `:focus-within`.
+- **Dark theme.** Two real bugs, both from a surface that reads `--bw-ink` as a *background*: in dark mode `ink` is a
+  light colour, so the home hero and the auth brand panel turned into pale slabs with white text on them. Fixed with the
+  `night` token (spec §4.1), applied to the hero, the auth panel, the campaign card, the World Cup hero and the tracking
+  stage, on both clients. Error toasts were white-on-light-red in dark mode; they now use `on-danger`.
+- **Reduced motion.** With `prefers-reduced-motion: reduce` forced, the tracking page has **no** element left with a
+  non-zero transition or animation duration. On mobile the same switch is `useReducedMotion()` (skeletons stop pulsing,
+  the tracking rider is placed rather than animated).
+- **Flows walked end to end.** Web: sign in → home → restaurant → cart → order → tracking → orders → search, plus
+  `/world-cup` from add-to-cart to the tracking page, plus the signed-out guard (toast + redirect to `/login`).
+  Mobile: the same customer flow in a Pixel 7 viewport, the owner's restaurant and dish forms, and the campaign screen.
+- **Copy and RTL fixes found by looking, not by reading code:** "1 מנות" (Hebrew has no "1 items"), the order number's
+  `#` drifting to the wrong end of a Hebrew line, a greeting that promised an address the login response does not
+  return, a cart that survived a sign-out, and the owner's "new restaurant" button squeezing the section heading at
+  phone width.
+
+## Needs a device
+
+Inspected through Expo's web target, so these are the parts a real Android device or emulator still has to confirm:
+
+- `KeyboardAvoidingView` behaviour with a real soft keyboard (login, registration, both owner forms).
+- Safe-area insets on a notched device and a gesture-bar device: on the web target every inset is `0`, so the padding is
+  present in the code but was never exercised. `Screen` pays the top inset, and the tab bar, the cart bar and the toast
+  pay the bottom one.
+- `expo-image-picker`: permission prompts and the gallery itself (the ~90 KB guard in the restaurant form is code-level).
+- `Alert` dialogs for destructive confirmations (they render as browser dialogs on the web target).
+- Native scroll and overscroll behaviour, and `RefreshControl` pull-to-refresh on Home and Orders.
+- Platform fonts: the type scale is the platform UI font, which is Roboto on Android rather than the browser's default.
+
 ## Looking at the mobile app
 
 There is no Android emulator in this environment (`~/Android/Sdk` has no `emulator` package and no AVDs), so the mobile
@@ -124,17 +163,22 @@ screens are inspected through Expo's web target, which renders the same React Na
 
 ```bash
 cd mobile && BROWSER=none EXPO_PUBLIC_API_URL=http://localhost:8080/api npx expo start --web --port 8082
-# the API must allow the origin:
-cd web-server && JWT_SECRET=<dev-secret> CORS_ORIGINS=http://localhost:3000,http://localhost:8082 node server.js
+# the API must allow the origin. Keep :8080 in the list — the CRA dev server proxies /api with
+# changeOrigin, so requests from :3000 arrive with the API's own origin on them:
+cd web-server && JWT_SECRET=<dev-secret> \
+  CORS_ORIGINS=http://localhost:3000,http://localhost:8080,http://localhost:8082 node server.js
 playwright-cli open --device="Pixel 7" http://localhost:8082
 ```
 
 `react-dom`, `react-native-web` and `@expo/metro-runtime` are **devDependencies** for exactly this reason; the Android
-bundle does not contain them. What this cannot check is listed under "Needs a device" below.
+bundle does not contain them. What this cannot check is listed under "Needs a device" above.
 
 ## Notes for the next session
 
 - The V2 screenshots used for the audit are in `docs/screenshots/v2/`; V3 shots go in `docs/screenshots/v3/`.
 - The local dev database contained leftover `Smoke mu…` restaurants from an earlier smoke-test run against the dev DB.
-  They are test residue, not seeded data; they are ignored, not deleted.
+  They are test residue, not seeded data; they are ignored, not deleted — which is why they appear in the home-page
+  screenshots next to the demo restaurants.
+- The final screenshots in `docs/screenshots/v3/` are JPEGs: web at 1440×950 and 390×844, mobile from a Pixel 7
+  viewport scaled to 720 px wide.
 - Node here is v22 (`.nvmrc` pins 24; `engines` allows ≥ 22). Both are fine for the client build.

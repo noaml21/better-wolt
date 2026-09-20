@@ -34,7 +34,7 @@ export default function CampaignCard({ restaurant, onPress }) {
         </Text>
       </View>
 
-      <Icon name="back" size={20} color={styles.onInk.color} />
+      <Icon name="back" size={20} color={styles.onNight.color} />
     </Pressable>
   );
 }
@@ -46,7 +46,7 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     gap: space[4],
     padding: space[4],
     borderRadius: radius.md,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.night,
   },
   pressed: { opacity: 0.92, transform: [{ scale: 0.995 }] },
   icon: {
@@ -58,9 +58,9 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     backgroundColor: colors.amber,
   },
   onAmber: { color: colors.onAmber },
-  onInk: { color: colors.onInk },
+  onNight: { color: colors.onNight },
   text: { flex: 1, gap: 2 },
   eyebrow: { ...type.micro, ...rtl.text, color: colors.amber, letterSpacing: 0.4 },
-  title: { ...type.h3, ...rtl.text, color: colors.onInk },
-  description: { ...type.caption, ...rtl.text, color: colors.onInk, opacity: 0.75 },
+  title: { ...type.h3, ...rtl.text, color: colors.onNight },
+  description: { ...type.caption, ...rtl.text, color: colors.onNight, opacity: 0.75 },
 }));

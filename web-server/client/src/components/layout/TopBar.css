@@ -44,9 +44,12 @@
     box-shadow var(--bw-fast) var(--bw-ease);
 }
 
+/* The ring belongs to the whole pill, not to the bare input inside it. */
 .bw-topbar__search:focus-within {
   border-color: var(--bw-flame-deep);
   box-shadow: 0 0 0 3px var(--bw-flame-tint);
+  outline: 2px solid var(--bw-flame-deep);
+  outline-offset: 2px;
 }
 
 .bw-topbar__search-icon {

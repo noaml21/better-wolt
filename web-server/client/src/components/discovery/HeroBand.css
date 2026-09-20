@@ -1,8 +1,10 @@
+/* The night band: the one surface that stays dark in both themes
+   (tokens.css, `--bw-night`). */
 .bw-hero {
   position: relative;
   overflow: hidden;
-  background-color: var(--bw-ink);
-  color: var(--bw-on-ink);
+  background-color: var(--bw-night);
+  color: var(--bw-on-night);
 }
 
 /* One warm light source, behind the photos. */
@@ -38,7 +40,7 @@
 
 .bw-hero__title {
   font-size: var(--bw-display-l);
-  color: #ffffff;
+  color: var(--bw-on-night);
 }
 
 .bw-hero__lead {
@@ -60,6 +62,11 @@
   box-shadow: var(--bw-e3);
 }
 
+/* On the night band a dark field needs an edge to sit on. */
+body.dark .bw-hero__search {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
 .bw-hero__search-icon {
   color: var(--bw-ink-muted);
   flex-shrink: 0;
@@ -74,6 +81,12 @@
   background: none;
   color: var(--bw-ink);
   font-size: var(--bw-body-l);
+}
+
+/* The ring belongs to the whole pill, not to the bare input inside it. */
+.bw-hero__search:focus-within {
+  outline: 2px solid var(--bw-flame-deep);
+  outline-offset: 2px;
 }
 
 .bw-hero__search input:focus {
@@ -108,7 +121,7 @@
 .bw-hero__chips .bw-chip {
   background-color: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
+  color: var(--bw-on-night);
 }
 
 .bw-hero__chips .bw-chip:hover {

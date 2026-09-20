@@ -144,7 +144,7 @@ export default function WorldCupScreen({ navigation }) {
         <IconButton
           icon="forward"
           label="חזרה"
-          variant="onInk"
+          variant="onNight"
           onPress={navigation.goBack}
           style={styles.heroBack}
         />
@@ -237,7 +237,7 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
     paddingHorizontal: space[4],
     paddingTop: space[9],
     paddingBottom: space[6],
-    backgroundColor: colors.ink,
+    backgroundColor: colors.night,
   },
   heroTop: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between' },
   heroBack: { marginStart: -space[2] },
@@ -250,9 +250,9 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
     backgroundColor: colors.amber,
   },
   eyebrow: { ...type.micro, ...rtl.text, marginTop: space[3], color: colors.amber, letterSpacing: 0.4 },
-  title: { ...type.h1, ...rtl.text, color: colors.onInk },
-  lead: { ...type.body, ...rtl.text, color: colors.onInk, opacity: 0.78 },
-  count: { ...type.caption, ...rtl.text, color: colors.onInk, opacity: 0.6 },
+  title: { ...type.h1, ...rtl.text, color: colors.onNight },
+  lead: { ...type.body, ...rtl.text, color: colors.onNight, opacity: 0.78 },
+  count: { ...type.caption, ...rtl.text, color: colors.onNight, opacity: 0.6 },
 
   dish: {
     ...rtl.row,

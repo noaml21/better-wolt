@@ -92,5 +92,5 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
   tone_error: { backgroundColor: colors.danger },
   text: { ...type.body, fontWeight: '700', textAlign: 'center' },
   text_success: { color: colors.onHerb },
-  text_error: { color: '#FFFFFF' },
+  text_error: { color: colors.onDanger },
 }));

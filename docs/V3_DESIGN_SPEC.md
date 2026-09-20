@@ -1,8 +1,9 @@
 # Better Wolt V3 — Design Specification
 
-**Status:** in progress on `v3/ui-overhaul` (branched from V2 HEAD `98d2477`). Never commit to `main` or to `v2/extensible-architecture`.
+**Status:** built on `v3/ui-overhaul` (branched from V2 HEAD `98d2477`). Never commit to `main` or to `v2/extensible-architecture`.
+What was built, in order, and how each phase was verified: [V3_IMPLEMENTATION_PLAN.md](V3_IMPLEMENTATION_PLAN.md).
 **Scope:** a complete visual and UX redesign of the **web** and **mobile** clients. The backend, the API contract and the
-test suite are unchanged. Progress and phase order: [V3_IMPLEMENTATION_PLAN.md](V3_IMPLEMENTATION_PLAN.md).
+test suite are unchanged.
 
 This document is authoritative for V3 appearance and interaction. Where it touches anything listed in
 [V2_SPEC.md §3](V2_SPEC.md#3-invariants-must-survive-every-phase) or [ARCHITECTURE.md §4](ARCHITECTURE.md#4-api-contract),
@@ -98,6 +99,13 @@ Light (default):
 Dark: `paper #14101E`, `surface #1E1830`, `sunken #171223`, `ink #F6F1EC`, `ink-muted #ABA2B6`, `line #2E2742`,
 `flame #FF6A4D`, `amber #FFC24D`, `herb #3BC694`, `danger #FF7A80`. Dark mode is a real theme, not an inversion: every
 component reads the same token names.
+
+Two more tokens came out of building the dark theme, and both exist in each client:
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `night` / `on-night` | `#1F1330` / `#FBF7F3` | `#241A38` / `#F6F1EC` | The one surface that does **not** flip with the theme: the home hero band, the campaign card, the World Cup hero and the tracking stage. `ink` inverts to a bright slab in dark mode, which would put the loudest surface on the page's quietest colour. |
+| `on-danger` | `#FFFFFF` | `#14101E` | Text on a `danger` fill. Dark `danger` is a light red, and white on it fails AA. |
 
 **Contrast rules** (measured, WCAG 2.1):
 
@@ -270,3 +278,7 @@ name their outcome (`בצעו הזמנה` → toast `ההזמנה נשלחה`).
 | 2026-09-20 | Mobile gains `@react-navigation/bottom-tabs` (the only new runtime dependency). Tabs are the product's navigation model; a hand-rolled bar loses per-tab state. |
 | 2026-09-20 | Mobile RTL is done in the theme layer, not `I18nManager.forceRTL`, which requires a native restart. |
 | 2026-09-20 | Web cart gains quantity steppers. The request body still carries only ids and quantities, so pricing stays server-authoritative. |
+| 2026-09-20 | `night`/`on-night` and `on-danger` added (§4.1) after looking at the dark theme: `ink` as a background inverts, which broke the hero, the auth panel and the campaign, and white on dark `danger` fails AA. |
+| 2026-09-20 | Mobile gets no audio. The web campaign plays `public/music.mp3` on request; matching it on mobile means an audio dependency and a 3.7 MB asset in the app bundle for one jingle. |
+| 2026-09-20 | The mobile restaurant form picks a photo from the gallery, but refuses one over ~90 KB and points at the URL field. Only `POST /api/users` parses a large body; everything else is on Express's 100 KB default (README, "Security / Backend Design"). |
+| 2026-09-20 | Mobile is inspected through Expo's web target (`react-dom`, `react-native-web`, `@expo/metro-runtime` as devDependencies): this environment has no Android emulator. What that cannot check is listed in the plan. |

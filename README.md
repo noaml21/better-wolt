@@ -13,32 +13,55 @@ This project is not affiliated with or endorsed by Wolt.
 - Restaurant and menu creation, editing, and deletion for restaurant owners
 - Server-side authorization and ownership checks for restaurant and menu changes
 - Restaurant search by name, address, menu item, or menu description
-- Cart management and authenticated order placement
-- User-specific order history and a web order-tracking experience
+- Cart with per-dish quantity controls, and authenticated, server-priced order placement
+- Order history and a live order-tracking screen on both clients
+- A designed Hebrew, right-to-left interface on web and mobile, with a shared design-token system,
+  a light and a dark theme, and a designed loading, empty and error state on every screen
 - React web application served by the backend in production
-- React Native mobile application developed with Expo
-- World Cup-themed ordering experiences on web and mobile
-- Custom web media features, including rotating promotional videos and event audio
+- React Native mobile application developed with Expo, on bottom-tab navigation with safe-area handling
+- A World Cup campaign on both clients: a flag grid, cart-based ordering, and opt-in audio on the web
 - Dockerized backend and MongoDB services with persistent database storage
 
 ## Screenshots
 
+The V3 interface. Every screen is right-to-left Hebrew; the full set is in
+[docs/screenshots/v3](docs/screenshots/v3), and the V2 interface these replaced is in
+[docs/screenshots/v2](docs/screenshots/v2).
+
 ### Web
 
 <p align="center">
-  <img src="docs/screenshots/home.png" alt="Better Wolt web home page and World Cup feature" width="850">
+  <img src="docs/screenshots/v3/web-home-desktop.jpg" alt="Better Wolt web home page: search band, the World Cup campaign card and the restaurant grid" width="850">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/restaurant.png" alt="Better Wolt restaurant menu and shopping cart" width="650">
+  <img src="docs/screenshots/v3/web-restaurant-desktop.jpg" alt="Restaurant page with the menu and the cart panel" width="420">
+  &nbsp;
+  <img src="docs/screenshots/v3/web-tracking.jpg" alt="Order tracking with the countdown and the delivery rail" width="420">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/v3/web-world-cup.jpg" alt="The World Cup campaign page with the flag grid" width="420">
+  &nbsp;
+  <img src="docs/screenshots/v3/web-home-dark.jpg" alt="The home page in the dark theme" width="420">
 </p>
 
 ### Mobile
 
 <p align="center">
-  <img src="docs/screenshots/mobile-cart.png" alt="Better Wolt mobile shopping cart" width="280">
-  &nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/mobile-world-cup.png" alt="Better Wolt mobile World Cup experience" width="280">
+  <img src="docs/screenshots/v3/mobile-home.jpg" alt="Mobile home screen with search, the campaign card and restaurant cards" width="240">
+  &nbsp;
+  <img src="docs/screenshots/v3/mobile-restaurant.jpg" alt="Mobile restaurant screen with the menu and the cart bar" width="240">
+  &nbsp;
+  <img src="docs/screenshots/v3/mobile-tracking.jpg" alt="Mobile order tracking with the countdown and the delivery rail" width="240">
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/v3/mobile-world-cup.jpg" alt="The World Cup campaign on mobile" width="240">
+  &nbsp;
+  <img src="docs/screenshots/v3/mobile-cart.jpg" alt="Mobile cart with quantity steppers and the order summary" width="240">
+  &nbsp;
+  <img src="docs/screenshots/v3/mobile-owner-restaurant.jpg" alt="A restaurant owner's view of their own restaurant and menu" width="240">
 </p>
 
 ## Architecture
@@ -59,6 +82,8 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 - [docs/EXTENDING.md](docs/EXTENDING.md) — how to add a backend feature, with a worked example
 - [docs/V2_SPEC.md](docs/V2_SPEC.md) — scope, invariants and the deliberate behavior changes
 - [docs/V2_IMPLEMENTATION_PLAN.md](docs/V2_IMPLEMENTATION_PLAN.md) — the phased plan and what was verified
+- [docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md) — the V3 design: identity, tokens, component language, accessibility
+- [docs/V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) — the V3 phases, what was built and how it was verified
 - [AGENTS.md](AGENTS.md) — branch policy, commands and conventions for contributors
 
 ## Tech Stack
@@ -80,13 +105,18 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 - React
 - React Router
 - Create React App / `react-scripts`
-- HTML and CSS
+- CSS custom properties as design tokens (`client/src/styles/tokens.css`), CSS logical properties for RTL,
+  and a small `components/ui` primitive set — no UI framework
+- Suez One and Rubik from Google Fonts
 
 ### Mobile
 
 - React Native
 - Expo
-- React Navigation
+- React Navigation (native stack + bottom tabs with a custom RTL tab bar)
+- `react-native-safe-area-context` for notches and gesture bars
+- `react-native-svg` for the icon set and the logo
+- A theme module (`mobile/src/theme/`) holding the same tokens as the web client, and a `src/ui` primitive set
 - AsyncStorage
 - Expo Image Picker
 
@@ -122,7 +152,7 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 web-server/             Node.js/Express API (src/features/...) and the React web client
 web-server/test/        API integration tests (node:test + supertest)
 mobile/                 React Native/Expo mobile client
-docs/                   Architecture, API contract, extension guide and the V2 plan
+docs/                   Architecture, API contract, extension guide, the V2 and V3 specs and plans, screenshots
 docker-compose.yml      Backend, MongoDB and the optional Expo dev server
 docker-compose.test.yml Throwaway MongoDB for the test suite
 .github/workflows/      CI: API tests, web tests and build, image build, mobile bundle
@@ -197,9 +227,20 @@ To use another MongoDB 7 instance instead, set `TEST_MONGODB_URI` (each test fil
 
 Web client tests: `cd web-server/client && npm test -- --watchAll=false`.
 
+## Design
+
+The V3 interface is specified in [docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md). In short: warm paper surfaces,
+a deep aubergine ink, one pomegranate action colour and an amber highlight; photography leads every card; the notched
+price tag marks prices and nothing else. Both clients read the same token names, so the dark theme is a real theme
+rather than an inversion, and both stop every transform and animation under the operating system's reduced-motion
+setting. Hebrew is the layout, not a patch: CSS logical properties on the web, a direction-aware layer in the mobile
+theme, and no `I18nManager.forceRTL`.
+
 ## Special World Cup Feature
 
-The World Cup experience is an intentional product and UI feature beyond the core restaurant-browsing and ordering flow. It presents country-themed dishes through dedicated web and mobile interfaces, with supporting media in the web experience.
+The World Cup experience is an intentional product and UI feature beyond the core restaurant-browsing and ordering
+flow. It presents country-themed dishes through a dedicated web page (`/world-cup`) and mobile screen, with a flag
+grid, ordering through the ordinary cart, and background music on the web that plays only when it is asked for.
 
 These dishes are not client-only mock data: the backend seeds a dedicated restaurant and menu as real MongoDB records. Orders placed through the feature use those persisted product identifiers and pass through the same authenticated, server-authoritative order flow as standard restaurant orders.
 

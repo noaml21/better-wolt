@@ -9,8 +9,8 @@
   gap: var(--bw-space-3);
   padding: var(--bw-space-8) var(--bw-space-6);
   border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-ink);
-  color: var(--bw-on-ink);
+  background-color: var(--bw-night);
+  color: var(--bw-on-night);
   overflow: hidden;
 }
 
@@ -64,10 +64,6 @@
   line-height: var(--bw-lh-body);
 }
 
-body.dark .bw-worldcup__lead {
-  color: rgba(20, 16, 30, 0.76);
-}
-
 .bw-worldcup__hero-actions {
   display: flex;
   align-items: center;
@@ -79,10 +75,6 @@ body.dark .bw-worldcup__lead {
 .bw-worldcup__count {
   color: rgba(255, 255, 255, 0.72);
   font-size: var(--bw-caption);
-}
-
-body.dark .bw-worldcup__count {
-  color: rgba(20, 16, 30, 0.7);
 }
 
 .bw-worldcup__layout {

@@ -29,6 +29,14 @@
   --bw-on-amber: var(--bw-ink);
   --bw-on-herb: #ffffff;
   --bw-on-ink: #fbf7f3;
+  --bw-on-danger: #ffffff;
+
+  /* The one surface that does not flip with the theme: the night band
+     the brand is named after (the home hero, the campaign). Inverting it
+     in dark mode would put a bright slab through the middle of a dark
+     page and hand the campaign the page's quietest colour. */
+  --bw-night: #1f1330;
+  --bw-on-night: #fbf7f3;
 
   /* Scrim behind dialogs and sheets. */
   --bw-scrim: rgba(31, 19, 48, 0.55);
@@ -121,6 +129,12 @@ body.dark {
   --bw-on-amber: #14101e;
   --bw-on-herb: #14101e;
   --bw-on-ink: #14101e;
+  /* Dark `danger` is a light red; white on it fails AA. */
+  --bw-on-danger: #14101e;
+
+  /* A shade above `paper` so the band still separates from the page. */
+  --bw-night: #241a38;
+  --bw-on-night: #f6f1ec;
 
   --bw-scrim: rgba(6, 4, 12, 0.7);
 

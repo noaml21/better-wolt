@@ -16,8 +16,8 @@
   gap: var(--bw-space-2);
   padding: var(--bw-space-8) var(--bw-space-6) var(--bw-space-7);
   border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-ink);
-  color: var(--bw-on-ink);
+  background-color: var(--bw-night);
+  color: var(--bw-on-night);
   text-align: center;
 }
 

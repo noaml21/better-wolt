@@ -27,6 +27,12 @@ const light = {
   onAmber: '#1F1330',
   onHerb: '#FFFFFF',
   onInk: '#FBF7F3',
+  onDanger: '#FFFFFF',
+  /* The one surface that does not flip with the theme: the night band
+     the campaign and the tracking screen are built on. Inverting it in
+     dark mode would put a bright slab through a dark screen. */
+  night: '#1F1330',
+  onNight: '#FBF7F3',
   scrim: 'rgba(31, 19, 48, 0.55)',
 };
 
@@ -52,6 +58,10 @@ const dark = {
   onAmber: '#14101E',
   onHerb: '#14101E',
   onInk: '#14101E',
+  /* Dark `danger` is a light red; white on it fails AA. */
+  onDanger: '#14101E',
+  night: '#241A38',
+  onNight: '#F6F1EC',
   scrim: 'rgba(6, 4, 12, 0.7)',
 };
 

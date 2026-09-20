@@ -43,9 +43,15 @@ textarea.bw-field__control {
 }
 
 .bw-field__control:focus {
-  outline: none;
   border-color: var(--bw-flame-deep);
   box-shadow: 0 0 0 3px var(--bw-flame-tint);
+}
+
+/* The shared focus ring still applies — the border and halo above are
+   the field's own emphasis, not a replacement for it (spec §4.4). */
+.bw-field__control:focus-visible {
+  outline: 2px solid var(--bw-flame-deep);
+  outline-offset: 2px;
 }
 
 .bw-field--invalid .bw-field__control {

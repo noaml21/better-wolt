@@ -34,7 +34,7 @@
 
 .bw-toast--error {
   background-color: var(--bw-danger);
-  color: #ffffff;
+  color: var(--bw-on-danger);
 }
 
 .bw-toast__close {

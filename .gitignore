@@ -211,3 +211,6 @@ marimo/_lsp/
 __marimo__/
 
 node_modules/
+
+# Playwright CLI scratch output from V3 visual QA
+.playwright-cli/

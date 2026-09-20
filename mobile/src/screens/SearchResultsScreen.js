@@ -1,318 +1,165 @@
-import React, { useState } from 'react';
-
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-
-import RestaurantCard from '../components/RestaurantCard';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FlatList, Text, TextInput, View } from 'react-native';
+import { createStyles, rtl, useTheme } from '../theme';
 import { searchRestaurants } from '../services/api';
+import { resultCount } from '../services/presentation';
+import { EmptyState, ErrorState, Icon, IconButton, Screen, SkeletonCard } from '../ui';
+import RestaurantCard from '../components/RestaurantCard';
 
-export default function SearchResultsScreen({
-  navigation,
-}) {
+/* Search is a tab, so it keeps its query between visits. Home can hand
+   it a term (a chip, the search field) through route params. */
+
+export default function SearchResultsScreen({ navigation, route }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const input = useRef(null);
   const [query, setQuery] = useState('');
-  const [restaurants, setRestaurants] =
-    useState([]);
+  const [focused, setFocused] = useState(false);
+  const [submitted, setSubmitted] = useState('');
+  const [results, setResults] = useState([]);
+  const [status, setStatus] = useState('idle');
 
-  const [loading, setLoading] =
-    useState(false);
+  const run = useCallback(async (term) => {
+    const trimmed = term.trim();
 
-  const [searched, setSearched] =
-    useState(false);
-
-  const [error, setError] = useState('');
-
-  const performSearch = async () => {
-    const normalizedQuery = query.trim();
-
-    if (!normalizedQuery) {
-      setRestaurants([]);
-      setSearched(false);
-      setError('');
+    if (!trimmed) {
       return;
     }
+
+    setSubmitted(trimmed);
+    setStatus('loading');
 
     try {
-      setLoading(true);
-      setError('');
-      setSearched(true);
+      const data = await searchRestaurants(trimmed);
 
-      const result =
-        await searchRestaurants(
-          normalizedQuery
-        );
-
-      if (!Array.isArray(result)) {
-        throw new Error(
-          'The server returned an invalid search response'
-        );
-      }
-
-      setRestaurants(result);
-    } catch (err) {
-      console.error(
-        'Search failed:',
-        err
-      );
-
-      setRestaurants([]);
-
-      setError(
-        err.message ||
-          'לא הצלחנו לבצע את החיפוש.'
-      );
-    } finally {
-      setLoading(false);
+      setResults(Array.isArray(data) ? data : []);
+      setStatus('ready');
+    } catch (error) {
+      setStatus('error');
     }
-  };
+  }, []);
 
-  const openRestaurant = (restaurant) => {
-    if (!restaurant?.id) {
-      setError(
-        'למסעדה שנבחרה אין מזהה תקין.'
-      );
+  const incoming = route.params?.query;
+
+  /* A term handed over by Home runs straight away; arriving at the tab
+     with nothing to show opens the keyboard instead. Clearing the param
+     afterwards must not re-trigger either. */
+  const handled = useRef(false);
+
+  useEffect(() => {
+    if (incoming) {
+      handled.current = true;
+      setQuery(incoming);
+      run(incoming);
+      navigation.setParams({ query: undefined });
 
       return;
     }
 
-    navigation?.navigate(
-      'RestaurantDetails',
-      {
-        restaurantId: restaurant.id,
-      }
-    );
+    if (!handled.current) {
+      handled.current = true;
+      input.current?.focus();
+    }
+  }, [incoming, run, navigation]);
+
+  const clear = () => {
+    setQuery('');
+    setSubmitted('');
+    setResults([]);
+    setStatus('idle');
+    input.current?.focus();
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.searchSection}>
-        <Text style={styles.title}>
-          חיפוש
-        </Text>
+    <Screen>
+      <View style={styles.bar}>
+        <View style={[styles.field, focused && styles.fieldFocused]}>
+          <Icon name="search" size={20} color={colors.inkMuted} />
 
-        <TextInput
-          value={query}
-          onChangeText={setQuery}
-          placeholder="חפשי מסעדה או מנה"
-          returnKeyType="search"
-          onSubmitEditing={performSearch}
-          style={styles.input}
-          textAlign="right"
-        />
+          <TextInput
+            ref={input}
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={() => run(query)}
+            placeholder="מסעדה, מנה או מטבח"
+            placeholderTextColor={colors.inkMuted}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            returnKeyType="search"
+            accessibilityLabel="חיפוש מסעדה, מנה או מטבח"
+            style={styles.input}
+          />
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.searchButton,
-            pressed &&
-              styles.searchButtonPressed,
-          ]}
-          onPress={performSearch}
-        >
-          <Text style={styles.searchButtonText}>
-            חיפוש
-          </Text>
-        </Pressable>
+          {query ? <IconButton icon="close" label="ניקוי החיפוש" onPress={clear} size={18} /> : null}
+        </View>
       </View>
 
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" />
-
-          <Text style={styles.message}>
-            מחפש...
-          </Text>
-        </View>
-      ) : error ? (
-        <View style={styles.centerContainer}>
-          <Text style={styles.errorTitle}>
-            החיפוש נכשל
-          </Text>
-
-          <Text style={styles.message}>
-            {error}
-          </Text>
-
-          <Pressable
-            style={styles.retryButton}
-            onPress={performSearch}
-          >
-            <Text style={styles.retryText}>
-              נסי שוב
+      <FlatList
+        data={status === 'ready' ? results : []}
+        keyExtractor={(restaurant) => String(restaurant.id)}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          status === 'ready' && results.length > 0 ? (
+            <Text style={styles.count}>
+              {resultCount(results.length)} עבור “{submitted}”
             </Text>
-          </Pressable>
-        </View>
-      ) : (
-        <FlatList
-          data={restaurants}
-          keyExtractor={(item) =>
-            String(item.id)
-          }
-          renderItem={({ item }) => (
-            <RestaurantCard
-              restaurant={item}
-              onPress={() =>
-                openRestaurant(item)
-              }
+          ) : null
+        }
+        ListEmptyComponent={
+          status === 'loading' ? (
+            <View accessibilityLabel="מחפש">
+              <SkeletonCard />
+              <SkeletonCard />
+            </View>
+          ) : status === 'error' ? (
+            <ErrorState
+              title="החיפוש נכשל"
+              description="השרת לא הגיב. אפשר לנסות שוב."
+              onRetry={() => run(submitted || query)}
             />
-          )}
-          contentContainerStyle={[
-            styles.list,
-            searched &&
-              restaurants.length === 0 &&
-              styles.emptyList,
-          ]}
-          showsVerticalScrollIndicator={
-            false
-          }
-          ListEmptyComponent={
-            searched ? (
-              <View
-                style={styles.emptyContainer}
-              >
-                <Text
-                  style={styles.emptyTitle}
-                >
-                  לא נמצאו תוצאות
-                </Text>
-
-                <Text style={styles.message}>
-                  נסי לחפש מסעדה, כתובת או
-                  שם של מנה אחרת.
-                </Text>
-              </View>
-            ) : (
-              <View
-                style={styles.emptyContainer}
-              >
-                <Text
-                  style={styles.emptyTitle}
-                >
-                  התחילי לחפש
-                </Text>
-
-                <Text style={styles.message}>
-                  הזיני טקסט בשדה החיפוש.
-                </Text>
-              </View>
-            )
-          }
-        />
-      )}
-    </SafeAreaView>
+          ) : status === 'ready' ? (
+            <EmptyState
+              icon="search"
+              title={`לא מצאנו כלום עבור “${submitted}”`}
+              description="נסו שם של מסעדה, מנה או סוג מטבח."
+            />
+          ) : (
+            <EmptyState
+              icon="search"
+              title="מה בא לכם לאכול?"
+              description="חפשו מסעדה, מנה או מטבח והתוצאות יופיעו כאן."
+            />
+          )
+        }
+        renderItem={({ item }) => (
+          <RestaurantCard
+            restaurant={item}
+            onPress={() => navigation.navigate('RestaurantDetails', { restaurantId: item.id })}
+          />
+        )}
+      />
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
-
-  searchSection: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 14,
-  },
-
-  title: {
-    marginBottom: 15,
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  input: {
-    height: 50,
-    paddingHorizontal: 15,
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
+  bar: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[3] },
+  field: {
+    ...rtl.row,
+    alignItems: 'center',
+    gap: space[3],
+    minHeight: 52,
+    paddingHorizontal: space[4],
+    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: '#D9CEDD',
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    fontSize: 16,
-    color: '#351440',
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
-
-  searchButton: {
-    marginTop: 12,
-    paddingVertical: 13,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  searchButtonPressed: {
-    opacity: 0.8,
-  },
-
-  searchButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  list: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 30,
-  },
-
-  emptyList: {
-    flexGrow: 1,
-  },
-
-  centerContainer: {
-    flex: 1,
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  message: {
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 21,
-    color: '#666666',
-    textAlign: 'center',
-  },
-
-  errorTitle: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#351440',
-  },
-
-  retryButton: {
-    marginTop: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  retryText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  emptyContainer: {
-    flex: 1,
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#351440',
-  },
-});
+  fieldFocused: { borderColor: colors.flameDeep, borderWidth: 2, paddingHorizontal: space[4] - 1 },
+  input: { ...type.body, ...rtl.text, flex: 1, paddingVertical: space[3], color: colors.ink },
+  list: { paddingHorizontal: space[4], paddingBottom: space[7] },
+  count: { ...type.caption, ...rtl.text, marginBottom: space[3], color: colors.inkMuted },
+}));

@@ -1,533 +1,195 @@
-import React, {
-  useCallback,
-  useState,
-} from 'react';
-
+import React, { useCallback, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { createStyles, rtl, useTheme } from '../theme';
+import { getUserOrders } from '../services/api';
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-import {
-  useFocusEffect,
-} from '@react-navigation/native';
-
-import OrderCard from '../components/OrderCard';
+  formatOrderNumber,
+  isActive,
+  itemCount,
+  orderCount,
+  summariseItems,
+} from '../services/presentation';
 import { useAuth } from '../context/AuthContext';
-
 import {
-  getRestaurantById,
-  getUserOrders,
-} from '../services/api';
+  Card,
+  EmptyState,
+  ErrorState,
+  Icon,
+  Screen,
+  ScreenHeader,
+  Skeleton,
+  StatusPill,
+  formatPrice,
+} from '../ui';
 
-function getRestaurantId(order) {
-  const restaurant = order?.restaurant;
+/* Order history. The newest order is the one you just placed, so the
+   list is reversed and an order still on its way leads to tracking. */
 
-  if (
-    restaurant &&
-    typeof restaurant === 'object'
-  ) {
-    const id =
-      restaurant.id || restaurant._id;
+export default function OrdersScreen({ navigation }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { token } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [refreshing, setRefreshing] = useState(false);
 
-    return id ? String(id) : null;
-  }
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setStatus('loading');
+      }
 
-  if (
-    restaurant === undefined ||
-    restaurant === null ||
-    restaurant === ''
-  ) {
-    return null;
-  }
-
-  return String(restaurant);
-}
-
-function isMongoId(value) {
-  return /^[a-f0-9]{24}$/i.test(
-    String(value || '')
-  );
-}
-
-function buildProductNameMap(restaurant) {
-  const productNameById = new Map();
-
-  const products = Array.isArray(
-    restaurant?.products
-  )
-    ? restaurant.products
-    : [];
-
-  products.forEach((product) => {
-    const productId =
-      product?.id || product?._id;
-
-    if (productId && product?.name) {
-      productNameById.set(
-        String(productId),
-        product.name
-      );
-    }
-  });
-
-  return productNameById;
-}
-
-function getProductDisplayName(
-  product,
-  productNameById
-) {
-  if (
-    product &&
-    typeof product === 'object'
-  ) {
-    if (product.name) {
-      return product.name;
-    }
-
-    const productId =
-      product.id || product._id;
-
-    if (
-      productId &&
-      productNameById.has(
-        String(productId)
-      )
-    ) {
-      return productNameById.get(
-        String(productId)
-      );
-    }
-
-    return 'מוצר לא זמין';
-  }
-
-  const value = String(
-    product || ''
-  ).trim();
-
-  if (!value) {
-    return 'מוצר ללא שם';
-  }
-
-  if (productNameById.has(value)) {
-    return productNameById.get(value);
-  }
-
-  if (isMongoId(value)) {
-    return 'מוצר לא זמין';
-  }
-
-  return value;
-}
-
-function mapOrderProducts(
-  order,
-  productNameById
-) {
-  const products = Array.isArray(
-    order?.products
-  )
-    ? order.products
-    : [];
-
-  return {
-    ...order,
-    products: products.map((product) =>
-      getProductDisplayName(
-        product,
-        productNameById
-      )
-    ),
-  };
-}
-
-async function addProductNamesToOrders(
-  orders
-) {
-  const restaurantIds = [
-    ...new Set(
-      orders
-        .map(getRestaurantId)
-        .filter(Boolean)
-    ),
-  ];
-
-  const restaurantEntries =
-    await Promise.all(
-      restaurantIds.map(
-        async (restaurantId) => {
-          try {
-            const restaurant =
-              await getRestaurantById(
-                restaurantId
-              );
-
-            return [
-              restaurantId,
-              buildProductNameMap(
-                restaurant
-              ),
-            ];
-          } catch (error) {
-            console.warn(
-              `Failed to load restaurant ${restaurantId}:`,
-              error
-            );
-
-            return [
-              restaurantId,
-              new Map(),
-            ];
-          }
-        }
-      )
-    );
-
-  const productMapsByRestaurant =
-    new Map(restaurantEntries);
-
-  return orders.map((order) => {
-    const restaurantId =
-      getRestaurantId(order);
-
-    const productNameById =
-      productMapsByRestaurant.get(
-        restaurantId
-      ) || new Map();
-
-    return mapOrderProducts(
-      order,
-      productNameById
-    );
-  });
-}
-
-export default function OrdersScreen({
-  navigation,
-}) {
-  const {
-    token,
-    isAuthenticated,
-    logout,
-  } = useAuth();
-
-  const [orders, setOrders] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [refreshing, setRefreshing] =
-    useState(false);
-
-  const [error, setError] =
-    useState('');
-
-  const loadOrders = useCallback(
-    async (isRefresh = false) => {
       try {
-        if (
-          !isAuthenticated ||
-          !token
-        ) {
-          setOrders([]);
-          setError(
-            'יש להתחבר כדי לצפות בהזמנות.'
-          );
+        const data = await getUserOrders(token);
 
-          return;
-        }
-
-        if (isRefresh) {
-          setRefreshing(true);
-        } else {
-          setLoading(true);
-        }
-
-        setError('');
-
-        const result =
-          await getUserOrders(token);
-
-        if (!Array.isArray(result)) {
-          throw new Error(
-            'The server returned an invalid orders response'
-          );
-        }
-
-        const ordersWithProductNames =
-          await addProductNamesToOrders(
-            result
-          );
-
-        const sortedOrders = [
-          ...ordersWithProductNames,
-        ].sort(
-          (
-            firstOrder,
-            secondOrder
-          ) =>
-            Number(
-              secondOrder.startTime || 0
-            ) -
-            Number(
-              firstOrder.startTime || 0
-            )
-        );
-
-        setOrders(sortedOrders);
-      } catch (err) {
-        console.error(
-          'Failed to load orders:',
-          err
-        );
-
-        if (
-          err.status === 401 ||
-          err.status === 403
-        ) {
-          await logout();
-
-          setError(
-            'פג תוקף ההתחברות. יש להתחבר מחדש.'
-          );
-        } else {
-          setError(
-            err.message ||
-              'לא הצלחנו לטעון את ההזמנות.'
-          );
-        }
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
+        setOrders(Array.isArray(data) ? [...data].reverse() : []);
+        setStatus('ready');
+      } catch (error) {
+        setStatus('error');
       }
     },
-    [isAuthenticated, token, logout]
+    [token]
   );
 
   useFocusEffect(
     useCallback(() => {
-      loadOrders();
-    }, [loadOrders])
+      load({ silent: true });
+    }, [load])
   );
 
-  const openLogin = () => {
-    navigation?.navigate('Login');
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <ActivityIndicator
-          size="large"
-        />
-
-        <Text style={styles.message}>
-          טוען הזמנות...
-        </Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    const authenticationError =
-      !isAuthenticated ||
-      error.includes('להתחבר');
-
-    return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <Text
-          style={styles.errorTitle}
-        >
-          לא ניתן להציג הזמנות
-        </Text>
-
-        <Text style={styles.message}>
-          {error}
-        </Text>
-
-        {authenticationError ? (
-          <Pressable
-            style={styles.button}
-            onPress={openLogin}
-          >
-            <Text
-              style={styles.buttonText}
-            >
-              מעבר להתחברות
-            </Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            style={styles.button}
-            onPress={() =>
-              loadOrders()
-            }
-          >
-            <Text
-              style={styles.buttonText}
-            >
-              נסי שוב
-            </Text>
-          </Pressable>
-        )}
-      </SafeAreaView>
-    );
-  }
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    await load({ silent: true });
+    setRefreshing(false);
+  }, [load]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={orders}
-        keyExtractor={(item, index) =>
-          String(
-            item.id ||
-              item._id ||
-              index
-          )
-        }
-        renderItem={({ item }) => (
-          <OrderCard order={item} />
-        )}
-        contentContainerStyle={[
-          styles.list,
-          orders.length === 0 &&
-            styles.emptyList,
-        ]}
-        refreshing={refreshing}
-        onRefresh={() =>
-          loadOrders(true)
-        }
-        showsVerticalScrollIndicator={
-          false
-        }
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <Text style={styles.title}>
-              ההזמנות שלי
-            </Text>
+    <Screen>
+      <ScreenHeader
+        title="ההזמנות שלי"
+        subtitle={status === 'ready' && orders.length ? `${orderCount(orders.length)} בחשבון שלכם` : undefined}
+        large
+      />
 
-            <Text
-              style={styles.subtitle}
-            >
-              כאן ניתן לראות את כל
-              ההזמנות שלך
-            </Text>
-          </View>
+      <FlatList
+        data={status === 'ready' ? orders : []}
+        keyExtractor={(order) => String(order.id)}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.flame} />
         }
         ListEmptyComponent={
-          <View
-            style={styles.emptyContainer}
-          >
-            <Text
-              style={styles.emptyTitle}
-            >
-              עדיין אין הזמנות
-            </Text>
-
-            <Text style={styles.message}>
-              לאחר ביצוע הזמנה היא
-              תופיע כאן.
-            </Text>
-          </View>
+          status === 'loading' ? (
+            <View style={styles.skeletons} accessibilityLabel="טוען הזמנות">
+              {[0, 1, 2].map((key) => (
+                <Card key={key} style={styles.skeletonCard}>
+                  <Skeleton width="45%" height={20} />
+                  <Skeleton width="70%" height={12} />
+                  <Skeleton width="30%" height={12} />
+                </Card>
+              ))}
+            </View>
+          ) : status === 'error' ? (
+            <ErrorState
+              title="לא הצלחנו לטעון את ההזמנות"
+              description="השרת לא הגיב. אפשר לנסות שוב."
+              onRetry={load}
+            />
+          ) : (
+            <EmptyState
+              icon="bag"
+              title="עוד לא הזמנתם כלום"
+              description="ההזמנה הראשונה מחכה. בחרו מסעדה והיא תופיע כאן."
+              actionLabel="לגלות מסעדות"
+              onAction={() => navigation.navigate('Home')}
+            />
+          )
         }
+        renderItem={({ item }) => {
+          const active = isActive(item);
+          const items = summariseItems(item);
+
+          return (
+            <Card style={styles.order}>
+              <View style={styles.orderHeader}>
+                <View style={styles.identity}>
+                  <Text style={styles.restaurant} numberOfLines={1}>
+                    {item.restaurantName}
+                  </Text>
+                  <Text style={styles.number}>
+                    <Text style={styles.orderNumber}>{formatOrderNumber(item.id)}</Text>
+                    {` · ${item.date}`}
+                  </Text>
+                </View>
+
+                <StatusPill tone={active ? 'active' : 'done'}>
+                  {active ? 'בדרך אליכם' : 'הושלמה'}
+                </StatusPill>
+              </View>
+
+              {items ? (
+                <Text style={styles.items} numberOfLines={2}>
+                  {items}
+                </Text>
+              ) : null}
+
+              <View style={styles.orderFooter}>
+                <Text style={styles.count}>{itemCount(item.items)}</Text>
+                <Text style={styles.total}>{formatPrice(item.total)}</Text>
+              </View>
+
+              {active ? (
+                <Pressable
+                  onPress={() => navigation.navigate('Tracking', { orderId: item.id })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`מעקב אחרי ההזמנה מ${item.restaurantName}`}
+                  style={({ pressed }) => [styles.track, pressed && styles.trackPressed]}
+                >
+                  <Text style={styles.trackLabel}>מעקב אחרי ההזמנה</Text>
+                  <Icon name="back" size={16} color={styles.trackLabel.color} />
+                </Pressable>
+              ) : null}
+            </Card>
+          );
+        }}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
+  list: { paddingHorizontal: space[4], paddingBottom: space[7] },
+  skeletons: { gap: space[4] },
+  skeletonCard: { gap: space[3], padding: space[4] },
 
-  list: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 32,
+  order: { gap: space[3], padding: space[4], marginBottom: space[4] },
+  orderHeader: { ...rtl.row, alignItems: 'flex-start', justifyContent: 'space-between', gap: space[3] },
+  identity: { flex: 1, gap: 2 },
+  restaurant: { ...type.h3, ...rtl.text, color: colors.ink },
+  number: { ...type.caption, ...rtl.text, color: colors.inkMuted },
+  orderNumber: { fontVariant: ['tabular-nums'] },
+  items: { ...type.caption, ...rtl.text, color: colors.inkMuted },
+  orderFooter: {
+    ...rtl.row,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: space[3],
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
   },
-
-  emptyList: {
-    flexGrow: 1,
-  },
-
-  header: {
-    marginBottom: 22,
-  },
-
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  subtitle: {
-    marginTop: 5,
-    fontSize: 15,
-    color: '#666666',
-    textAlign: 'right',
-  },
-
-  centerContainer: {
-    flex: 1,
-    padding: 24,
+  count: { ...type.caption, color: colors.inkMuted },
+  total: { ...type.h3, color: colors.ink },
+  track: {
+    ...rtl.row,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7F4FA',
+    gap: space[2],
+    minHeight: 44,
+    borderRadius: radius.sm,
+    backgroundColor: colors.flameTint,
   },
-
-  errorTitle: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#351440',
-    textAlign: 'center',
-  },
-
-  message: {
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 21,
-    color: '#666666',
-    textAlign: 'center',
-  },
-
-  button: {
-    marginTop: 22,
-    paddingHorizontal: 25,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  emptyContainer: {
-    flex: 1,
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#351440',
-  },
-});
+  trackPressed: { opacity: 0.85 },
+  trackLabel: { ...type.caption, color: colors.flameDeep, fontWeight: '700' },
+}));

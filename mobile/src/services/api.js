@@ -271,3 +271,7 @@ function normalizeRestaurant(restaurant) {
     products,
   };
 }
+
+export function getOrderById(token, orderId) {
+  return request(`/orders/${orderId}`, { method: 'GET' }, token);
+}

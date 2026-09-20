@@ -1,178 +1,99 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ActivityIndicator 
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Pressable, Text } from 'react-native';
+import { createStyles } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { AuthScaffold, Button, Field, InlineMessage, useToast } from '../ui';
 
 export default function LoginScreen({ navigation }) {
-  // שמירת ערכי השדות
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const styles = useStyles();
+  const [values, setValues] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); 
-  
-  const usernameInputRef = useRef(null);
-  
+  const [submitting, setSubmitting] = useState(false);
+  const username = useRef(null);
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   useEffect(() => {
-    if (usernameInputRef.current) {
-      usernameInputRef.current.focus();
-    }
+    username.current?.focus();
   }, []);
-  const handleSubmit = async () => {
-    if (!username.trim() || !password.trim()) {
-      setError('חובה להזין שם משתמש וסיסמה.');
+
+  const change = (name) => (value) => setValues((current) => ({ ...current, [name]: value }));
+
+  const submit = async () => {
+    if (!values.username.trim() || !values.password) {
+      setError('צריך שם משתמש וסיסמה כדי להיכנס.');
+
       return;
     }
-   
 
+    setSubmitting(true);
     setError('');
-    setIsLoading(true);
 
     try {
-      await login({ 
-        username,
-         password 
-        });
-    } catch (err) {
-      // Wrong credentials keep the friendly message; anything else
-      // (e.g. 429 Too many requests) shows the server's error text.
-      setError(err.status === 401 ? 'שם משתמש או סיסמה לא נכונים.' : err.message);
-    } finally {
-      setIsLoading(false);
+      const response = await login({ username: values.username.trim(), password: values.password });
+
+      showToast(`שלום ${response.user?.displayName || values.username}`);
+    } catch (requestError) {
+      /* 401 gets the friendly line; everything else (429, 400) shows the
+         server's own message, which is contract (ARCHITECTURE §4.3). */
+      setError(
+        requestError.status === 401 ? 'שם המשתמש או הסיסמה אינם נכונים.' : requestError.message
+      );
+      setSubmitting(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>התחברות 🔐</Text>
-      {error !== '' && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      )}
+    <AuthScaffold
+      title="כניסה לחשבון"
+      subtitle="עוד רגע אתם מזמינים."
+      footer={
+        <>
+          <Text style={styles.footerText}>אין לכם חשבון?</Text>
+          <Pressable
+            onPress={() => navigation.navigate('Register')}
+            accessibilityRole="link"
+            hitSlop={8}
+          >
+            <Text style={styles.footerLink}>הרשמה</Text>
+          </Pressable>
+        </>
+      }
+    >
+      {error ? <InlineMessage>{error}</InlineMessage> : null}
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>שם משתמש</Text>
-        <TextInput
-          ref={usernameInputRef}
-          style={[styles.input, error && !username.trim() ? styles.inputError : null]}
-          value={username}
-          onChangeText={setUsername}
-          placeholder="הזן שם משתמש"
-          autoCapitalize="none"
-        />
-      </View>
+      <Field
+        ref={username}
+        label="שם משתמש"
+        value={values.username}
+        onChangeText={change('username')}
+        autoCapitalize="none"
+        autoCorrect={false}
+        textContentType="username"
+        returnKeyType="next"
+        required
+      />
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>סיסמה</Text>
-        <TextInput
-          style={[styles.input, error && !password.trim() ? styles.inputError : null]}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="הזן סיסמה"
-          secureTextEntry
-        />
-      </View>
+      <Field
+        label="סיסמה"
+        value={values.password}
+        onChangeText={change('password')}
+        secureTextEntry
+        autoCapitalize="none"
+        textContentType="password"
+        returnKeyType="go"
+        onSubmitEditing={submit}
+        required
+      />
 
-      {/* כפתור ההתחברות */}
-      <TouchableOpacity 
-        style={styles.submitBtn} 
-        onPress={handleSubmit}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.submitBtnText}>היכנס</Text>
-        )}
-      </TouchableOpacity>
-
-      {/* קישור למסך ההרשמה */}
-      <View style={styles.authSwitch}>
-        <Text style={styles.authSwitchText}>עוד אין לך חשבון? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-          <Text style={styles.linkText}>הירשם כאן</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      <Button size="lg" fullWidth loading={submitting} onPress={submit}>
+        התחברות
+      </Button>
+    </AuthScaffold>
   );
 }
 
-// עיצוב הדף
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 30,
-    color: '#333',
-  },
-  formGroup: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    marginBottom: 8,
-    color: '#555',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#6e0483',
-    padding: 12,
-    borderRadius: 8,
-    fontSize: 16,
-  },
-  inputError: {
-    borderColor: 'red',
-  },
-  errorContainer: {
-    backgroundColor: '#ffebee',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  errorText: {
-    color: 'red',
-    textAlign: 'center',
-  },
-  submitBtn: {
-    backgroundColor: '#52006bc7',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  submitBtnText: {
-    color: '#5b0371',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  authSwitch: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  authSwitchText: {
-    fontSize: 16,
-    color: '#d097ff',
-  },
-  linkText: {
-    fontSize: 16,
-    color: '#e8004d4d',
-    fontWeight: 'bold',
-  },
-});
+const useStyles = createStyles(({ colors, type }) => ({
+  footerText: { ...type.body, color: colors.onInk, opacity: 0.8 },
+  footerLink: { ...type.body, color: colors.amber, fontWeight: '800' },
+}));

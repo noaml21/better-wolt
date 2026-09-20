@@ -1,73 +1,80 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+import { useTheme } from '../theme';
+import { useAuth } from '../context/AuthContext';
+import TabBar from './TabBar';
 
 import HomeScreen from '../screens/HomeScreen';
+import SearchResultsScreen from '../screens/SearchResultsScreen';
+import OrdersScreen from '../screens/OrdersScreen';
+import CartScreen from '../screens/CartScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 import RestaurantDetailsScreen from '../screens/RestaurantDetailsScreen';
-import CartScreen from '../screens/CartScreen';
-import OrdersScreen from '../screens/OrdersScreen';
-import ProductFormScreen from '../screens/ProductFormScreen';
-import SearchResultsScreen from '../screens/SearchResultsScreen';
+import TrackingScreen from '../screens/TrackingScreen';
 import WorldCupScreen from '../screens/WorldCupScreen';
 import RestaurantFormScreen from '../screens/RestaurantFormScreen';
-
-import { useAuth } from '../context/AuthContext';
+import ProductFormScreen from '../screens/ProductFormScreen';
 
 const Stack = createNativeStackNavigator();
+const Tabs = createBottomTabNavigator();
+
+/* Signed in, the four tabs are the app. Everything else is pushed over
+   them, so a restaurant or an order never loses the tab you came from
+   (V3_DESIGN_SPEC §5.2). Headers are off: every screen draws its own
+   ScreenHeader so the layout reads right-to-left. */
+
+function MainTabs() {
+  return (
+    <Tabs.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <TabBar {...props} />}
+    >
+      <Tabs.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'בית' }} />
+      <Tabs.Screen name="Search" component={SearchResultsScreen} options={{ tabBarLabel: 'חיפוש' }} />
+      <Tabs.Screen name="Orders" component={OrdersScreen} options={{ tabBarLabel: 'הזמנות' }} />
+      <Tabs.Screen name="Cart" component={CartScreen} options={{ tabBarLabel: 'הסל' }} />
+    </Tabs.Navigator>
+  );
+}
 
 export default function AppNavigator() {
   const { isAuthenticated } = useAuth();
+  const { colors } = useTheme();
+
+  const navigationTheme = {
+    ...DefaultTheme,
+    dark: colors.name === 'dark',
+    colors: {
+      ...DefaultTheme.colors,
+      primary: colors.flame,
+      background: colors.paper,
+      card: colors.surface,
+      text: colors.ink,
+      border: colors.line,
+      notification: colors.flame,
+    },
+  };
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        {!isAuthenticated ? (
+    <NavigationContainer theme={navigationTheme}>
+      <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_left' }}>
+        {isAuthenticated ? (
           <>
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-            />
-            <Stack.Screen
-              name="Register"
-              component={RegisterScreen}
-            />
+            <Stack.Screen name="Tabs" component={MainTabs} />
+            <Stack.Screen name="RestaurantDetails" component={RestaurantDetailsScreen} />
+            <Stack.Screen name="Tracking" component={TrackingScreen} />
+            <Stack.Screen name="WorldCup" component={WorldCupScreen} />
+            <Stack.Screen name="RestaurantForm" component={RestaurantFormScreen} />
+            <Stack.Screen name="ProductForm" component={ProductFormScreen} />
           </>
         ) : (
           <>
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-            />
-            <Stack.Screen
-              name="RestaurantDetails"
-              component={RestaurantDetailsScreen}
-            />
-            <Stack.Screen
-              name="Cart"
-              component={CartScreen}
-            />
-            <Stack.Screen
-              name="Orders"
-              component={OrdersScreen}
-            />
-            <Stack.Screen
-              name="SearchResults"
-              component={SearchResultsScreen}
-            />
-            <Stack.Screen
-              name="WorldCup"
-              component={WorldCupScreen}
-            />
-            <Stack.Screen
-              name="RestaurantForm"
-              component={RestaurantFormScreen}
-            />
-            <Stack.Screen
-              name="ProductForm"
-              component={ProductFormScreen}
-            />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Register" component={RegisterScreen} />
           </>
         )}
       </Stack.Navigator>

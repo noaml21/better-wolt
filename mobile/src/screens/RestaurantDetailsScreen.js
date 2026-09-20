@@ -1,229 +1,110 @@
-import React, {
-  useCallback,
-  useState,
-} from 'react';
-
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-import {
-  useFocusEffect,
-} from '@react-navigation/native';
-
-import ProductCard from '../components/ProductCard';
+import React, { useCallback, useState } from 'react';
+import { Alert, FlatList, Image, Pressable, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createStyles, rtl, space, useTheme } from '../theme';
+import { deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
+import { dishCount, getRestaurantMeta } from '../services/presentation';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-
 import {
-  deleteProduct,
-  deleteRestaurant,
-  getRestaurantById,
-} from '../services/api';
+  Button,
+  EmptyState,
+  ErrorState,
+  Icon,
+  IconButton,
+  MetaItem,
+  Rating,
+  Screen,
+  Skeleton,
+  formatPrice,
+  useToast,
+} from '../ui';
+import DishRow from '../components/DishRow';
 
-export default function RestaurantDetailsScreen({
-  route,
-  navigation,
-}) {
-  const restaurantId =
-    route?.params?.restaurantId;
+/* One restaurant: the photo, the facts, the menu, and — for the owner —
+   the same menu with edit controls, so it is managed where it is read. */
 
+export default function RestaurantDetailsScreen({ navigation, route }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { user, token } = useAuth();
+  const { showToast } = useToast();
+  const cart = useCart();
 
-  const {
-    addToCart,
-    itemsCount,
-  } = useCart();
+  const restaurantId = route.params?.restaurantId;
+  const [restaurant, setRestaurant] = useState(null);
+  const [status, setStatus] = useState('loading');
 
-  const [restaurant, setRestaurant] =
-    useState(null);
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setStatus('loading');
+      }
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState('');
-
-  const loadRestaurant = useCallback(
-    async () => {
       try {
-        setLoading(true);
-        setError('');
-
-        if (!restaurantId) {
-          throw new Error(
-            'Restaurant ID is missing'
-          );
-        }
-
-        const result =
-          await getRestaurantById(
-            restaurantId
-          );
-
-        if (!result || !result.id) {
-          throw new Error(
-            'Restaurant not found'
-          );
-        }
-
-        setRestaurant(result);
-      } catch (err) {
-        console.error(
-          'Failed to load restaurant:',
-          err
-        );
-
-        setError(
-          err.message ||
-            'לא הצלחנו לטעון את המסעדה.'
-        );
-      } finally {
-        setLoading(false);
+        setRestaurant(await getRestaurantById(restaurantId));
+        setStatus('ready');
+      } catch (error) {
+        setStatus(error.status === 404 ? 'missing' : 'error');
       }
     },
     [restaurantId]
   );
 
+  /* Coming back from a dish form should show the change, so the menu is
+     re-read on focus — quietly, to keep the screen from flashing. */
   useFocusEffect(
     useCallback(() => {
-      loadRestaurant();
-    }, [loadRestaurant])
+      load({ silent: Boolean(restaurant) });
+    }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  function getOwnerUsername(restaurant) {
-  if (!restaurant) {
-    return null;
-  }
+  const isOwner = Boolean(user?.username) && user.username === restaurant?.username;
+  const products = restaurant?.products || [];
+  const cartHasOtherRestaurant = cart.itemsCount > 0 && cart.restaurantId !== String(restaurantId);
 
-  if (restaurant.username) {
-    return restaurant.username;
-  }
-
-  if (restaurant.ownerUsername) {
-    return restaurant.ownerUsername;
-  }
-
-  if (typeof restaurant.owner === 'string') {
-    return restaurant.owner;
-  }
-
-  if (restaurant.owner?.username) {
-    return restaurant.owner.username;
-  }
-
-  if (restaurant.user?.username) {
-    return restaurant.user.username;
-  }
-
-  return null;
-}
-
-  const ownerUsername = getOwnerUsername(restaurant);
-
-  const isOwner =
-    user?.role === 'restaurant' &&
-    user?.username &&
-    ownerUsername &&
-    user.username === ownerUsername;
-
-  const handleAddToCart = (product) => {
-    const added = addToCart(
-      product,
-      restaurant
-    );
-
-    if (!added) {
+  const addToCart = (product) => {
+    if (cartHasOtherRestaurant) {
       Alert.alert(
-        'לא ניתן להוסיף לסל',
-        'הסל מכיל פריטים ממסעדה אחרת. יש לנקות אותו לפני הוספת פריטים ממסעדה חדשה.'
+        'להתחיל סל חדש?',
+        `בסל יש כבר מנות מ${cart.restaurant?.name}. הוספת מנה מכאן תחליף אותן.`,
+        [
+          { text: 'ביטול', style: 'cancel' },
+          {
+            text: 'סל חדש',
+            style: 'destructive',
+            onPress: () => {
+              cart.addItem(product, restaurant);
+              showToast(`${product.name} נוספה לסל`);
+            },
+          },
+        ]
       );
 
       return;
     }
 
+    cart.addItem(product, restaurant);
+  };
+
+  const removeRestaurant = () => {
     Alert.alert(
-      'נוסף לסל',
-      `${product.name} נוסף לסל.`
-    );
-  };
-
-  const openCart = () => {
-    navigation?.navigate('Cart');
-  };
-
-  const openRestaurantEdit = () => {
-    navigation?.navigate(
-      'RestaurantForm',
-      {
-        restaurant,
-      }
-    );
-  };
-
-  const openCreateProduct = () => {
-    navigation?.navigate(
-      'ProductForm',
-      {
-        restaurantId: restaurant.id,
-      }
-    );
-  };
-
-  const openProductEdit = (product) => {
-    navigation?.navigate(
-      'ProductForm',
-      {
-        restaurantId: restaurant.id,
-        product,
-      }
-    );
-  };
-
-  const handleDeleteRestaurant = () => {
-    Alert.alert(
-      'מחיקת מסעדה',
-      'האם את בטוחה שברצונך למחוק את המסעדה?',
+      `לסגור את ${restaurant.name}?`,
+      'המסעדה והתפריט שלה יימחקו. אי אפשר לבטל את הפעולה.',
       [
+        { text: 'ביטול', style: 'cancel' },
         {
-          text: 'ביטול',
-          style: 'cancel',
-        },
-        {
-          text: 'מחיקה',
+          text: 'סגירת המסעדה',
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteRestaurant(
-                token,
-                restaurant.id
-              );
-
-              Alert.alert(
-                'המסעדה נמחקה',
-                'המסעדה נמחקה בהצלחה.'
-              );
-
-              navigation?.navigate('Home');
-            } catch (err) {
-              console.error(
-                'Failed to delete restaurant:',
-                err
-              );
-
-              Alert.alert(
-                'המחיקה נכשלה',
-                err.message ||
-                  'לא הצלחנו למחוק את המסעדה.'
-              );
+              await deleteRestaurant(token, restaurant.id);
+              showToast('המסעדה נסגרה');
+              navigation.navigate('Tabs', { screen: 'Home' });
+            } catch (error) {
+              showToast(error.message, { tone: 'error' });
             }
           },
         },
@@ -231,448 +112,284 @@ export default function RestaurantDetailsScreen({
     );
   };
 
-  const handleDeleteProduct = (
-    product
-  ) => {
-    Alert.alert(
-      'מחיקת מנה',
-      `האם למחוק את ${product.name}?`,
-      [
-        {
-          text: 'ביטול',
-          style: 'cancel',
+  const removeProduct = (product) => {
+    Alert.alert(`למחוק את ${product.name}?`, 'המנה תוסר מהתפריט. הזמנות קודמות לא משתנות.', [
+      { text: 'ביטול', style: 'cancel' },
+      {
+        text: 'מחיקה',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteProduct(token, restaurant.id, product.id);
+            await load({ silent: true });
+            showToast(`${product.name} הוסרה מהתפריט`);
+          } catch (error) {
+            showToast(error.message, { tone: 'error' });
+          }
         },
-        {
-          text: 'מחיקה',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteProduct(
-                token,
-                restaurant.id,
-                product.id
-              );
-
-              Alert.alert(
-                'המנה נמחקה',
-                'המנה הוסרה מהתפריט.'
-              );
-
-              await loadRestaurant();
-            } catch (err) {
-              console.error(
-                'Failed to delete product:',
-                err
-              );
-
-              Alert.alert(
-                'המחיקה נכשלה',
-                err.message ||
-                  'לא הצלחנו למחוק את המנה.'
-              );
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <ActivityIndicator size="large" />
+      <Screen topInset={false}>
+        <Skeleton height={230} radius="lg" style={styles.heroSkeleton} />
 
-        <Text style={styles.message}>
-          טוען מסעדה...
-        </Text>
-      </SafeAreaView>
+        <View style={styles.skeletonBody}>
+          <Skeleton width="55%" height={26} />
+          <Skeleton width="80%" height={14} />
+          <Skeleton height={76} radius="md" />
+          <Skeleton height={76} radius="md" />
+        </View>
+      </Screen>
     );
   }
 
-  if (error) {
+  if (status !== 'ready') {
     return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <Text style={styles.errorTitle}>
-          לא ניתן לטעון את המסעדה
-        </Text>
+      <Screen>
+        <View style={styles.backRow}>
+          <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />
+        </View>
 
-        <Text style={styles.message}>
-          {error}
-        </Text>
-
-        <Pressable
-          style={styles.retryButton}
-          onPress={loadRestaurant}
-        >
-          <Text style={styles.retryText}>
-            נסי שוב
-          </Text>
-        </Pressable>
-      </SafeAreaView>
+        {status === 'missing' ? (
+          <EmptyState
+            icon="store"
+            title="המסעדה הזו לא נמצאה"
+            description="ייתכן שהיא נסגרה או שהקישור שגוי."
+            actionLabel="לכל המסעדות"
+            onAction={() => navigation.navigate('Tabs', { screen: 'Home' })}
+          />
+        ) : (
+          <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={load} />
+        )}
+      </Screen>
     );
   }
 
-  const products = Array.isArray(
-    restaurant?.products
-  )
-    ? restaurant.products
-    : [];
+  const meta = getRestaurantMeta(restaurant);
+  const showCartBar = !isOwner && cart.itemsCount > 0 && cart.restaurantId === String(restaurant.id);
+
+  const header = (
+    <View>
+      <View style={styles.hero}>
+        {restaurant.image ? (
+          <Image source={{ uri: restaurant.image }} style={styles.heroImage} resizeMode="cover" />
+        ) : (
+          <Text style={styles.heroPlaceholder}>{restaurant.name?.trim().charAt(0)}</Text>
+        )}
+
+        <View style={[styles.heroBack, { top: insets.top + 8 }]}>
+          <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />
+        </View>
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.headline}>
+          <Text style={styles.name}>{restaurant.name}</Text>
+          <Rating value={meta.rating} />
+        </View>
+
+        <View style={styles.facts}>
+          <MetaItem icon="clock">{meta.eta} דק׳</MetaItem>
+          <MetaItem icon="scooter" tone={meta.isFreeDelivery ? 'herb' : undefined}>
+            {meta.deliveryLabel}
+          </MetaItem>
+        </View>
+
+        {restaurant.address ? <MetaItem icon="location">{restaurant.address}</MetaItem> : null}
+        {restaurant.phone ? <MetaItem icon="phone">{restaurant.phone}</MetaItem> : null}
+
+        {isOwner ? (
+          <View style={styles.owner}>
+            <View style={styles.ownerLabel}>
+              <Icon name="store" size={16} color={colors.inkMuted} />
+              <Text style={styles.ownerLabelText}>המסעדה שלכם</Text>
+            </View>
+
+            <View style={styles.ownerActions}>
+              <Button
+                size="sm"
+                variant="secondary"
+                icon="edit"
+                onPress={() => navigation.navigate('RestaurantForm', { restaurant })}
+              >
+                עריכת פרטים
+              </Button>
+              <Button size="sm" variant="danger" icon="trash" onPress={removeRestaurant}>
+                סגירה
+              </Button>
+            </View>
+          </View>
+        ) : null}
+      </View>
+
+      <View style={styles.menuHeader}>
+        <View style={styles.menuText}>
+          <Text style={styles.menuTitle}>התפריט</Text>
+          {products.length ? <Text style={styles.menuCount}>{dishCount(products.length)}</Text> : null}
+        </View>
+
+        {isOwner ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="plus"
+            onPress={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
+          >
+            הוספת מנה
+          </Button>
+        ) : null}
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <Screen topInset={false}>
       <FlatList
         data={products}
-        keyExtractor={(item) =>
-          String(item.id)
+        keyExtractor={(product) => String(product.id)}
+        ListHeaderComponent={header}
+        ListEmptyComponent={
+          <EmptyState
+            icon="bag"
+            title="התפריט עוד ריק"
+            description={
+              isOwner
+                ? 'הוסיפו את המנה הראשונה והיא תופיע כאן ללקוחות.'
+                : 'המסעדה עוד לא פרסמה מנות. שווה לבדוק שוב מאוחר יותר.'
+            }
+            actionLabel={isOwner ? 'הוספת מנה' : undefined}
+            onAction={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
+          />
         }
         renderItem={({ item }) => (
-          <ProductCard
+          <DishRow
             product={item}
+            quantity={cart.restaurantId === String(restaurant.id) ? cart.quantities[item.id] || 0 : 0}
+            onAdd={addToCart}
+            onRemove={(product) => cart.decreaseItem(product.id)}
             isOwner={isOwner}
-            onAddToCart={
-              handleAddToCart
+            onEdit={(product) =>
+              navigation.navigate('ProductForm', { restaurantId: restaurant.id, product })
             }
-            onEdit={openProductEdit}
-            onDelete={
-              handleDeleteProduct
-            }
+            onDelete={removeProduct}
           />
         )}
         contentContainerStyle={[
           styles.list,
-          products.length === 0 &&
-            styles.emptyList,
+          { paddingBottom: (showCartBar ? 96 : space[4]) + insets.bottom },
         ]}
-        showsVerticalScrollIndicator={
-          false
-        }
-        ListHeaderComponent={
-          <View style={styles.header}>
-            {restaurant.image ? (
-              <Image
-                source={{
-                  uri: restaurant?.image,
-                }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            ) : (
-              <View
-                style={
-                  styles.imagePlaceholder
-                }
-              >
-                <Text
-                  style={
-                    styles.placeholderText
-                  }
-                >
-                  אין תמונה זמינה
-                </Text>
-              </View>
-            )}
-
-            <View
-              style={styles.restaurantInfo}
-            >
-              <Text
-                style={
-                  styles.restaurantName
-                }
-              >
-                {restaurant.name}
-              </Text>
-
-              {restaurant.address ? (
-                <Text
-                  style={
-                    styles.restaurantDetail
-                  }
-                >
-                  {restaurant.address}
-                </Text>
-              ) : null}
-
-              {restaurant.phone ? (
-                <Text
-                  style={
-                    styles.restaurantDetail
-                  }
-                >
-                  {restaurant.phone}
-                </Text>
-              ) : null}
-            </View>
-
-            {isOwner ? (
-              <View
-                style={styles.ownerActions}
-              >
-                <Pressable
-                  style={styles.editButton}
-                  onPress={
-                    openRestaurantEdit
-                  }
-                >
-                  <Text
-                    style={
-                      styles.editButtonText
-                    }
-                  >
-                    עריכת מסעדה
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  style={
-                    styles.deleteButton
-                  }
-                  onPress={
-                    handleDeleteRestaurant
-                  }
-                >
-                  <Text
-                    style={
-                      styles.deleteButtonText
-                    }
-                  >
-                    מחיקת מסעדה
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  style={
-                    styles.addProductButton
-                  }
-                  onPress={
-                    openCreateProduct
-                  }
-                >
-                  <Text
-                    style={
-                      styles.addProductText
-                    }
-                  >
-                    הוספת מנה
-                  </Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable
-                style={styles.cartButton}
-                onPress={openCart}
-              >
-                <Text
-                  style={
-                    styles.cartButtonText
-                  }
-                >
-                  מעבר לסל ({itemsCount})
-                </Text>
-              </Pressable>
-            )}
-
-            <Text style={styles.menuTitle}>
-              תפריט
-            </Text>
-          </View>
-        }
-        ListEmptyComponent={
-          <View
-            style={styles.emptyContainer}
-          >
-            <Text style={styles.emptyTitle}>
-              אין מנות במסעדה
-            </Text>
-
-            <Text style={styles.message}>
-              המסעדה עדיין לא הוסיפה מנות
-              לתפריט.
-            </Text>
-          </View>
-        }
+        showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+
+      {showCartBar ? (
+        <Pressable
+          onPress={() => navigation.navigate('Tabs', { screen: 'Cart' })}
+          accessibilityRole="button"
+          accessibilityLabel={`צפייה בסל, ${dishCount(cart.itemsCount)}, ${formatPrice(cart.subtotal)}`}
+          style={({ pressed }) => [
+            styles.cartBar,
+            { bottom: insets.bottom + 12 },
+            pressed && styles.cartBarPressed,
+          ]}
+        >
+          <View style={styles.cartCount}>
+            <Text style={styles.cartCountText}>{cart.itemsCount}</Text>
+          </View>
+
+          <Text style={styles.cartLabel}>צפייה בסל</Text>
+          <Text style={styles.cartTotal}>{formatPrice(cart.subtotal)}</Text>
+        </Pressable>
+      ) : null}
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
+const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+  list: { paddingHorizontal: space[4] },
+  heroSkeleton: { marginBottom: space[5] },
+  skeletonBody: { gap: space[4], paddingHorizontal: space[4] },
+  backRow: { ...rtl.row, paddingHorizontal: space[4] },
 
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-
-  emptyList: {
-    flexGrow: 1,
-  },
-
-  header: {
-    marginBottom: 18,
-  },
-
-  image: {
-    width: '100%',
-    height: 220,
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-  },
-
-  imagePlaceholder: {
-    width: '100%',
-    height: 220,
-    alignItems: 'center',
+  hero: {
+    height: 230,
+    marginHorizontal: -space[4],
+    backgroundColor: colors.sunken,
     justifyContent: 'center',
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-    backgroundColor: '#E7E2EA',
   },
-
-  placeholderText: {
-    fontSize: 14,
-    color: '#777777',
-  },
-
-  restaurantInfo: {
-    paddingTop: 20,
-    alignItems: 'flex-end',
-  },
-
-  restaurantName: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  restaurantDetail: {
-    marginTop: 7,
-    fontSize: 15,
-    color: '#666666',
-    textAlign: 'right',
-  },
-
-  cartButton: {
-    marginTop: 18,
-    paddingVertical: 13,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  cartButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  ownerActions: {
-    marginTop: 18,
-  },
-
-  editButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#EFE4F2',
-  },
-
-  editButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#542163',
-  },
-
-  deleteButton: {
-    marginTop: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#FBE6EA',
-  },
-
-  deleteButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#A02E49',
-  },
-
-  addProductButton: {
-    marginTop: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  addProductText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  menuTitle: {
-    marginTop: 25,
-    fontSize: 23,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  centerContainer: {
-    flex: 1,
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F7F4FA',
-  },
-
-  message: {
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 21,
+  heroImage: { width: '100%', height: '100%' },
+  heroPlaceholder: {
     textAlign: 'center',
-    color: '#666666',
+    fontSize: 72,
+    fontWeight: '800',
+    color: colors.ink,
+    opacity: 0.14,
   },
+  heroBack: { position: 'absolute', right: space[4] },
 
-  errorTitle: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#351440',
+  card: {
+    gap: space[3],
+    marginTop: -space[6],
+    padding: space[4],
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadow.e2,
   },
+  headline: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between', gap: space[3] },
+  name: { ...type.h1, ...rtl.text, flex: 1, color: colors.ink },
+  facts: { ...rtl.row, gap: space[5] },
 
-  retryButton: {
-    marginTop: 22,
-    paddingHorizontal: 25,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: '#542163',
+  owner: {
+    gap: space[3],
+    marginTop: space[1],
+    paddingTop: space[3],
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
   },
+  ownerLabel: { ...rtl.row, alignItems: 'center', gap: space[2] },
+  ownerLabelText: { ...type.caption, color: colors.inkMuted, fontWeight: '700' },
+  ownerActions: { ...rtl.row, gap: space[2] },
 
-  retryText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
+  menuHeader: {
+    ...rtl.row,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: space[3],
+    marginTop: space[7],
+    marginBottom: space[4],
   },
+  menuText: { flex: 1, gap: 2 },
+  menuTitle: { ...type.h2, ...rtl.text, color: colors.ink },
+  menuCount: { ...type.caption, ...rtl.text, color: colors.inkMuted },
 
-  emptyContainer: {
-    flex: 1,
-    padding: 30,
+  cartBar: {
+    ...rtl.row,
+    position: 'absolute',
+    left: space[4],
+    right: space[4],
+    alignItems: 'center',
+    gap: space[3],
+    minHeight: 56,
+    paddingHorizontal: space[4],
+    borderRadius: radius.sm,
+    backgroundColor: colors.flame,
+    ...shadow.e3,
+  },
+  cartBarPressed: { opacity: 0.94, transform: [{ scale: 0.995 }] },
+  cartCount: {
+    minWidth: 26,
+    height: 26,
+    paddingHorizontal: space[1],
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.24)',
   },
-
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#351440',
-  },
-});
+  cartCountText: { ...type.caption, color: colors.onFlame, fontWeight: '800' },
+  cartLabel: { ...type.body, flex: 1, color: colors.onFlame, fontWeight: '700' },
+  cartTotal: { ...type.body, color: colors.onFlame, fontWeight: '800' },
+}));

@@ -1,466 +1,207 @@
-import React, {
-    useCallback,
-    useState,
-} from 'react';
-
-import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
-
-import {
-    useFocusEffect,
-} from '@react-navigation/native';
-
-import RestaurantCard from '../components/RestaurantCard';
-import { useAuth } from '../context/AuthContext';
+import React, { useCallback, useEffect, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { createStyles, rtl, useTheme } from '../theme';
 import { getRestaurants } from '../services/api';
-import BottomNavBar from '../components/BottomNavBar';
+import { findWorldCupRestaurant } from '../services/presentation';
+import { useAuth } from '../context/AuthContext';
+import { Button, Chip, ErrorState, Icon, IconButton, Logo, Screen, SkeletonCard } from '../ui';
+import RestaurantCard from '../components/RestaurantCard';
+import CampaignCard from '../components/CampaignCard';
 
-export default function HomeScreen({
-    navigation,
-}) {
-    const { user, logout } = useAuth();
+/* Discovery. The list owns the scroll — the header rides along inside it
+   so the whole screen pulls to refresh, which is what a phone expects. */
 
-    const [restaurants, setRestaurants] =
-        useState([]);
+const quickSearches = ['פיצה', 'המבורגר', 'סושי', 'חומוס', 'פסטה', 'מתוק'];
 
-    const [loading, setLoading] =
-        useState(true);
+export default function HomeScreen({ navigation }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { user, logout } = useAuth();
+  const [restaurants, setRestaurants] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [refreshing, setRefreshing] = useState(false);
 
-    const [refreshing, setRefreshing] =
-        useState(false);
-
-    const [error, setError] = useState('');
-
-    const openSearch = () => {
-        navigation.navigate('SearchResults');
-    };
-
-    const handleLogout = async () => {
-        await logout();
-    };
-
-    const loadRestaurants = useCallback(
-        async (isRefresh = false) => {
-            try {
-                if (isRefresh) {
-                    setRefreshing(true);
-                } else {
-                    setLoading(true);
-                }
-
-                setError('');
-
-                const result =
-                    await getRestaurants();
-
-                if (!Array.isArray(result)) {
-                    throw new Error(
-                        'The server returned an invalid response'
-                    );
-                }
-
-                setRestaurants(result);
-            } catch (err) {
-                console.error(
-                    'Failed to load restaurants:',
-                    err
-                );
-
-                setError(
-                    err.message ||
-                    'לא הצלחנו לטעון את המסעדות.'
-                );
-            } finally {
-                setLoading(false);
-                setRefreshing(false);
-            }
-        },
-        []
-    );
-
-    useFocusEffect(
-        useCallback(() => {
-            loadRestaurants();
-        }, [loadRestaurants])
-    );
-
-    const openRestaurant = (restaurant) => {
-        if (!restaurant?.id) {
-            setError(
-                'למסעדה שנבחרה אין מזהה תקין.'
-            );
-
-            return;
-        }
-
-        navigation?.navigate(
-            'RestaurantDetails',
-            {
-                restaurantId: restaurant.id,
-            }
-        );
-    };
-
-    const openWorldCup = () => {
-        navigation?.navigate('WorldCup');
-    };
-    const openCreateRestaurant = () => {
-        navigation?.navigate(
-            'RestaurantForm'
-        );
-    };
-
-    const canCreateRestaurant =
-        user?.role === 'restaurant';
-
-    if (loading) {
-        return (
-            <SafeAreaView style={styles.centerContainer} >
-                <ActivityIndicator size="large" />
-
-                <Text style={styles.message}>
-                    טוען מסעדות...
-                </Text>
-            </SafeAreaView>
-        );
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setStatus('loading');
     }
 
-    if (error) {
-        return (
-            <SafeAreaView
-                style={styles.centerContainer}
-            >
-                <Text style={styles.errorTitle}>
-                    משהו השתבש
-                </Text>
+    try {
+      const data = await getRestaurants();
 
-                <Text style={styles.message}>
-                    {error}
-                </Text>
-
-                <Pressable
-                    style={styles.retryButton}
-                    onPress={() =>
-                        loadRestaurants()
-                    }
-                >
-                    <Text style={styles.retryText}>
-                        נסי שוב
-                    </Text>
-                </Pressable>
-            </SafeAreaView>
-        );
+      setRestaurants(Array.isArray(data) ? data : []);
+      setStatus('ready');
+    } catch (error) {
+      setStatus('error');
     }
+  }, []);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    await load({ silent: true });
+    setRefreshing(false);
+  }, [load]);
+
+  const campaign = findWorldCupRestaurant(restaurants);
+  const everyday = restaurants.filter((restaurant) => restaurant !== campaign);
+  const isOwnerAccount = user?.role === 'restaurant';
+
+  const openSearch = (query) => navigation.navigate('Search', query ? { query } : undefined);
+
+  const header = (
+    <View style={styles.header}>
+      <View style={styles.identity}>
+        <Logo size={30} />
+        <IconButton icon="logout" label="התנתקות" variant="outline" onPress={logout} />
+      </View>
+
+      <View style={styles.greeting}>
+        {/* The account the app knows about. The login response carries no
+            address (ARCHITECTURE §4.3), so none is promised here. */}
+        <Text style={styles.hello} numberOfLines={1}>
+          שלום {user?.displayName || user?.username}
+        </Text>
+        <Text style={styles.title}>מה אוכלים הערב?</Text>
+      </View>
+
+      <Pressable
+        onPress={() => openSearch()}
+        accessibilityRole="search"
+        accessibilityLabel="חיפוש מסעדה, מנה או מטבח"
+        style={({ pressed }) => [styles.search, pressed && styles.searchPressed]}
+      >
+        <Icon name="search" size={20} color={colors.inkMuted} />
+        <Text style={styles.searchText}>מסעדה, מנה או מטבח</Text>
+      </Pressable>
+
+      {/* `inverted` starts the row at the right edge and lays the chips
+          out leading-to-trailing for Hebrew, which a plain horizontal
+          list cannot do without forcing RTL natively. */}
+      <FlatList
+        data={quickSearches}
+        horizontal
+        inverted
+        keyExtractor={(term) => term}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.chips}
+        renderItem={({ item }) => <Chip onPress={() => openSearch(item)}>{item}</Chip>}
+      />
+
+      {campaign ? (
+        <CampaignCard
+          restaurant={campaign}
+          onPress={() => navigation.navigate('WorldCup')}
+        />
+      ) : null}
+
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionText}>
+          <Text style={styles.sectionTitle}>כל המסעדות</Text>
+          <Text style={styles.sectionDescription}>נבחרת המסעדות שמשלוחות אליכם עכשיו.</Text>
+        </View>
+
+        {isOwnerAccount ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="store"
+            onPress={() => navigation.navigate('RestaurantForm', {})}
+          >
+            מסעדה חדשה
+          </Button>
+        ) : null}
+      </View>
+    </View>
+  );
+
+  if (status === 'error') {
     return (
-        <SafeAreaView style={styles.container}>
-            <FlatList
-                data={restaurants}
-                keyExtractor={(item) =>
-                    String(item.id)
-                }
-                renderItem={({ item }) => (
-                    <RestaurantCard
-                        restaurant={item}
-                        onPress={() =>
-                            openRestaurant(item)
-                        }
-                    />
-                )}
-                contentContainerStyle={[
-                    styles.list,
-                    restaurants.length === 0 &&
-                    styles.emptyList,
-                ]}
-                showsVerticalScrollIndicator={
-                    false
-                }
-                refreshing={refreshing}
-                onRefresh={() =>
-                    loadRestaurants(true)
-                }
-                ListHeaderComponent={
-                    <View style={styles.header}>
-                        <View style={styles.logoContainer}>
-                            <Image
-                                source={require('../../assets/Logo.png')}
-                                style={styles.logo}
-                                resizeMode="contain"
-                            />
-                        </View>
-                        <View style={styles.profilePicture}>
-                            {user?.image ? (
-                                <Image
-                                    source={{ uri: user.image }}
-                                    style={styles.image}
-                                    resizeMode="contain"
-                                />
-                            ) : (
-                                <Text style={styles.profilePlaceholder}>
-                                    👤
-                                </Text>
-                            )}
-                        </View>
-                        <Pressable
-                            style={styles.searchButton}
-                            onPress={openSearch}
-                        >
-                            <Text style={styles.searchButtonText}>
-                                חיפוש מסעדה או מנה
-                            </Text>
-                        </Pressable>
-
-                        <Text style={styles.title}>
-                            המסעדות שלנו
-                        </Text>
-
-                        <Text style={styles.subtitle}>
-                            מה תרצי להזמין היום?
-                        </Text>
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.worldCupButton,
-                                pressed && styles.worldCupButtonPressed,
-                            ]}
-                            onPress={openWorldCup}
-                        >
-                            <Text style={styles.worldCupIcon}>
-                                ⚽
-                            </Text>
-
-                            <View style={styles.worldCupTextContainer}>
-                                <Text style={styles.worldCupTitle}>
-                                    חגיגת המונדיאל
-                                </Text>
-
-                                <Text style={styles.worldCupSubtitle}>
-                                    צפייה בתפריט והזמנת מנות מיוחדות
-                                </Text>
-                            </View>
-                        </Pressable>
-                        {canCreateRestaurant ? (
-                            <Pressable
-                                style={
-                                    styles.createButton
-                                }
-                                onPress={
-                                    openCreateRestaurant
-                                }
-                            >
-                                <Text
-                                    style={
-                                        styles.createButtonText
-                                    }
-                                >
-                                    יצירת מסעדה חדשה
-                                </Text>
-                            </Pressable>
-                        ) : null}
-
-                        <Pressable
-                            style={styles.logoutButton}
-                            onPress={handleLogout}
-                        >
-                            <Text style={styles.logoutButtonText}>
-                                התנתקות
-                            </Text>
-                        </Pressable>
-                    </View>
-                }
-                ListEmptyComponent={
-                    <View
-                        style={styles.emptyContainer}
-                    >
-                        <Text style={styles.emptyTitle}>
-                            אין מסעדות להצגה
-                        </Text>
-
-                        <Text style={styles.message}>
-                            כרגע אין מסעדות זמינות.
-                        </Text>
-                    </View>
-                }
-            />
-            <BottomNavBar navigation={navigation} />
-        </SafeAreaView>
+      <Screen>
+        {header}
+        <ErrorState
+          title="לא הצלחנו לטעון את המסעדות"
+          description="השרת לא הגיב. אפשר לנסות שוב בעוד רגע."
+          onRetry={load}
+        />
+      </Screen>
     );
+  }
+
+  return (
+    <Screen>
+      <FlatList
+        data={status === 'loading' ? [] : everyday}
+        keyExtractor={(restaurant) => String(restaurant.id)}
+        ListHeaderComponent={header}
+        ListEmptyComponent={
+          status === 'loading' ? (
+            <View accessibilityLabel="טוען מסעדות">
+              <SkeletonCard />
+              <SkeletonCard />
+            </View>
+          ) : (
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>אין כאן מסעדות עדיין</Text>
+              <Text style={styles.emptyText}>
+                {isOwnerAccount
+                  ? 'פתחו את המסעדה הראשונה והיא תופיע כאן.'
+                  : 'שווה לבדוק שוב בעוד רגע.'}
+              </Text>
+            </View>
+          )
+        }
+        renderItem={({ item }) => (
+          <RestaurantCard
+            restaurant={item}
+            onPress={() => navigation.navigate('RestaurantDetails', { restaurantId: item.id })}
+          />
+        )}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.flame} />
+        }
+      />
+    </Screen>
+  );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F7F4FA',
-    },
-
-    list: {
-        paddingHorizontal: 16,
-        paddingTop: 20,
-        paddingBottom: 30,
-    },
-
-    emptyList: {
-        flexGrow: 1,
-    },
-
-    header: {
-        marginBottom: 22,
-    },
-
-    title: {
-        fontSize: 30,
-        fontWeight: '800',
-        color: '#351440',
-        textAlign: 'right',
-    },
-
-    subtitle: {
-        marginTop: 5,
-        fontSize: 16,
-        color: '#666666',
-        textAlign: 'right',
-    },
-
-    createButton: {
-        marginTop: 18,
-        paddingVertical: 13,
-        alignItems: 'center',
-        borderRadius: 12,
-        backgroundColor: '#542163',
-    },
-
-    createButtonText: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#FFFFFF',
-    },
-
-    centerContainer: {
-        flex: 1,
-        padding: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#F7F4FA',
-    },
-
-    message: {
-        marginTop: 10,
-        fontSize: 15,
-        lineHeight: 21,
-        color: '#666666',
-        textAlign: 'center',
-    },
-
-    errorTitle: {
-        fontSize: 21,
-        fontWeight: '700',
-        color: '#351440',
-    },
-
-    retryButton: {
-        marginTop: 22,
-        paddingHorizontal: 25,
-        paddingVertical: 13,
-        borderRadius: 12,
-        backgroundColor: '#542163',
-    },
-
-    retryText: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#FFFFFF',
-    },
-
-    emptyContainer: {
-        flex: 1,
-        padding: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
-    emptyTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#351440',
-    },
-    worldCupButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 18,
-        padding: 16,
-        borderRadius: 16,
-        backgroundColor: '#351440',
-    },
-
-    worldCupButtonPressed: {
-        opacity: 0.82,
-    },
-
-    worldCupIcon: {
-        marginRight: 14,
-        fontSize: 38,
-    },
-
-    worldCupTextContainer: {
-        flex: 1,
-        alignItems: 'flex-end',
-    },
-
-    worldCupTitle: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: '#FFFFFF',
-        textAlign: 'right',
-    },
-
-    worldCupSubtitle: {
-        marginTop: 5,
-        fontSize: 13,
-        color: '#E8DDED',
-        textAlign: 'right',
-    },
-
-    logoContainer: {
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-
-    logo: {
-        width: 150,
-        height: 110,
-    },
-
-    profilePicture: {
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-
-    image: {
-        width: 150,
-        height: 110,
-    },
-
-    searchButton: {
-        marginTop: 18,
-        paddingVertical: 13,
-        alignItems: 'center',
-        borderRadius: 12,
-        backgroundColor: '#EFE4F2',
-    },
-
-    searchButtonText: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#542163',
-    },
-    profilePlaceholder: {
-        fontSize: 60,
-    },
-});
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
+  list: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[7] },
+  header: { gap: space[4], paddingBottom: space[5] },
+  identity: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between', gap: space[3] },
+  greeting: { gap: 2 },
+  hello: { ...type.caption, ...rtl.text, color: colors.inkMuted },
+  title: { ...type.h1, ...rtl.text, color: colors.ink },
+  search: {
+    ...rtl.row,
+    alignItems: 'center',
+    gap: space[3],
+    minHeight: 52,
+    paddingHorizontal: space[4],
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  searchPressed: { opacity: 0.9 },
+  searchText: { ...type.body, color: colors.inkMuted },
+  chips: { gap: space[2], paddingVertical: space[1] },
+  sectionHeader: {
+    ...rtl.row,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: space[3],
+    marginTop: space[2],
+  },
+  sectionText: { flex: 1, gap: 2 },
+  sectionTitle: { ...type.h2, ...rtl.text, color: colors.ink },
+  sectionDescription: { ...type.caption, ...rtl.text, color: colors.inkMuted },
+  empty: { gap: space[2], paddingVertical: space[8] },
+  emptyTitle: { ...type.h3, textAlign: 'center', color: colors.ink },
+  emptyText: { ...type.body, textAlign: 'center', color: colors.inkMuted },
+}));

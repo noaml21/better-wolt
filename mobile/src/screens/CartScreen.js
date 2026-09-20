@@ -1,508 +1,170 @@
 import React, { useState } from 'react';
-
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { createStyles, rtl } from '../theme';
 import { createOrder } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import { dishCount } from '../services/presentation';
+import {
+  Button,
+  EmptyState,
+  Icon,
+  InlineMessage,
+  QuantityStepper,
+  Screen,
+  ScreenHeader,
+  formatPrice,
+  useToast,
+} from '../ui';
 
-function formatPrice(price) {
-  const value = Number(price);
+/* The cart is a summary, not a source of truth: the request carries only
+   ids and quantities and the server prices the order (V2_SPEC §3.1), so
+   the total here is labelled as the dishes alone. */
 
-  return Number.isFinite(value)
-    ? value.toFixed(2)
-    : '0.00';
-}
+export default function CartScreen({ navigation }) {
+  const styles = useStyles();
+  const { token } = useAuth();
+  const { showToast } = useToast();
+  const cart = useCart();
+  const [placing, setPlacing] = useState(false);
+  const [error, setError] = useState('');
 
-function getEntityId(entity) {
-  return entity?.id || entity?._id || null;
-}
-
-export default function CartScreen({
-  navigation,
-}) {
-  const {
-    restaurant,
-    items,
-    itemsCount,
-    total,
-    removeFromCart,
-    clearCart,
-  } = useCart();
-
-  const {
-    token,
-    isAuthenticated,
-    logout,
-  } = useAuth();
-
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const submitOrder = async () => {
-    if (items.length === 0) {
-      Alert.alert(
-        'הסל ריק',
-        'יש להוסיף לפחות מוצר אחד לפני ביצוע הזמנה.'
-      );
-
-      return;
-    }
-
-    const restaurantId =
-      getEntityId(restaurant);
-
-    if (!restaurantId) {
-      Alert.alert(
-        'לא ניתן ליצור הזמנה',
-        'למסעדה שנבחרה חסר מזהה.'
-      );
-
-      return;
-    }
-
-    if (!isAuthenticated || !token) {
-      Alert.alert(
-        'נדרשת התחברות',
-        'יש להתחבר כדי לבצע הזמנה.',
-        [
-          {
-            text: 'ביטול',
-            style: 'cancel',
-          },
-          {
-            text: 'להתחברות',
-            onPress: () =>
-              navigation?.navigate('Login'),
-          },
-        ]
-      );
-
-      return;
-    }
-
-    if (
-      items.some(
-        (item) => !getEntityId(item)
-      )
-    ) {
-      Alert.alert(
-        'לא ניתן ליצור הזמנה',
-        'לאחד המוצרים בסל חסר מזהה.'
-      );
-
-      return;
-    }
-
-    const payload = {
-      restaurant: String(restaurantId),
-      products: items.map((item) => ({
-        id: String(getEntityId(item)),
-        quantity: Number(
-          item.quantity || 0
-        ),
-      })),
-    };
+  const placeOrder = async () => {
+    setPlacing(true);
+    setError('');
 
     try {
-      setSubmitting(true);
+      const order = await createOrder(token, {
+        restaurant: cart.restaurantId,
+        products: cart.toOrderProducts(),
+      });
 
-      await createOrder(token, payload);
-
-      clearCart();
-
-      Alert.alert(
-        'ההזמנה נוצרה',
-        'ההזמנה נשלחה בהצלחה.',
-        [
-          {
-            text: 'אישור',
-            onPress: () =>
-              navigation?.navigate(
-                'Orders'
-              ),
-          },
-        ]
-      );
-    } catch (error) {
-      console.error(
-        'Failed to create order:',
-        error
-      );
-
-      if (
-        error.status === 401 ||
-        error.status === 403
-      ) {
-        await logout();
-        
-        Alert.alert(
-          'ההתחברות אינה תקפה',
-          'יש להתחבר מחדש.'
-        );
-
-        return;
-      }
-
-      Alert.alert(
-        'יצירת ההזמנה נכשלה',
-        error.message ||
-          'לא הצלחנו ליצור את ההזמנה.'
-      );
+      cart.clear();
+      showToast('ההזמנה נשלחה');
+      navigation.navigate('Tracking', { orderId: order.id || order._id });
+    } catch (requestError) {
+      setError(requestError.message);
     } finally {
-      setSubmitting(false);
+      setPlacing(false);
     }
   };
 
+  if (cart.lines.length === 0) {
+    return (
+      <Screen>
+        <ScreenHeader title="הסל שלי" large />
+        <EmptyState
+          icon="cart"
+          title="הסל ריק"
+          description="בחרו מסעדה, הוסיפו מנות, והן יופיעו כאן."
+          actionLabel="לגלות מסעדות"
+          onAction={() => navigation.navigate('Home')}
+        />
+      </Screen>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={items}
-        keyExtractor={(item, index) =>
-          String(
-            getEntityId(item) || index
-          )
-        }
-        contentContainerStyle={[
-          styles.list,
-          items.length === 0 &&
-            styles.emptyList,
-        ]}
-        showsVerticalScrollIndicator={
-          false
-        }
-        ListHeaderComponent={
-          items.length > 0 ? (
-            <View style={styles.header}>
-              <Text style={styles.title}>
-                הסל שלי
-              </Text>
+    <Screen>
+      <ScreenHeader title="הסל שלי" subtitle={dishCount(cart.itemsCount)} large />
 
-              <Text
-                style={styles.restaurant}
-              >
-                {restaurant?.name}
-              </Text>
-            </View>
-          ) : null
-        }
-        renderItem={({ item }) => (
-          <View style={styles.itemCard}>
-            <View
-              style={styles.itemDetails}
-            >
-              <Text
-                style={styles.itemName}
-              >
-                {item.name}
-              </Text>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <Pressable
+          onPress={() =>
+            navigation.navigate('RestaurantDetails', { restaurantId: cart.restaurantId })
+          }
+          accessibilityRole="button"
+          accessibilityLabel={`חזרה לתפריט של ${cart.restaurant?.name}`}
+          style={({ pressed }) => [styles.restaurant, pressed && styles.pressed]}
+        >
+          <Icon name="store" size={18} color={styles.restaurantIcon.color} />
+          <Text style={styles.restaurantName} numberOfLines={1}>
+            {cart.restaurant?.name}
+          </Text>
+          <Text style={styles.restaurantLink}>לתפריט</Text>
+        </Pressable>
 
-              <Text
-                style={styles.quantity}
-              >
-                כמות: {item.quantity}
-              </Text>
-
-              <Text
-                style={styles.itemPrice}
-              >
-                ₪
-                {formatPrice(
-                  Number(item.price) *
-                    Number(item.quantity)
-                )}
-              </Text>
-            </View>
-
-            <Pressable
-              style={styles.removeButton}
-              onPress={() =>
-                removeFromCart(
-                  getEntityId(item)
-                )
-              }
-            >
-              <Text
-                style={styles.removeText}
-              >
-                הסרה
-              </Text>
-            </Pressable>
-          </View>
-        )}
-        ListEmptyComponent={
-          <View
-            style={styles.emptyContainer}
-          >
-            <Text
-              style={styles.emptyTitle}
-            >
-              הסל שלך ריק
-            </Text>
-
-            <Text style={styles.message}>
-              הוסיפי מנות ממסעדה כדי
-              להתחיל הזמנה.
-            </Text>
-          </View>
-        }
-        ListFooterComponent={
-          items.length > 0 ? (
-            <View style={styles.summary}>
-              <View
-                style={styles.summaryRow}
-              >
-                <Text
-                  style={
-                    styles.summaryLabel
-                  }
-                >
-                  מספר פריטים
-                </Text>
-
-                <Text
-                  style={
-                    styles.summaryValue
-                  }
-                >
-                  {itemsCount}
-                </Text>
+        <View style={styles.lines}>
+          {cart.lines.map((line) => (
+            <View key={line.id} style={styles.line}>
+              <View style={styles.lineText}>
+                <Text style={styles.lineName}>{line.name}</Text>
+                <Text style={styles.linePrice}>{formatPrice(line.price * line.quantity)}</Text>
               </View>
 
-              <View
-                style={styles.summaryRow}
-              >
-                <Text
-                  style={styles.totalLabel}
-                >
-                  סך הכול
-                </Text>
-
-                <Text style={styles.total}>
-                  ₪{formatPrice(total)}
-                </Text>
-              </View>
-
-              <Pressable
-                style={[
-                  styles.orderButton,
-                  submitting &&
-                    styles.disabledButton,
-                ]}
-                disabled={
-                  submitting ||
-                  items.length === 0
-                }
-                onPress={submitOrder}
-              >
-                {submitting ? (
-                  <ActivityIndicator
-                    color="#FFFFFF"
-                  />
-                ) : (
-                  <Text
-                    style={
-                      styles.orderButtonText
-                    }
-                  >
-                    ביצוע הזמנה
-                  </Text>
-                )}
-              </Pressable>
-
-              <Pressable
-                style={styles.clearButton}
-                onPress={clearCart}
-              >
-                <Text
-                  style={styles.clearText}
-                >
-                  ניקוי הסל
-                </Text>
-              </Pressable>
+              <QuantityStepper
+                value={line.quantity}
+                label={line.name}
+                onDecrease={() => cart.decreaseItem(line.id)}
+                onIncrease={() => cart.addItem(line, cart.restaurant)}
+              />
             </View>
-          ) : null
-        }
-      />
-    </SafeAreaView>
+          ))}
+        </View>
+
+        {error ? <InlineMessage>{error}</InlineMessage> : null}
+      </ScrollView>
+
+      {/* The tab bar below already pays the bottom inset. */}
+      <View style={styles.footer}>
+        <View style={styles.total}>
+          <Text style={styles.totalLabel}>סך המנות</Text>
+          <Text style={styles.totalValue}>{formatPrice(cart.subtotal)}</Text>
+        </View>
+
+        <Text style={styles.note}>דמי המשלוח מחושבים בשלב התשלום.</Text>
+
+        <Button size="lg" fullWidth loading={placing} onPress={placeOrder}>
+          לביצוע ההזמנה
+        </Button>
+      </View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
-
-  list: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-
-  emptyList: {
-    flexGrow: 1,
-  },
-
-  header: {
-    marginBottom: 20,
-  },
-
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
+const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+  content: { padding: space[4], gap: space[4] },
 
   restaurant: {
-    marginTop: 5,
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'right',
-  },
-
-  itemCard: {
-    flexDirection: 'row',
+    ...rtl.row,
     alignItems: 'center',
-    marginBottom: 14,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
-    elevation: 3,
+    gap: space[3],
+    padding: space[4],
+    borderRadius: radius.md,
+    backgroundColor: colors.sunken,
   },
+  pressed: { opacity: 0.9 },
+  restaurantIcon: { color: colors.inkMuted },
+  restaurantName: { ...type.h3, ...rtl.text, flex: 1, color: colors.ink },
+  restaurantLink: { ...type.caption, color: colors.flameDeep, fontWeight: '700' },
 
-  itemDetails: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
-
-  itemName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#351440',
-  },
-
-  quantity: {
-    marginTop: 6,
-    fontSize: 14,
-    color: '#666666',
-  },
-
-  itemPrice: {
-    marginTop: 7,
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#542163',
-  },
-
-  removeButton: {
-    marginRight: 15,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 9,
-    backgroundColor: '#F1E7F4',
-  },
-
-  removeText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#542163',
-  },
-
-  summary: {
-    marginTop: 10,
-    padding: 18,
-    borderRadius: 18,
-    backgroundColor: '#FFFFFF',
-  },
-
-  summaryRow: {
-    flexDirection: 'row',
+  lines: { gap: space[3] },
+  line: {
+    ...rtl.row,
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    gap: space[4],
+    paddingBottom: space[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
   },
+  lineText: { flex: 1, gap: 2 },
+  lineName: { ...type.body, ...rtl.text, color: colors.ink, fontWeight: '600' },
+  linePrice: { ...type.caption, ...rtl.text, color: colors.inkMuted },
 
-  summaryLabel: {
-    fontSize: 15,
-    color: '#666666',
+  footer: {
+    gap: space[2],
+    padding: space[4],
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+    backgroundColor: colors.surface,
+    ...shadow.e2,
   },
-
-  summaryValue: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#351440',
-  },
-
-  totalLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#351440',
-  },
-
-  total: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#542163',
-  },
-
-  orderButton: {
-    marginTop: 12,
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  disabledButton: {
-    opacity: 0.6,
-  },
-
-  orderButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  clearButton: {
-    marginTop: 12,
-    paddingVertical: 11,
-    alignItems: 'center',
-  },
-
-  clearText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#8A3C5D',
-  },
-
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 30,
-  },
-
-  emptyTitle: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#351440',
-  },
-
-  message: {
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 21,
-    color: '#666666',
-    textAlign: 'center',
-  },
-});
+  total: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between' },
+  totalLabel: { ...type.body, color: colors.ink },
+  totalValue: { ...type.h2, color: colors.ink },
+  note: { ...type.caption, ...rtl.text, marginBottom: space[2], color: colors.inkMuted },
+}));

@@ -15,8 +15,8 @@ the first unchecked box without conversation history.
 - [x] **Phase 2 — Web discovery.** Home, restaurant cards, listing, search, sponsored slot, skeletons and empty states.
 - [x] **Phase 3 — Web restaurant, cart and orders.** Restaurant page, menu, cart with steppers, checkout, orders, tracking.
 - [x] **Phase 4 — Web auth and owner flows.** Login, register, restaurant create/edit, menu management, role states.
-- [ ] **Phase 5 — Mobile foundations.** Theme, `src/ui` primitives, tab navigation, screen header, safe areas, toasts.
-- [ ] **Phase 6 — Mobile customer flows.** Home, search, restaurant details, cart, orders, tracking.
+- [x] **Phase 5 — Mobile foundations.** Theme, `src/ui` primitives, tab navigation, screen header, safe areas, toasts.
+- [x] **Phase 6 — Mobile customer flows.** Home, search, restaurant details, cart, orders, tracking.
 - [ ] **Phase 7 — Mobile owner flows and World Cup.** Restaurant/product forms, the campaign on both clients.
 - [ ] **Phase 8 — Polish and QA.** Responsive sweep, accessibility pass, motion/reduced-motion, dark theme, final
       verification and screenshots.
@@ -86,6 +86,18 @@ Exit: `npx expo export --platform android` green; navigation model in place with
 Home (search entry, campaign card, restaurant list), Search, Restaurant details (hero, menu, sticky add-to-cart),
 Cart (steppers, summary, place order), Orders, Tracking. `KeyboardAvoidingView` on every form.
 
+Phases 5 and 6 landed as one commit: the new navigator refers to the rebuilt screens and the rebuilt screens refer to
+the new primitives, so neither half compiles alone. Built as described, plus:
+
+- `CartContext` holds one line per product with a quantity (V2 pushed one entry per unit) and is one piece of state, so
+  switching restaurants is a single replayable update. The order body is still `{ id, quantity }` only.
+- `Logo` is the drawn price-tag mark from the web client, ported to `react-native-svg`. The raster `assets/Logo.png` is
+  no longer used by any screen.
+- Hebrew counting helpers (`dishCount`, `itemCount`, `orderCount`, `resultCount`) — "1 מנות" is not Hebrew.
+- `formatOrderNumber` wraps the number in Unicode isolates; the web does the same job with `unicode-bidi: isolate`.
+- Home's greeting shows the account name only: the login response carries no address (ARCHITECTURE §4.3).
+- Inputs draw the focus ring that §4.4 asks for, and `Skeleton` stops pulsing under `useReducedMotion()`.
+
 ### Phase 7 — Mobile owner flows and World Cup
 `RestaurantFormScreen` and `ProductFormScreen` rebuilt on the primitives with image picking and validation.
 `/world-cup` (web) and `WorldCupScreen` (mobile) as a designed campaign: flag grid, opt-in sound, cart-based ordering.
@@ -95,6 +107,21 @@ Dish names and the restaurant name stay exactly as seeded.
 Responsive sweep at 390/768/1024/1440/1920, keyboard pass, contrast check, dark theme across both clients, motion
 review with reduced motion forced, console-error check on every route, final screenshots into `docs/screenshots/v3/`,
 README updated.
+
+## Looking at the mobile app
+
+There is no Android emulator in this environment (`~/Android/Sdk` has no `emulator` package and no AVDs), so the mobile
+screens are inspected through Expo's web target, which renders the same React Native tree via `react-native-web`:
+
+```bash
+cd mobile && BROWSER=none EXPO_PUBLIC_API_URL=http://localhost:8080/api npx expo start --web --port 8082
+# the API must allow the origin:
+cd web-server && JWT_SECRET=<dev-secret> CORS_ORIGINS=http://localhost:3000,http://localhost:8082 node server.js
+playwright-cli open --device="Pixel 7" http://localhost:8082
+```
+
+`react-dom`, `react-native-web` and `@expo/metro-runtime` are **devDependencies** for exactly this reason; the Android
+bundle does not contain them. What this cannot check is listed under "Needs a device" below.
 
 ## Notes for the next session
 

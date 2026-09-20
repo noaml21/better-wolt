@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const path = require('path');
 const config = require('./config');
@@ -32,6 +33,16 @@ app.disable('etag');
 // already-parsed body. Everything else uses the 100 KB default.
 app.post('/api/users', express.json({ limit: '5mb' }));
 app.use(express.json());
+
+// Liveness/readiness for Docker and Compose: the API is only useful with a
+// live database connection.
+app.get('/api/health', (req, res) => {
+    const connected = mongoose.connection.readyState === 1;
+
+    return res
+        .status(connected ? 200 : 503)
+        .json({ status: connected ? 'ok' : 'unavailable' });
+});
 
 app.use('/api/users', usersRouter);
 app.use('/api/tokens', tokensRouter);

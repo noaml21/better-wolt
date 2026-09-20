@@ -63,7 +63,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 4.2 | World Cup client cleanup | ☑ | |
 | 4.3 | Delete dead client code | ☑ | |
 | 5.1 | Non-root image + Mongo on localhost | ☑ | |
-| 5.2 | `/api/health` | ☐ | |
+| 5.2 | `/api/health` | ☑ | |
 | 5.3 | `npm run dev` + README Development | ☐ | |
 | 5.4 | `AGENTS.md` | ☐ | |
 | 5.5 | README links + accuracy pass | ☐ | |

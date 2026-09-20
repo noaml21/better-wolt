@@ -134,6 +134,30 @@ npx expo start --android
 
 The existing mobile API configuration reads `EXPO_PUBLIC_API_URL` when supplied and otherwise falls back to `http://10.0.2.2:8080/api`, which maps the Android emulator to the backend running on the host machine.
 
+## Development
+
+For a fast edit-reload loop, run MongoDB in Docker and the API and web client on the host:
+
+1. Start MongoDB only: `docker compose up -d mongo` (published on `127.0.0.1:27017`).
+2. Create `web-server/.env` with at least `JWT_SECRET=<a long random value>`. See `.env.example` for the optional variables.
+3. Start the API with reload on change:
+
+   ```bash
+   cd web-server
+   npm ci
+   npm run dev          # http://localhost:8080
+   ```
+
+4. In a second terminal, start the web client:
+
+   ```bash
+   cd web-server/client
+   npm ci
+   npm start            # http://localhost:3000, /api is proxied to :8080
+   ```
+
+`GET /api/health` returns `{"status":"ok"}` when the API has a live database connection, and `503` otherwise.
+
 ## Testing
 
 The API integration tests run against a real MongoDB 7 (Docker required for the local database):

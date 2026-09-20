@@ -112,7 +112,8 @@ component reads the same token names.
 Web loads two families from Google Fonts:
 
 - **Suez One** — display only: the home headline, section titles, the tracking countdown, price tags. A Hebrew display
-  face with the weight of market signage. Never below 20 px, never for running text.
+  face with the weight of market signage. Never for running text, and never below 20 px except inside the price
+  tag, where the face is the motif.
 - **Rubik** (300/400/500/600/700) — everything else, Hebrew and Latin.
 
 Mobile uses the **platform UI font** (Roboto / SF) at the same scale and weights. Shipping and loading a display face for

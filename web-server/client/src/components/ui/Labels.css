@@ -18,7 +18,7 @@
 .bw-tag::after {
   content: '';
   position: absolute;
-  inset-inline-end: 5px;
+  inset-inline-start: 5px;
   inset-block-start: 50%;
   width: 4px;
   height: 4px;

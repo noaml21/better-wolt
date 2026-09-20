@@ -1,0 +1,125 @@
+import { useEffect, useState } from 'react';
+import { createRestaurant, updateRestaurant } from '../../services/api';
+import { Button, Dialog, Field, InlineMessage, useToast } from '../ui';
+
+/* Create or edit a restaurant. The server owns validation and the error
+   strings it returns are shown verbatim (ARCHITECTURE §4.3). */
+
+const EMPTY = { name: '', phone: '', address: '', image: '' };
+
+export default function RestaurantFormDialog({ open, onClose, onSaved, restaurant }) {
+  const isEdit = Boolean(restaurant);
+  const [values, setValues] = useState(EMPTY);
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (open) {
+      setValues(
+        restaurant
+          ? {
+              name: restaurant.name || '',
+              phone: restaurant.phone || '',
+              address: restaurant.address || '',
+              image: restaurant.image || '',
+            }
+          : EMPTY
+      );
+      setError('');
+    }
+  }, [open, restaurant]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setValues((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!values.name.trim()) {
+      setError('צריך שם למסעדה כדי להמשיך.');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+
+    try {
+      if (isEdit) {
+        await updateRestaurant(restaurant.id, values);
+        showToast('פרטי המסעדה עודכנו');
+      } else {
+        await createRestaurant(values);
+        showToast('המסעדה נפתחה');
+      }
+
+      await onSaved?.();
+      onClose();
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={isEdit ? 'עריכת פרטי המסעדה' : 'פתיחת מסעדה חדשה'}
+      description={
+        isEdit ? 'השינויים יופיעו מיד בעמוד המסעדה.' : 'אחרי הפתיחה אפשר להוסיף מנות לתפריט.'
+      }
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose} disabled={saving}>
+            ביטול
+          </Button>
+          <Button type="submit" form="bw-restaurant-form" loading={saving}>
+            {isEdit ? 'שמירת השינויים' : 'פתיחת המסעדה'}
+          </Button>
+        </>
+      }
+    >
+      <form id="bw-restaurant-form" className="bw-stack" onSubmit={handleSubmit} noValidate>
+        {error && <InlineMessage>{error}</InlineMessage>}
+
+        <Field
+          label="שם המסעדה"
+          name="name"
+          value={values.name}
+          onChange={handleChange}
+          required
+          placeholder="לדוגמה: פסטה פרסקה"
+        />
+        <Field
+          label="כתובת"
+          name="address"
+          value={values.address}
+          onChange={handleChange}
+          placeholder="רחוב, מספר, עיר"
+        />
+        <Field
+          label="טלפון"
+          name="phone"
+          type="tel"
+          value={values.phone}
+          onChange={handleChange}
+          placeholder="03-0000000"
+        />
+        <Field
+          label="קישור לתמונה"
+          name="image"
+          type="url"
+          value={values.image}
+          onChange={handleChange}
+          hint="תמונה רחבה של המסעדה או של מנה מובילה."
+          placeholder="https://"
+        />
+      </form>
+    </Dialog>
+  );
+}

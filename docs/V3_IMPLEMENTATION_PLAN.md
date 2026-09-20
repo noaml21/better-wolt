@@ -11,8 +11,8 @@ the first unchecked box without conversation history.
 
 - [x] **Phase 0 — Audit.** V2 HEAD verified, branch created, both clients read, the stack run, the web UI walked with
       Playwright at 1440×900 and 390×844, findings recorded as A1–A14 in the design spec, spec and plan written.
-- [ ] **Phase 1 — Web foundations.** Tokens, type, reset, RTL shell, `components/ui` primitives, top bar, toasts, 404.
-- [ ] **Phase 2 — Web discovery.** Home, restaurant cards, listing, search, sponsored slot, skeletons and empty states.
+- [x] **Phase 1 — Web foundations.** Tokens, type, reset, RTL shell, `components/ui` primitives, top bar, toasts, 404.
+- [x] **Phase 2 — Web discovery.** Home, restaurant cards, listing, search, sponsored slot, skeletons and empty states.
 - [ ] **Phase 3 — Web restaurant, cart and orders.** Restaurant page, menu, cart with steppers, checkout, orders, tracking.
 - [ ] **Phase 4 — Web auth and owner flows.** Login, register, restaurant create/edit, menu management, role states.
 - [ ] **Phase 5 — Mobile foundations.** Theme, `src/ui` primitives, tab navigation, screen header, safe areas, toasts.

@@ -1,139 +1,100 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { getRestaurants, createRestaurant } from '../services/api';
+import { useCallback, useEffect, useState } from 'react';
+import { getRestaurants } from '../services/api';
+import { findWorldCupRestaurant } from '../services/restaurantMeta';
 import { useAuth } from '../context/AuthContext';
-import HeroSection from '../components/HeroSection';
-import AdsSidebar from '../components/AdsSidebar';
+import { Button, ErrorState, SectionHeader } from '../components/ui';
+import HeroBand from '../components/discovery/HeroBand';
+import CampaignCard from '../components/discovery/CampaignCard';
+import SponsoredCard from '../components/discovery/SponsoredCard';
+import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/RestaurantCard';
+import RestaurantFormDialog from '../components/owner/RestaurantFormDialog';
+import './HomePage.css';
+
+const SPONSORED_POSITION = 3;
 
 export default function HomePage() {
-    const [restaurants, setRestaurants] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newRestaurant, setNewRestaurant] = useState({
-        name: "",
-        phone: "",
-        address: "",
-        image: ""
-    });
-    const [errorMessage, setErrorMessage] = useState("");
-    const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const [restaurants, setRestaurants] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [createOpen, setCreateOpen] = useState(false);
 
-    async function fetchData() {
-        try {
-            setLoading(true);
-            const data = await getRestaurants();
-            setRestaurants(data);
-        } catch (err) {
-            setError('מצטערים, לא ניתן להציג את המסעדות כרגע.');
-        } finally {
-            setLoading(false);
-        }
+  const loadRestaurants = useCallback(async () => {
+    setStatus('loading');
+
+    try {
+      const data = await getRestaurants();
+
+      setRestaurants(Array.isArray(data) ? data : []);
+      setStatus('ready');
+    } catch (error) {
+      setStatus('error');
     }
+  }, []);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const payload = {
-                username: user.username,
-                name: newRestaurant.name,
-                phone: newRestaurant.phone,
-                address: newRestaurant.address,
-                image: newRestaurant.image || ''
-            };
+  useEffect(() => {
+    loadRestaurants();
+  }, [loadRestaurants]);
 
-            await createRestaurant(payload);
-            await fetchData();
+  const campaign = findWorldCupRestaurant(restaurants);
+  const everyday = restaurants.filter((restaurant) => restaurant !== campaign);
+  const heroImages = everyday.filter((restaurant) => restaurant.image).map((restaurant) => restaurant.image);
+  const canCreateRestaurant = isAuthenticated && user?.role === 'restaurant';
 
-            setNewRestaurant({ name: "", phone: "", address: "", image: "" });
-            setIsModalOpen(false);
+  return (
+    <>
+      <HeroBand images={heroImages} />
 
-        } catch (error) {
-            console.error("שגיאה ביצירת מסעדה:", error);
-            setErrorMessage(error.message || "לא הצלחנו ליצור את המסעדה. ודא שכל השדות מלאים.");
-            setTimeout(() => setErrorMessage(""), 8080);
-        }
-    };
+      <div className="bw-page">
+        {status === 'error' ? (
+          <ErrorState
+            title="לא הצלחנו לטעון את המסעדות"
+            description="השרת לא הגיב. אפשר לנסות שוב בעוד רגע."
+            onRetry={loadRestaurants}
+          />
+        ) : (
+          <div className="bw-home">
+            {campaign && <CampaignCard restaurant={campaign} />}
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+            <section aria-labelledby="bw-home-restaurants">
+              <SectionHeader
+                id="bw-home-restaurants"
+                title="כל המסעדות"
+                description="נבחרת המסעדות שמשלוחות אליכם עכשיו."
+                action={
+                  canCreateRestaurant && (
+                    <Button icon="store" variant="secondary" onClick={() => setCreateOpen(true)}>
+                      פתיחת מסעדה חדשה
+                    </Button>
+                  )
+                }
+              />
 
-    if (loading) return <div className="spinner">Loading...</div>;
-    if (error) return <div className="error-message">{error}</div>;
-
-    return (
-        <div className="page-content">
-            {/* הבאנר העליון שתופס מסך שלם */}
-            <HeroSection />
-
-            <AdsSidebar />
-
-            {/* לכאן חץ הגלילה מוביל אותנו */}
-            <div id="restaurants-section" style={{ paddingTop: '60px', paddingBottom: '40px' }}>
-                <h2>עמוד הבית</h2>
-                <h3>אלה המסעדות שלנו:</h3>
-
-                {isAuthenticated && user?.role === 'restaurant' && (
-                    <button className="create-restaurant-btn" onClick={() => setIsModalOpen(true)}>
-                        <span className="btn-icon">🍔</span> צור מסעדה חדשה
-                    </button>
-                )}
-
-                {/* רינדור המסעדות */}
-                {restaurants.map((rest) => (
-                    <div key={rest.id} className="menu-card">
-                        {rest.image && (
-                            <img
-                                src={rest.image}
-                                alt={rest.name}
-                                style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '12px' }}
-                            />
-                        )}
-                        <h4>{rest.name}</h4>
-                        <div className="card-actions">
-                            <Link to={`/restaurant/${rest.id}`}>
-                                <button>צפה במסעדה</button>
-                            </Link>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* מודאל הוספת מסעדה */}
-            {isModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>➕ הוספת מסעדה חדשה</h3>
-                        <form onSubmit={handleSubmit}>
-                            <label>שם המסעדה:</label>
-                            <input
-                                type="text"
-                                placeholder="hemiburger"
-                                value={newRestaurant.name}
-                                onChange={(e) => setNewRestaurant({ ...newRestaurant, name: e.target.value })}
-                                required
-                            />
-                            <label>קישור לתמונה (URL):</label>
-                            <input
-                                type="text"
-                                placeholder="https://example.com/image.png"
-                                value={newRestaurant.image}
-                                onChange={(e) => setNewRestaurant({ ...newRestaurant, image: e.target.value })}
-                            />
-                            <div className="modal-actions">
-                                <button type="submit" className="save-btn">שמור מסעדה</button>
-                                <button type="button" className="cancel-btn" onClick={() => setIsModalOpen(false)}>ביטול</button>
-                            </div>
-                        </form>
-                    </div>
-                    {errorMessage && (
-                        <div className="toast-container">
-                            <div className="toast error">{errorMessage}</div>
-                        </div>
+              <ul
+                className="bw-restaurant-grid"
+                aria-busy={status === 'loading'}
+                aria-label="רשימת המסעדות"
+              >
+                {status === 'loading'
+                  ? Array.from({ length: 6 }, (_, index) => <RestaurantCardSkeleton key={index} />)
+                  : everyday.flatMap((restaurant, index) =>
+                      index === SPONSORED_POSITION
+                        ? [
+                            <SponsoredCard key="sponsored" />,
+                            <RestaurantCard key={restaurant.id} restaurant={restaurant} />,
+                          ]
+                        : [<RestaurantCard key={restaurant.id} restaurant={restaurant} />]
                     )}
-                </div>
-            )}
-        </div>
-    );
+              </ul>
+            </section>
+          </div>
+        )}
+      </div>
+
+      <RestaurantFormDialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onSaved={loadRestaurants}
+      />
+    </>
+  );
 }

@@ -161,6 +161,13 @@ button {
   justify-content: center;
 }
 
+.bw-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-2);
+  margin-block-end: var(--bw-space-6);
+}
+
 .bw-app {
   display: flex;
   flex-direction: column;

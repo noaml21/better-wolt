@@ -1,6 +1,6 @@
 # Better Wolt V2 — Specification
 
-**Status:** approved direction, not yet implemented. **Branch:** `v2/extensible-architecture` (never commit to `main`).
+**Status:** implemented on `v2/extensible-architecture` (all phases of the [plan](V2_IMPLEMENTATION_PLAN.md) are done; never commit to `main`).
 **Companion docs:** [V2_IMPLEMENTATION_PLAN.md](V2_IMPLEMENTATION_PLAN.md) (how and in what order) ·
 [ARCHITECTURE.md](ARCHITECTURE.md) (structure, conventions, API contract) · [EXTENDING.md](EXTENDING.md) (adding features).
 
@@ -139,8 +139,8 @@ header middleware (harmless, affects static files only).
   running the suite serially and in parallel. No "N consecutive green runs" rule.
 - **Coverage bar** (behavioral, not a percentage): every endpoint has a happy path, an auth failure, a validation failure, and, where
   applicable, an ownership/cross-user failure. The matrix is in the plan (Phase 1).
-- **Clients:** web gets a small Jest suite (API client, `ProtectedRoute`); mobile is gated by a bundle-compile CI check. No UI
-  end-to-end framework in V2. Manual smoke checklist in the plan covers what automation does not.
+- **Clients:** web has a small Jest suite (API client, `ProtectedRoute`); mobile is gated by a bundle-compile CI check. No UI
+  end-to-end framework in V2, so the plan's manual smoke checklist (Appendix A, steps 7–12) still needs a human.
 - **CI (GitHub Actions):** `api` (tests against Mongo service), `web` (test + build), `docker` (image build), `mobile` (install + bundle).
 
 ## 7. Constraints and conventions

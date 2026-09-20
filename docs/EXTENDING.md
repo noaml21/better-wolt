@@ -3,8 +3,8 @@
 How to add a backend feature (for example **reviews** or **favorites**) or a field on an existing entity.
 Conventions come from [ARCHITECTURE.md](ARCHITECTURE.md); scope rules from [V2_SPEC.md](V2_SPEC.md).
 
-> **Applies from Phase 3 onward** (feature folders, `AppError`, `validate`, `requireRestaurantOwner`). Before that, follow the
-> [implementation plan](V2_IMPLEMENTATION_PLAN.md) — do not add features in the middle of the restructuring.
+> Describes the code as it is now on `v2/extensible-architecture`: feature folders, `AppError`, `validate`,
+> `requireRestaurantOwner`.
 
 ## The rule of locality
 

@@ -4,9 +4,8 @@ Authoritative description of how Better Wolt is structured and the conventions c
 Scope and decisions: [V2_SPEC.md](V2_SPEC.md). Order of work: [V2_IMPLEMENTATION_PLAN.md](V2_IMPLEMENTATION_PLAN.md).
 How to add a feature: [EXTENDING.md](EXTENDING.md).
 
-> **Status note.** Sections marked **(V2, Phase N)** describe the target and become true when that phase lands; the plan's
-> Progress table records what has landed. Everything else describes the code today. §4 was derived from the current code and is
-> what the Phase 1 test suite pins.
+> **Status note.** This describes the code as it exists on `v2/extensible-architecture` after the V2 work (all phases of the
+> [implementation plan](V2_IMPLEMENTATION_PLAN.md) are done). §4 is the contract the test suite in `web-server/test/` pins.
 
 ## 1. System overview
 
@@ -24,15 +23,7 @@ React Native / Expo ──┘        (web-server/)
 
 ## 2. Backend layout
 
-### Today (V1)
-```text
-server.js                   loads dotenv, connects DB, seeds, listens
-src/app.js                  CORS, JSON parser, routers, static + SPA fallback
-src/routes|controllers|services|models|middleware|config/   one file per resource per layer
-src/models/<plural>.js      one-line re-exports of services (removed in Phase 2)
-```
-
-### Target **(V2, Phase 2)**
+### Layout
 ```text
 web-server/
   server.js                       process entry: connect DB, seed, listen
@@ -58,14 +49,17 @@ web-server/
   client/                         React web app (unchanged layout)
 ```
 
-| Today | Target |
+Where things moved from (V1 layer folders → V2 feature folders):
+
+| V1 | Now |
 |---|---|
 | `routes/users.js`, `controllers/users.js`, `services/users.js`, `models/User.js` | `features/users/users.routes.js`, `.controller.js`, `.service.js`, `user.model.js` |
 | `routes/tokens.js` + `controllers/tokens.js` + `services/tokens.js` | `features/auth/auth.*.js` (URL stays `/api/tokens`) |
 | `middleware/auth.js` | `http/auth.js` |
 | `services/products.js`, `controllers/products.js` | `features/restaurants/products.service.js`, `products.controller.js` (products are embedded in a restaurant) |
 | `services/seedWorldCupRestaurant.js` | `seed/worldCup.js` |
-| `models/{users,orders,products,restaurants,search,tokens}.js` | deleted (shims) |
+| `models/{users,orders,products,restaurants,search,tokens}.js` | deleted (they only re-exported services) |
+| `services/search.js` | folded into `restaurants.service.searchRestaurants` |
 
 ## 3. Conventions
 
@@ -156,7 +150,7 @@ JWT claims{ id, username, displayName, role, iat, exp }  (HS256, 24 h)
 | `GET /orders/:id` | owner | `200 Order` | `401`, `404` (also for other users' orders) |
 | `DELETE /orders/:id` | owner | `204` | `401`, `404` |
 | `GET /search/:query` | – | `200 Restaurant[]` (literal, case-insensitive substring of name, address, product name or description) | `400` blank |
-| `GET /health` *(Phase 5)* | – | `200 {status:'ok'}` | `503` |
+| `GET /health` | – | `200 {status:'ok'}` | `503` |
 
 Any route: unknown `/api/*` path → `404 Not found`; malformed JSON → `400 Invalid JSON`; body over 100 KB (5 MB for
 `POST /users`) → `413 Payload too large`; disallowed browser `Origin` → `403 Origin not allowed`; unexpected failure →
@@ -204,7 +198,7 @@ Behavior changed in V2 (BF-1…BF-9) is listed in [V2_SPEC.md §5](V2_SPEC.md#5-
 
 ## 7. Configuration
 
-Read only in `src/config.js` *(V2, Phase 2)*.
+Read only in `src/config.js`.
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -230,6 +224,14 @@ Docker Compose reads the repo-root `.env`; running the API outside Docker reads 
 
 ## 9. Known limitations (intentional, documented)
 
-Self-selected `role` at registration; role embedded in a 24 h JWT with no revocation; web token in `localStorage`; ownership by
-`username`; `Order.restaurant` as a string; display-string `status`; base64 avatars in Mongo; seed can race when two instances start
-simultaneously; no pagination on list endpoints; a stray `Connection`/`Keep-Alive` header middleware. See the spec's "not changed" list.
+Kept deliberately in V2 (see the spec's "not changed" list):
+
+- Anyone can register as a restaurant owner (`role` comes from the request body).
+- The role is embedded in a 24 h JWT with no revocation or refresh; the web client stores the token in `localStorage`.
+- Ownership is keyed on `username`; `Order.restaurant` is a string id; `status` is a Hebrew display string that the server never advances.
+- Avatars are base64 data URLs in MongoDB, and only their size is limited, not their content.
+- MongoDB itself has no authentication (Compose publishes it on `127.0.0.1` only).
+- The seed runs on every startup and can race if two instances start at once.
+- No pagination on list endpoints; `Order.products` duplicates `orderItems`; a stray `Connection`/`Keep-Alive` header middleware
+  remains in `app.js` (it only affects static files).
+- The rate limiter counts per process in memory and reads the socket IP; behind a reverse proxy it would need `trust proxy`.

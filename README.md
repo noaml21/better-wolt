@@ -51,6 +51,16 @@ React Native / Expo -/
 
 The web and mobile applications consume the same REST API. The production backend image builds the React client and serves its static output alongside the API, while the Expo application connects to the API over HTTP.
 
+The backend is organized by feature (`web-server/src/features/<name>/` with `routes → controller → service → model`), with shared HTTP plumbing in `src/http/`. See the documentation below for the structure, the API contract, and how to add a feature.
+
+## Documentation
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — structure, conventions and the full API contract
+- [docs/EXTENDING.md](docs/EXTENDING.md) — how to add a backend feature, with a worked example
+- [docs/V2_SPEC.md](docs/V2_SPEC.md) — scope, invariants and the deliberate behavior changes
+- [docs/V2_IMPLEMENTATION_PLAN.md](docs/V2_IMPLEMENTATION_PLAN.md) — the phased plan and what was verified
+- [AGENTS.md](AGENTS.md) — branch policy, commands and conventions for contributors
+
 ## Tech Stack
 
 ### Backend
@@ -60,7 +70,10 @@ The web and mobile applications consume the same REST API. The production backen
 - Mongoose
 - JSON Web Tokens (`jsonwebtoken`)
 - `bcryptjs`
+- Zod for request validation
+- `express-rate-limit`
 - CORS and environment-based configuration
+- `node:test` and `supertest` for integration tests against MongoDB 7
 
 ### Web
 
@@ -85,8 +98,9 @@ The web and mobile applications consume the same REST API. The production backen
 ### Infrastructure
 
 - Docker and Docker Compose
-- Multi-stage backend image that builds and embeds the React production bundle
+- Multi-stage backend image that builds and embeds the React production bundle, runs as a non-root user and exposes a health check
 - MongoDB health check and named volume for persistence
+- GitHub Actions CI
 
 ## Security / Backend Design
 
@@ -95,15 +109,24 @@ The web and mobile applications consume the same REST API. The production backen
 - Restaurant and menu mutations are authorized against the authenticated restaurant owner.
 - Order creation is server-authoritative: the API resolves products from the selected restaurant, snapshots item names and prices, calculates item counts and totals, and sets the initial status and timestamps.
 - Clients submit product identifiers and quantities; they cannot choose authoritative order prices, totals, or status values.
+- Request bodies are validated with Zod at the route boundary; errors are returned as `{ "error": "..." }` without driver or stack text.
+- Login and registration are rate limited per IP, unknown usernames still run a bcrypt comparison (so timing does not reveal which accounts exist), and only HS256 tokens are accepted.
+- JSON bodies are limited to 100 KB, except registration (5 MB) which may carry an avatar.
+- Search queries are matched literally, not as regular expressions.
+- The API container runs as a non-root user, and MongoDB is published on `127.0.0.1` only.
 - Sensitive payment-card data is not collected or stored. The project does not implement payment processing.
 
 ## Project Structure
 
 ```text
-web-server/        Node.js/Express API and the React web client
-mobile/            React Native/Expo mobile client
-docker-compose.yml Docker orchestration for the backend, MongoDB, and mobile development
-.env.example       Required environment-variable template
+web-server/             Node.js/Express API (src/features/...) and the React web client
+web-server/test/        API integration tests (node:test + supertest)
+mobile/                 React Native/Expo mobile client
+docs/                   Architecture, API contract, extension guide and the V2 plan
+docker-compose.yml      Backend, MongoDB and the optional Expo dev server
+docker-compose.test.yml Throwaway MongoDB for the test suite
+.github/workflows/      CI: API tests, web tests and build, image build, mobile bundle
+.env.example            Required environment-variable template
 ```
 
 ## Running the Web Application

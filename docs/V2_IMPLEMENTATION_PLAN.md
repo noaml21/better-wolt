@@ -66,7 +66,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 5.2 | `/api/health` | ☑ | |
 | 5.3 | `npm run dev` + README Development | ☑ | |
 | 5.4 | `AGENTS.md` | ☑ | |
-| 5.5 | README links + accuracy pass | ☐ | |
+| 5.5 | README links + accuracy pass | ☑ | |
 
 ### Progress notes
 

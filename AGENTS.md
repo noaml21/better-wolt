@@ -4,11 +4,14 @@ Project guidance for contributors and coding agents. The documents in `docs/` ar
 [V2_SPEC.md](docs/V2_SPEC.md) (scope, invariants, approved behavior changes) ·
 [ARCHITECTURE.md](docs/ARCHITECTURE.md) (layout, conventions, API contract) ·
 [EXTENDING.md](docs/EXTENDING.md) (how to add a feature) ·
-[V2_IMPLEMENTATION_PLAN.md](docs/V2_IMPLEMENTATION_PLAN.md) (what was done, in order, and why).
+[V2_IMPLEMENTATION_PLAN.md](docs/V2_IMPLEMENTATION_PLAN.md) (what was done, in order, and why) ·
+[V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md) (V3 design direction, tokens, component language) ·
+[V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) (V3 phases and progress).
 
 ## Git
 
-- V2 work happens on `v2/extensible-architecture`. Do not commit to or merge into `main`.
+- V3 (the client redesign) happens on `v3/ui-overhaul`, branched from the V2 HEAD `98d2477`. V2 work happened on
+  `v2/extensible-architecture`. Do not commit to or merge into `main`, and do not modify the V2 branch.
 - Never reset, clean, discard, force-push or rewrite history; recover with `git revert`.
 - One concern per commit, with the verification you actually ran in the message.
 

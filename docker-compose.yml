@@ -3,8 +3,9 @@ services:
     image: mongo:7
     container_name: better-wolt-mongo
     restart: unless-stopped
+    # Published on localhost only: this MongoDB has no authentication.
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo-data:/data/db
     healthcheck:

@@ -149,6 +149,12 @@ What the pass actually ran, and what it found:
   a page and the whole footer sat underneath it, so the footer's links could not be reached while an order was on its
   way. The page and the footer now reserve room while the pill is shown. The spec's original plan to collapse the pill
   into the top bar below `md` is recorded as dropped, with the reason (§5.1).
+- **One long name broke the grid for everyone.** A restaurant whose name has no break opportunity made every column in
+  the discovery grid as wide as that name — at 390 the page scrolled sideways by 150 px, which is finding A8 of the V2
+  audit returning. The columns are `minmax(0, 1fr)` now, so they may shrink below their content and the card's ellipsis
+  does its job; the campaign grid's `minmax(280px, 1fr)` became `minmax(min(280px, 100%), 1fr)` for the same reason.
+  Verified by creating a restaurant with a very long name and dish description, checking both clients at 390 and 1440,
+  and deleting it again.
 - **Flows walked end to end.** Web: sign in → home → restaurant → cart → order → tracking → orders → search, plus
   `/world-cup` from add-to-cart to the tracking page, plus the signed-out guard (toast + redirect to `/login`).
   Mobile: the same customer flow in a Pixel 7 viewport, the owner's restaurant and dish forms, and the campaign screen.

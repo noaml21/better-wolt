@@ -119,26 +119,30 @@
 }
 
 /* The grid every listing uses. */
+/* `minmax(0, …)` rather than a bare `1fr`: a column sized `1fr` cannot
+   shrink below its content's minimum, so one restaurant with a long
+   unbreakable name made every column as wide as that name and pushed the
+   whole grid off a phone screen. */
 .bw-restaurant-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--bw-space-6) var(--bw-space-5);
 }
 
 @media (min-width: 600px) {
   .bw-restaurant-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 900px) {
   .bw-restaurant-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1440px) {
   .bw-restaurant-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

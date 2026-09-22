@@ -91,7 +91,8 @@
 
 .bw-worldcup__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* `min(280px, 100%)` so a narrow screen is never asked for 280px. */
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: var(--bw-space-4);
   list-style: none;
   margin: 0;

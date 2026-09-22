@@ -190,7 +190,7 @@ keyframe animation to an instant state change. No scroll-triggered reveals anywh
 | `sm` | ≥ 600 | Two-column discovery grid |
 | `md` | ≥ 900 | Three-column grid; restaurant page keeps one column with a bottom cart bar |
 | `lg` | ≥ 1200 | Restaurant page splits into menu + sticky cart panel; top bar shows full search |
-| `xl` | ≥ 1440 | Four-column grid, content capped at 1200 px, sponsored rail appears |
+| `xl` | ≥ 1440 | Four-column grid, content capped at 1200 px |
 
 ## 5. Navigation models
 

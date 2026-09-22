@@ -66,13 +66,23 @@ export default function RegisterScreen({ navigation }) {
     if (!values.username.trim()) next.username = 'שדה חובה';
     if (!values.displayName.trim()) next.displayName = 'שדה חובה';
     if (!values.address.trim()) next.address = 'שדה חובה';
-    if (!emailPattern.test(values.email.trim())) next.email = 'כתובת אימייל לא תקינה';
+    /* An empty field is missing, not malformed — telling someone their
+       blank email is "invalid" is the wrong complaint. */
+    if (!values.email.trim()) {
+      next.email = 'שדה חובה';
+    } else if (!emailPattern.test(values.email.trim())) {
+      next.email = 'כתובת אימייל לא תקינה';
+    }
 
     if (values.password.length < 8 || !/\d/.test(values.password) || !/[a-zA-Z]/.test(values.password)) {
       next.password = 'לפחות 8 תווים, עם אות וספרה';
     }
 
-    if (values.password !== values.confirm) next.confirm = 'הסיסמאות אינן תואמות';
+    if (!values.confirm) {
+      next.confirm = 'שדה חובה';
+    } else if (values.password !== values.confirm) {
+      next.confirm = 'הסיסמאות אינן תואמות';
+    }
 
     setErrors(next);
 

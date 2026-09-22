@@ -59,7 +59,12 @@ export function MetaItem({ icon, children, tone }) {
 
 const useStyles = createStyles(({ colors, space, radius, type }) => ({
   tag: {
-    alignSelf: 'flex-start',
+    /* The layout is right-to-left, so the tag's own edge is the right
+       one — the web client puts the price under the start of the dish
+       name, and this is the same alignment (V3_DESIGN_SPEC §3.2). The
+       status pill below keeps `flex-start` because its parent is a row,
+       where `alignSelf` is vertical. */
+    alignSelf: 'flex-end',
     paddingHorizontal: space[3],
     paddingVertical: 4,
     borderRadius: radius.xs,

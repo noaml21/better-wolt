@@ -34,6 +34,31 @@ import {
    request; shipping an audio engine and a 3.7 MB file inside the app to
    match it is not worth it (V3_DESIGN_SPEC §8). */
 
+/* The flags come from a CDN, so one of them not arriving is a state this
+   screen has to have: the row keeps its shape and falls back to the
+   campaign's own mark rather than showing an empty grey box. The web
+   client does the same (pages/WorldCupPage.jsx). */
+function Flag({ team }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <View style={styles.flag}>
+      {team && !failed ? (
+        <Image
+          source={{ uri: team.flag }}
+          style={styles.flagImage}
+          resizeMode="cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <Icon name="trophy" size={20} color={colors.inkMuted} />
+      )}
+    </View>
+  );
+}
+
 export default function WorldCupScreen({ navigation }) {
   const styles = useStyles();
   const { colors } = useTheme();
@@ -181,13 +206,7 @@ export default function WorldCupScreen({ navigation }) {
 
           return (
             <View style={styles.dish}>
-              <View style={styles.flag}>
-                {team ? (
-                  <Image source={{ uri: team.flag }} style={styles.flagImage} resizeMode="cover" />
-                ) : (
-                  <Icon name="trophy" size={20} color={colors.inkMuted} />
-                )}
-              </View>
+              <Flag team={team} />
 
               <View style={styles.dishText}>
                 {team ? <Text style={styles.team}>{team.team}</Text> : null}

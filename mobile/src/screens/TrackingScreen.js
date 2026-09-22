@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Animated, ScrollView, Text, View } from 'react-native';
 import { createStyles, rtl, useReducedMotion, useTheme } from '../theme';
 import { getOrderById } from '../services/api';
@@ -71,7 +71,7 @@ export default function TrackingScreen({ navigation, route }) {
   }, [order]);
 
   const progress = order ? getProgress(secondsLeft) : 0;
-  const ride = useRef(new Animated.Value(0)).current;
+  const [ride] = useState(() => new Animated.Value(0));
 
   /* One movement: the scooter slides to where the order actually is.
      Under reduced motion it is simply placed there. */

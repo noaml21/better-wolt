@@ -94,8 +94,8 @@ the new primitives, so neither half compiles alone. Built as described, plus:
 
 - `CartContext` holds one line per product with a quantity (V2 pushed one entry per unit) and is one piece of state, so
   switching restaurants is a single replayable update. The order body is still `{ id, quantity }` only.
-- `Logo` is the drawn price-tag mark from the web client, ported to `react-native-svg`. The raster `assets/Logo.png` is
-  no longer used by any screen.
+- `Logo` is the drawn price-tag mark from the web client, ported to `react-native-svg`. The 1 MB raster
+  `assets/Logo.png` it replaced is deleted — nothing referenced it, and it was riding along in the Android bundle.
 - Hebrew counting helpers (`dishCount`, `itemCount`, `orderCount`, `resultCount`) — "1 מנות" is not Hebrew.
 - `formatOrderNumber` wraps the number in Unicode isolates; the web does the same job with `unicode-bidi: isolate`.
 - Home's greeting shows the account name only: the login response carries no address (ARCHITECTURE §4.3).
@@ -155,6 +155,13 @@ Inspected through Expo's web target, so these are the parts a real Android devic
 - `Alert` dialogs for destructive confirmations (they render as browser dialogs on the web target).
 - Native scroll and overscroll behaviour, and `RefreshControl` pull-to-refresh on Home and Orders.
 - Platform fonts: the type scale is the platform UI font, which is Roboto on Android rather than the browser's default.
+
+## Linting the mobile app
+
+The mobile client had no linter; it now uses Expo's own setup (`npm run lint` → `expo lint`, with
+`eslint-config-expo`). It earns its place: on the first run it found a stale import, a `useMemo` whose dependency was
+rebuilt on every render, and three components reading `ref.current` during render. Three findings remain and are
+deliberate — `setState` inside a data-fetching effect, which is the pattern every screen here uses.
 
 ## Looking at the mobile app
 

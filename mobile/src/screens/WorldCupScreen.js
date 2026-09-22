@@ -54,7 +54,7 @@ export default function WorldCupScreen({ navigation }) {
 
       setRestaurant(data);
       setStatus(data ? 'ready' : 'missing');
-    } catch (error) {
+    } catch {
       setStatus('error');
     }
   }, []);
@@ -65,7 +65,7 @@ export default function WorldCupScreen({ navigation }) {
     }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const products = restaurant?.products || [];
+  const products = useMemo(() => restaurant?.products || [], [restaurant]);
 
   /* The flat price is whatever the seed priced the dishes at, read back
      from the server rather than written here. */

@@ -31,7 +31,7 @@ export default function HomeScreen({ navigation }) {
 
       setRestaurants(Array.isArray(data) ? data : []);
       setStatus('ready');
-    } catch (error) {
+    } catch {
       setStatus('error');
     }
   }, []);

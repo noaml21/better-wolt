@@ -45,7 +45,7 @@ export default function OrdersScreen({ navigation }) {
 
         setOrders(Array.isArray(data) ? [...data].reverse() : []);
         setStatus('ready');
-      } catch (error) {
+      } catch {
         setStatus('error');
       }
     },

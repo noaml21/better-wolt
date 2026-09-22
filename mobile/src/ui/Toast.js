@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { Animated, Text, View } from 'react-native';
+import { Animated, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStyles, rtl } from '../theme';
 import Icon from './Icon';
@@ -12,7 +12,10 @@ const DURATION = 3000;
 
 export function ToastProvider({ children }) {
   const [toast, setToast] = useState(null);
-  const opacity = useRef(new Animated.Value(0)).current;
+  /* The driver is created once and never replaced. It lives in state
+     rather than a ref because reading `ref.current` while rendering is
+     what React 19 asks components not to do. */
+  const [opacity] = useState(() => new Animated.Value(0));
   const timer = useRef(null);
   const styles = useStyles();
   const insets = useSafeAreaInsets();

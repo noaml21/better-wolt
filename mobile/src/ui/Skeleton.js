@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, Easing, View } from 'react-native';
 import { createStyles, useReducedMotion, useTheme } from '../theme';
 
@@ -9,7 +9,7 @@ export default function Skeleton({ width, height = 16, radius: r = 'sm', style }
   const styles = useStyles();
   const { radius } = useTheme();
   const reducedMotion = useReducedMotion();
-  const pulse = useRef(new Animated.Value(0.5)).current;
+  const [pulse] = useState(() => new Animated.Value(0.5));
 
   useEffect(() => {
     if (reducedMotion) {

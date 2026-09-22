@@ -34,7 +34,7 @@ export default function SearchResultsScreen({ navigation, route }) {
 
       setResults(Array.isArray(data) ? data : []);
       setStatus('ready');
-    } catch (error) {
+    } catch {
       setStatus('error');
     }
   }, []);

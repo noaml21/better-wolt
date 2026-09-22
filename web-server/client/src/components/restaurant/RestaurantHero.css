@@ -103,10 +103,22 @@
     height: 340px;
   }
 
+  /* Wide enough for the name and the facts to share one line: stacked,
+     they left most of the card empty and it read as a bar rather than a
+     card. The owner's row keeps a line of its own. */
   .bw-restaurant-hero__card {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    column-gap: var(--bw-space-7);
     width: calc(100% - var(--bw-space-10));
     margin-block-start: -72px;
     padding: var(--bw-space-7);
+  }
+
+  .bw-restaurant-hero__owner {
+    flex-basis: 100%;
   }
 }
 

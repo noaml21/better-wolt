@@ -18,7 +18,11 @@
 }
 
 .bw-topbar__brand {
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
+  /* The mark is 36px tall; the tap target is not (spec §4.4). */
+  min-height: 44px;
   text-decoration: none;
 }
 

@@ -13,7 +13,11 @@
 }
 
 .bw-auth__brand {
+  display: inline-flex;
+  align-items: center;
   align-self: center;
+  /* Same rule as the top bar's mark: the logo is 36px, the target is 44. */
+  min-height: 44px;
 }
 
 .bw-auth__brand:hover {
@@ -50,6 +54,14 @@
   margin-inline: auto;
   text-align: center;
   font-size: var(--bw-caption);
+}
+
+/* The link sits inside a sentence, so it cannot be 44px tall without
+   breaking the line — but 15px was under even the 24px minimum, so it
+   takes the padding it can (spec §4.4). */
+.bw-auth__footer a {
+  display: inline-block;
+  padding-block: var(--bw-space-2);
 }
 
 .bw-auth__aside {

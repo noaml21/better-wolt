@@ -24,6 +24,9 @@ export default function Button({
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
+      /* `sm` is 36pt tall by design; the missing 8pt of target comes from
+         hitSlop rather than from the shape (V3_DESIGN_SPEC §4.4). */
+      hitSlop={size === 'sm' ? (TOUCH_TARGET - SM_HEIGHT) / 2 : undefined}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       style={({ pressed }) => [
@@ -54,6 +57,8 @@ function variantTextColor(variant, styles) {
   return styles[`label_${variant}`].color;
 }
 
+const SM_HEIGHT = 36;
+
 const useStyles = createStyles(({ colors, space, radius, type }) => ({
   base: {
     minHeight: TOUCH_TARGET,
@@ -65,7 +70,7 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     justifyContent: 'center',
   },
   content: { flexDirection: 'row-reverse', alignItems: 'center', gap: space[2] },
-  size_sm: { minHeight: 36, paddingHorizontal: space[4] },
+  size_sm: { minHeight: SM_HEIGHT, paddingHorizontal: space[4] },
   size_md: {},
   size_lg: { minHeight: 52, paddingHorizontal: space[7] },
   fullWidth: { alignSelf: 'stretch' },

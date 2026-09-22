@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text } from 'react-native';
-import { createStyles } from '../theme';
+import { createStyles, TOUCH_TARGET } from '../theme';
 
 export default function Chip({ children, onPress, selected = false, style }) {
   const styles = useStyles();
@@ -10,6 +10,9 @@ export default function Chip({ children, onPress, selected = false, style }) {
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
+      /* A chip reads best at 38pt, so the extra 6pt of target comes from
+         hitSlop rather than from the shape (V3_DESIGN_SPEC §4.4). */
+      hitSlop={(TOUCH_TARGET - CHIP_HEIGHT) / 2}
       style={({ pressed }) => [
         styles.chip,
         selected && styles.selected,
@@ -22,9 +25,11 @@ export default function Chip({ children, onPress, selected = false, style }) {
   );
 }
 
+const CHIP_HEIGHT = 38;
+
 const useStyles = createStyles(({ colors, space, radius, type }) => ({
   chip: {
-    minHeight: 38,
+    minHeight: CHIP_HEIGHT,
     justifyContent: 'center',
     paddingHorizontal: space[4],
     borderRadius: radius.pill,

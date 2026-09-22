@@ -19,6 +19,11 @@ export default function SearchResultsScreen({ navigation, route }) {
   const [results, setResults] = useState([]);
   const [status, setStatus] = useState('idle');
 
+  /* Searches can overtake each other: a slow answer for an earlier term
+     would otherwise land last and fill the list with results that do not
+     match the term shown above them. Only the newest request may write. */
+  const latestRequest = useRef(0);
+
   const run = useCallback(async (term) => {
     const trimmed = term.trim();
 
@@ -26,16 +31,25 @@ export default function SearchResultsScreen({ navigation, route }) {
       return;
     }
 
+    const request = latestRequest.current + 1;
+
+    latestRequest.current = request;
     setSubmitted(trimmed);
     setStatus('loading');
 
     try {
       const data = await searchRestaurants(trimmed);
 
+      if (latestRequest.current !== request) {
+        return;
+      }
+
       setResults(Array.isArray(data) ? data : []);
       setStatus('ready');
     } catch {
-      setStatus('error');
+      if (latestRequest.current === request) {
+        setStatus('error');
+      }
     }
   }, []);
 

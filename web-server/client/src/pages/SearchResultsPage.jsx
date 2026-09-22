@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getQuery } from '../services/api';
 import { Chip, EmptyState, ErrorState, SectionHeader } from '../components/ui';
@@ -17,7 +17,17 @@ export default function SearchResultsPage() {
   const [results, setResults] = useState([]);
   const [status, setStatus] = useState('loading');
 
+  /* Searches can overtake each other: a slow answer for the previous
+     query used to land after the current one and replace the results
+     under a heading that said something else. Only the newest request
+     is allowed to write. */
+  const latestRequest = useRef(0);
+
   const runSearch = useCallback(async () => {
+    const request = latestRequest.current + 1;
+
+    latestRequest.current = request;
+
     if (!query) {
       setResults([]);
       setStatus('ready');
@@ -29,10 +39,16 @@ export default function SearchResultsPage() {
     try {
       const data = await getQuery(query);
 
+      if (latestRequest.current !== request) {
+        return;
+      }
+
       setResults(Array.isArray(data) ? data : []);
       setStatus('ready');
     } catch (error) {
-      setStatus('error');
+      if (latestRequest.current === request) {
+        setStatus('error');
+      }
     }
   }, [query]);
 

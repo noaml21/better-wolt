@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { createOrder, deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -36,14 +36,30 @@ export default function RestaurantPage() {
   const [confirm, setConfirm] = useState(null);
   const [removing, setRemoving] = useState(false);
 
+  /* Moving between restaurants without a reload means two requests can
+     be in flight; only the newest one may write, or a slow answer for
+     the restaurant you just left replaces the one you are reading. */
+  const latestRequest = useRef(0);
+
   const load = useCallback(async () => {
+    const request = latestRequest.current + 1;
+
+    latestRequest.current = request;
     setStatus('loading');
 
     try {
-      setRestaurant(await getRestaurantById(id));
+      const data = await getRestaurantById(id);
+
+      if (latestRequest.current !== request) {
+        return;
+      }
+
+      setRestaurant(data);
       setStatus('ready');
     } catch (error) {
-      setStatus(error.status === 404 ? 'missing' : 'error');
+      if (latestRequest.current === request) {
+        setStatus(error.status === 404 ? 'missing' : 'error');
+      }
     }
   }, [id]);
 

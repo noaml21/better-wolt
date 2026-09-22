@@ -141,6 +141,10 @@ What the pass actually ran, and what it found:
   page showed a blank hero. Both clients now share a `Media` component that hands over to a fallback — the restaurant's
   initial, the campaign's mark, or nothing — and the home photo cluster drops to the next candidate photo, hiding
   itself only when fewer than three survive. Re-verified with both CDNs blocked.
+- **Searches can overtake each other.** Reproduced in the browser by answering the first search after three seconds
+  and the second immediately: the stale answer landed last and filled the list with results that did not match the
+  heading above them. Both search screens and the web restaurant page now keep a request counter and let only the
+  newest request write; re-running the same reproduction leaves the current results in place.
 - **Flows walked end to end.** Web: sign in → home → restaurant → cart → order → tracking → orders → search, plus
   `/world-cup` from add-to-cart to the tracking page, plus the signed-out guard (toast + redirect to `/login`).
   Mobile: the same customer flow in a Pixel 7 viewport, the owner's restaurant and dish forms, and the campaign screen.

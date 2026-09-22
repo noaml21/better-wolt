@@ -148,6 +148,12 @@ button {
   max-width: 760px;
 }
 
+/* Room for the docked order pill, so the last card on a page is never
+   left sitting underneath it. */
+body.bw-has-dock .bw-page {
+  padding-block-end: var(--bw-space-11);
+}
+
 .bw-stack {
   display: flex;
   flex-direction: column;

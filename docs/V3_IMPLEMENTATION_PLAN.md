@@ -145,6 +145,10 @@ What the pass actually ran, and what it found:
   and the second immediately: the stale answer landed last and filled the list with results that did not match the
   heading above them. Both search screens and the web restaurant page now keep a request counter and let only the
   newest request write; re-running the same reproduction leaves the current results in place.
+- **The docked order pill covered what was under it.** Measured at 390: it correctly clears the cart bar, but the end of
+  a page and the whole footer sat underneath it, so the footer's links could not be reached while an order was on its
+  way. The page and the footer now reserve room while the pill is shown. The spec's original plan to collapse the pill
+  into the top bar below `md` is recorded as dropped, with the reason (§5.1).
 - **Flows walked end to end.** Web: sign in → home → restaurant → cart → order → tracking → orders → search, plus
   `/world-cup` from add-to-cart to the tracking page, plus the signed-out guard (toast + redirect to `/login`).
   Mobile: the same customer flow in a Pixel 7 viewport, the owner's restaurant and dish forms, and the campaign screen.

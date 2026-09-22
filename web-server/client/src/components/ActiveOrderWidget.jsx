@@ -44,8 +44,17 @@ export default function ActiveOrderWidget() {
   }, [refresh]);
 
   const hidden = HIDDEN_PATHS.some((path) => location.pathname.startsWith(path));
+  const showing = !hidden && activeOrders.length > 0;
 
-  if (hidden || activeOrders.length === 0) {
+  /* The pill floats over the page, so the page has to end above it
+     rather than under it — the same arrangement the cart bar uses. */
+  useEffect(() => {
+    document.body.classList.toggle('bw-has-dock', showing);
+
+    return () => document.body.classList.remove('bw-has-dock');
+  }, [showing]);
+
+  if (!showing) {
     return null;
   }
 

@@ -212,8 +212,11 @@ inline-end/left). No full-viewport hero and no floating ad overlay.
 | `/login`, `/register` | Split layout: form beside a brand panel |
 | `*` | Designed 404 |
 
-The active-order widget becomes a single docked pill at the inline-end/bottom that never overlaps the cart panel, and it
-collapses into the top bar below `md`.
+The active-order widget is a single docked pill at the inline-end/bottom that never overlaps the cart panel. It stays a
+pill at every width rather than collapsing into the top bar below `md` as this section first planned: the pill is
+already the collapsed form, and moving it into the top bar would mean lifting the order fetch into shared state that
+nothing else needs. What the pill must not do is hide anything permanently, so while it is shown the page and the
+footer both reserve room for it (`body.bw-has-dock`), the same arrangement the cart bar uses.
 
 ### 5.2 Mobile
 

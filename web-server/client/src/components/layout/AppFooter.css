@@ -5,6 +5,13 @@
   background-color: var(--bw-surface);
 }
 
+/* The docked order pill is anchored to the bottom of the viewport, so
+   the end of the document has to leave it room — otherwise it sits on
+   the footer's own links. */
+body.bw-has-dock .bw-footer {
+  padding-block-end: var(--bw-space-11);
+}
+
 .bw-footer__inner {
   display: flex;
   flex-wrap: wrap;

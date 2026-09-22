@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getRestaurants } from '../services/api';
 import { getRestaurantMeta } from '../services/restaurantMeta';
+import { restaurantCount } from '../services/counts';
 import { Chip, EmptyState, ErrorState, LinkButton, SectionHeader } from '../components/ui';
 import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/RestaurantCard';
 
@@ -39,7 +40,7 @@ export default function RestaurantsPage() {
   const restaurantLabel =
     restaurants.length === 1
       ? 'מסעדה אחת משלוחה אליכם עכשיו.'
-      : `${restaurants.length} מסעדות משלוחות אליכם עכשיו.`;
+      : `${restaurantCount(restaurants.length)} משלוחות אליכם עכשיו.`;
 
   const sorted = useMemo(() => {
     const list = [...restaurants];

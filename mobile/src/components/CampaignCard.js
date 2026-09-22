@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
-import { Icon } from '../ui';
+import { Icon, formatPrice } from '../ui';
+import { dishCount } from '../services/presentation';
 
 /* The seeded World Cup restaurant, presented as what it is: a campaign.
    Its name comes from the server (ARCHITECTURE §6), never from here. */
@@ -13,7 +14,12 @@ export default function CampaignCard({ restaurant, onPress }) {
     return null;
   }
 
-  const dishCount = restaurant.products?.length || 0;
+  const products = restaurant.products || [];
+  /* The campaign's flat price is whatever the seed priced the dishes at,
+     read back from the server rather than written here — the same rule
+     the campaign screen follows. */
+  const prices = new Set(products.map((product) => Number(product.price)));
+  const flatPrice = prices.size === 1 ? [...prices][0] : null;
 
   return (
     <Pressable
@@ -30,7 +36,8 @@ export default function CampaignCard({ restaurant, onPress }) {
         <Text style={styles.eyebrow}>קולקציה מיוחדת</Text>
         <Text style={styles.title}>{restaurant.name}</Text>
         <Text style={styles.description}>
-          {dishCount} מנות נבחרת מכל העולם, במחיר אחיד של ₪30.
+          {dishCount(products.length)} נבחרת מכל העולם
+          {flatPrice !== null ? `, במחיר אחיד של ${formatPrice(flatPrice)}` : ''}.
         </Text>
       </View>
 

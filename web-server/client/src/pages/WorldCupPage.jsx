@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { createOrder, getRestaurants } from '../services/api';
 import { findWorldCupRestaurant } from '../services/restaurantMeta';
 import { worldCupDishes } from '../services/worldCup';
+import { dishCount } from '../services/counts';
 import { useAuth } from '../context/AuthContext';
 import useMenuCart from '../hooks/useMenuCart';
 import {
@@ -192,7 +193,7 @@ export default function WorldCupPage() {
           <Button variant="secondary" icon={playing ? 'close' : 'trophy'} onClick={toggleSound}>
             {playing ? 'עצירת המוזיקה' : 'הפעלת מוזיקת רקע'}
           </Button>
-          <span className="bw-worldcup__count">{dishes.length} מנות</span>
+          <span className="bw-worldcup__count">{dishCount(dishes.length)}</span>
         </div>
 
         <audio ref={audio} src="/music.mp3" loop preload="none" aria-hidden="true" />

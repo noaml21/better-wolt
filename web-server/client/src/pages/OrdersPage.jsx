@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getUserOrders } from '../services/api';
+import { itemCount, orderCount } from '../services/counts';
 import {
   formatOrderNumber,
   getSecondsLeft,
@@ -48,7 +49,7 @@ export default function OrdersPage() {
         title="ההזמנות שלי"
         description={
           status === 'ready' && orders.length > 0
-            ? `${orders.length} הזמנות בחשבון שלכם.`
+            ? `${orderCount(orders.length)} בחשבון שלכם.`
             : undefined
         }
       />
@@ -109,7 +110,7 @@ export default function OrdersPage() {
 
                   <footer className="bw-order__footer">
                     <p className="bw-order__total">
-                      <span>{order.items} פריטים</span>
+                      <span>{itemCount(order.items)}</span>
                       <strong>{formatPrice(order.total)}</strong>
                     </p>
 

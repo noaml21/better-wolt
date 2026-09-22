@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getQuery } from '../services/api';
 import { Chip, EmptyState, ErrorState, SectionHeader } from '../components/ui';
+import { restaurantCount } from '../services/counts';
 import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/RestaurantCard';
 
 /* Results come from GET /search/:query, which matches the query literally
@@ -40,7 +41,7 @@ export default function SearchResultsPage() {
   }, [runSearch]);
 
   const resultLabel =
-    results.length === 1 ? 'מסעדה אחת מתאימה' : `${results.length} מסעדות מתאימות`;
+    results.length === 1 ? 'מסעדה אחת מתאימה' : `${restaurantCount(results.length)} מתאימות`;
 
   return (
     <div className="bw-page">

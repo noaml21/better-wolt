@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { createOrder, deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import useMenuCart from '../hooks/useMenuCart';
+import { dishCount } from '../services/counts';
 import {
   Button,
   ConfirmDialog,
@@ -155,7 +156,7 @@ export default function RestaurantPage() {
           <SectionHeader
             id="bw-menu-title"
             title="התפריט"
-            description={products.length ? `${products.length} מנות` : undefined}
+            description={products.length ? dishCount(products.length) : undefined}
             action={
               isOwner && (
                 <Button

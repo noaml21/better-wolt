@@ -13,6 +13,7 @@ import {
   ErrorState,
   Icon,
   LinkButton,
+  Media,
   QuantityStepper,
   Skeleton,
   Tag,
@@ -34,20 +35,12 @@ import './WorldCupPage.css';
 const flagByDish = new Map(worldCupDishes.map((dish) => [dish.dishName, dish]));
 
 /* The flags come from a CDN, so one of them not arriving is a state this
-   page has to have. It falls back to the campaign's own mark instead of
-   leaving an empty slot — broken campaign images were finding A10 of the
-   V2 audit. They are ~1 KB each and part of the layout, so they are not
-   lazy: loading them late only buys a row of empty boxes. */
+   page has to have: `Media` falls back to the campaign's own mark instead
+   of leaving an empty slot. They are ~1 KB each and part of the layout,
+   so they are not lazy — loading them late only buys a row of empty
+   boxes while the page settles. */
 function Flag({ team, fallback = null }) {
-  const [failed, setFailed] = useState(false);
-
-  if (!team || failed) {
-    return fallback;
-  }
-
-  return (
-    <img src={team.flag} alt="" width="52" height="35" onError={() => setFailed(true)} />
-  );
+  return <Media src={team?.flag} width="52" height="35" fallback={fallback} />;
 }
 
 export default function WorldCupPage() {

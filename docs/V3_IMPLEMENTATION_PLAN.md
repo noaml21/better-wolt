@@ -135,6 +135,12 @@ What the pass actually ran, and what it found:
 - **Reduced motion.** With `prefers-reduced-motion: reduce` forced, the tracking page has **no** element left with a
   non-zero transition or animation duration. On mobile the same switch is `useReducedMotion()` (skeletons stop pulsing,
   the tracking rider is placed rather than animated).
+- **Images are allowed to fail.** Every photograph in the product comes from somewhere else — restaurant images are
+  URLs an owner typed, the campaign flags come from a CDN. With `images.unsplash.com` and `flagcdn.com` blocked in the
+  browser, the home hero showed three broken-image frames, every campaign row showed an empty box, and a restaurant
+  page showed a blank hero. Both clients now share a `Media` component that hands over to a fallback — the restaurant's
+  initial, the campaign's mark, or nothing — and the home photo cluster drops to the next candidate photo, hiding
+  itself only when fewer than three survive. Re-verified with both CDNs blocked.
 - **Flows walked end to end.** Web: sign in → home → restaurant → cart → order → tracking → orders → search, plus
   `/world-cup` from add-to-cart to the tracking page, plus the signed-out guard (toast + redirect to `/login`).
   Mobile: the same customer flow in a Pixel 7 viewport, the owner's restaurant and dish forms, and the campaign screen.
@@ -160,8 +166,18 @@ Inspected through Expo's web target, so these are the parts a real Android devic
 
 The mobile client had no linter; it now uses Expo's own setup (`npm run lint` → `expo lint`, with
 `eslint-config-expo`). It earns its place: on the first run it found a stale import, a `useMemo` whose dependency was
-rebuilt on every render, and three components reading `ref.current` during render. Three findings remain and are
-deliberate — `setState` inside a data-fetching effect, which is the pattern every screen here uses.
+rebuilt on every render, and three components reading `ref.current` during render.
+
+Three `react-hooks/set-state-in-effect` findings remain, and they are deliberate rather than unexamined:
+
+- `HomeScreen` and `TrackingScreen` — `useEffect(() => { load(); }, [load])`, where `load` sets `status` to `loading`
+  before it awaits. This is data fetching, not derived state. Removing the setState means either dropping the loading
+  state on a retry or leaving stale content on screen while the next request runs; both are worse than the warning, and
+  the alternative is a data-fetching library, which V3 is not adding.
+- `SearchResultsScreen` — copies a query handed over by Home (`route.params.query`) into the field's state, runs it, and
+  clears the param. That one really is a prop-to-state sync, but the term has to land in an editable field and the
+  search itself is a request, so it cannot move into render. It is guarded by a ref so clearing the param cannot
+  re-trigger it, and the behaviour is verified in the browser.
 
 ## Looking at the mobile app
 

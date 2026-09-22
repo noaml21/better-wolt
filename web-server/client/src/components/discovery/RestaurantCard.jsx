@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Icon, Rating, Skeleton, Tag, formatPrice } from '../ui';
+import { Icon, Media, Rating, Skeleton, Tag, formatPrice } from '../ui';
 import { getMenuHighlights, getRestaurantMeta } from '../../services/restaurantMeta';
 import './RestaurantCard.css';
 
@@ -14,13 +14,15 @@ export default function RestaurantCard({ restaurant }) {
     <li className="bw-restaurant-card">
       <Link to={`/restaurant/${restaurant.id}`} className="bw-restaurant-card__link">
         <div className="bw-restaurant-card__media">
-          {restaurant.image ? (
-            <img src={restaurant.image} alt="" loading="lazy" />
-          ) : (
-            <span className="bw-restaurant-card__placeholder" aria-hidden="true">
-              {restaurant.name?.trim().charAt(0)}
-            </span>
-          )}
+          <Media
+            src={restaurant.image}
+            loading="lazy"
+            fallback={
+              <span className="bw-restaurant-card__placeholder" aria-hidden="true">
+                {restaurant.name?.trim().charAt(0)}
+              </span>
+            }
+          />
 
           {meta.fromPrice !== null && (
             <Tag className="bw-restaurant-card__promo">מנות מ-{formatPrice(meta.fromPrice)}</Tag>

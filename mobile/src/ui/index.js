@@ -6,6 +6,7 @@ export { default as Field } from './Field';
 export { default as Icon } from './Icon';
 export { default as IconButton } from './IconButton';
 export { default as Logo } from './Logo';
+export { default as Media } from './Media';
 export { default as QuantityStepper } from './QuantityStepper';
 export { default as Screen } from './Screen';
 export { default as ScreenHeader } from './ScreenHeader';

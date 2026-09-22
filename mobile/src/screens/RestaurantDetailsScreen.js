@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, FlatList, Image, Text, View } from 'react-native';
+import { Alert, FlatList, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStyles, rtl, space, useTheme } from '../theme';
@@ -13,6 +13,7 @@ import {
   ErrorState,
   Icon,
   IconButton,
+  Media,
   MetaItem,
   Rating,
   Screen,
@@ -174,11 +175,11 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   const header = (
     <View>
       <View style={styles.hero}>
-        {restaurant.image ? (
-          <Image source={{ uri: restaurant.image }} style={styles.heroImage} resizeMode="cover" />
-        ) : (
-          <Text style={styles.heroPlaceholder}>{restaurant.name?.trim().charAt(0)}</Text>
-        )}
+        <Media
+          uri={restaurant.image}
+          style={styles.heroImage}
+          fallback={<Text style={styles.heroPlaceholder}>{restaurant.name?.trim().charAt(0)}</Text>}
+        />
 
         <View style={[styles.heroBack, { top: insets.top + 8 }]}>
           <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />

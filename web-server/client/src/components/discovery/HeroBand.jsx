@@ -1,5 +1,6 @@
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Chip, Icon } from '../ui';
+import { Chip, Icon, Media } from '../ui';
 import './HeroBand.css';
 
 /* The opening band: one question, one search field, and the food itself.
@@ -9,7 +10,15 @@ const quickSearches = ['פיצה', 'המבורגר', 'סושי', 'חומוס', '
 
 export default function HeroBand({ images = [] }) {
   const navigate = useNavigate();
-  const photos = images.filter(Boolean).slice(0, 3);
+  /* The cluster is three photographs or none. A photo that fails to load
+     drops out of the running and the next restaurant's photo takes its
+     place; when fewer than three survive, the cluster goes rather than
+     leaving a hole where one used to be. */
+  const [broken, setBroken] = useState(() => new Set());
+  const markBroken = useCallback((src) => {
+    setBroken((current) => (current.has(src) ? current : new Set(current).add(src)));
+  }, []);
+  const photos = images.filter((src) => src && !broken.has(src)).slice(0, 3);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -51,9 +60,9 @@ export default function HeroBand({ images = [] }) {
 
         {photos.length === 3 && (
           <div className="bw-hero__photos" aria-hidden="true">
-            <img className="bw-hero__photo bw-hero__photo--tall" src={photos[0]} alt="" />
-            <img className="bw-hero__photo" src={photos[1]} alt="" />
-            <img className="bw-hero__photo" src={photos[2]} alt="" />
+            <Media className="bw-hero__photo bw-hero__photo--tall" src={photos[0]} onFail={markBroken} />
+            <Media className="bw-hero__photo" src={photos[1]} onFail={markBroken} />
+            <Media className="bw-hero__photo" src={photos[2]} onFail={markBroken} />
           </div>
         )}
       </div>

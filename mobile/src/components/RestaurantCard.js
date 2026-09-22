@@ -1,7 +1,7 @@
 import React from 'react';
-import { Image, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
-import { Card, MetaItem, Rating, Tag, formatPrice } from '../ui';
+import { Card, Media, MetaItem, Rating, Tag, formatPrice } from '../ui';
 import { getMenuHighlights, getRestaurantMeta } from '../services/presentation';
 
 /* Photo first, then the three things that decide an order. Mirrors the
@@ -15,11 +15,11 @@ export default function RestaurantCard({ restaurant, onPress }) {
   return (
     <Card onPress={onPress} accessibilityLabel={restaurant.name} style={styles.card}>
       <View style={styles.media}>
-        {restaurant.image ? (
-          <Image source={{ uri: restaurant.image }} style={styles.image} resizeMode="cover" />
-        ) : (
-          <Text style={styles.placeholder}>{restaurant.name?.trim().charAt(0)}</Text>
-        )}
+        <Media
+          uri={restaurant.image}
+          style={styles.image}
+          fallback={<Text style={styles.placeholder}>{restaurant.name?.trim().charAt(0)}</Text>}
+        />
 
         {meta.fromPrice !== null ? (
           <Tag style={styles.tag}>מנות מ-{formatPrice(meta.fromPrice)}</Tag>

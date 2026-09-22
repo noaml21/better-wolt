@@ -1,4 +1,4 @@
-import { Button, Icon, Rating, Skeleton } from '../ui';
+import { Button, Icon, Media, Rating, Skeleton } from '../ui';
 import { getRestaurantMeta } from '../../services/restaurantMeta';
 import './RestaurantHero.css';
 
@@ -11,13 +11,14 @@ export default function RestaurantHero({ restaurant, isOwner, onEdit, onDelete }
   return (
     <header className="bw-restaurant-hero">
       <div className="bw-restaurant-hero__media">
-        {restaurant.image ? (
-          <img src={restaurant.image} alt="" />
-        ) : (
-          <span className="bw-restaurant-hero__placeholder" aria-hidden="true">
-            {restaurant.name?.trim().charAt(0)}
-          </span>
-        )}
+        <Media
+          src={restaurant.image}
+          fallback={
+            <span className="bw-restaurant-hero__placeholder" aria-hidden="true">
+              {restaurant.name?.trim().charAt(0)}
+            </span>
+          }
+        />
       </div>
 
       <div className="bw-restaurant-hero__card">

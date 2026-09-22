@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Alert, FlatList, Image, Text, View } from 'react-native';
+import { Alert, FlatList, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStyles, rtl, space, useTheme } from '../theme';
@@ -14,6 +14,7 @@ import {
   ErrorState,
   Icon,
   IconButton,
+  Media,
   QuantityStepper,
   Screen,
   Skeleton,
@@ -41,20 +42,14 @@ import {
 function Flag({ team }) {
   const styles = useStyles();
   const { colors } = useTheme();
-  const [failed, setFailed] = useState(false);
 
   return (
     <View style={styles.flag}>
-      {team && !failed ? (
-        <Image
-          source={{ uri: team.flag }}
-          style={styles.flagImage}
-          resizeMode="cover"
-          onError={() => setFailed(true)}
-        />
-      ) : (
-        <Icon name="trophy" size={20} color={colors.inkMuted} />
-      )}
+      <Media
+        uri={team?.flag}
+        style={styles.flagImage}
+        fallback={<Icon name="trophy" size={20} color={colors.inkMuted} />}
+      />
     </View>
   );
 }

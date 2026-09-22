@@ -35,6 +35,12 @@ export default function RestaurantsPage() {
     load();
   }, [load]);
 
+  /* The whole sentence changes with the count, not just the number. */
+  const restaurantLabel =
+    restaurants.length === 1
+      ? 'מסעדה אחת משלוחה אליכם עכשיו.'
+      : `${restaurants.length} מסעדות משלוחות אליכם עכשיו.`;
+
   const sorted = useMemo(() => {
     const list = [...restaurants];
 
@@ -58,7 +64,14 @@ export default function RestaurantsPage() {
         level={1}
         title="כל המסעדות"
         description={
-          status === 'ready' ? `${restaurants.length} מסעדות משלוחות אליכם עכשיו.` : 'טוענים את הרשימה…'
+          /* Not a binary: on failure the error state below says what
+             happened, and a header still promising "loading…" under it
+             reads like the page is lying. */
+          status === 'loading'
+            ? 'טוענים את הרשימה…'
+            : status === 'ready'
+              ? restaurantLabel
+              : undefined
         }
       />
 

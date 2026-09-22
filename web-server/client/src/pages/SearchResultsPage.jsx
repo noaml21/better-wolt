@@ -47,7 +47,15 @@ export default function SearchResultsPage() {
       <SectionHeader
         level={1}
         title={query ? `תוצאות עבור "${query}"` : 'חיפוש'}
-        description={status === 'ready' && query ? resultLabel : 'מחפשים…'}
+        description={
+          /* Same rule as the listing: "מחפשים…" only while a search is
+             actually running. */
+          status === 'loading' && query
+            ? 'מחפשים…'
+            : status === 'ready' && query
+              ? resultLabel
+              : undefined
+        }
       />
 
       <div className="bw-filter-row" aria-label="חיפושים מהירים">

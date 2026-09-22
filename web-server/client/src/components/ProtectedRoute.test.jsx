@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
 
@@ -12,12 +12,18 @@ function fakeJwt(payload) {
   return `${base64Url({ alg: 'HS256', typ: 'JWT' })}.${base64Url(payload)}.signature`;
 }
 
+function LoginProbe() {
+  const location = useLocation();
+
+  return <div>login page → {location.state?.from || 'nowhere'}</div>;
+}
+
 function renderAt(path) {
   return render(
     <AuthProvider>
       <MemoryRouter initialEntries={[path]}>
         <Routes>
-          <Route path="/login" element={<div>login page</div>} />
+          <Route path="/login" element={<LoginProbe />} />
           <Route
             path="/orders"
             element={
@@ -39,8 +45,14 @@ afterEach(() => {
 test('redirects to /login when not signed in', () => {
   renderAt('/orders');
 
-  expect(screen.getByText('login page')).toBeInTheDocument();
+  expect(screen.getByText(/login page/)).toBeInTheDocument();
   expect(screen.queryByText('my orders')).not.toBeInTheDocument();
+});
+
+test('carries the page you asked for, so signing in returns you to it', () => {
+  renderAt('/orders?from=email');
+
+  expect(screen.getByText('login page → /orders?from=email')).toBeInTheDocument();
 });
 
 test('renders the protected page with a stored, unexpired session', () => {
@@ -60,6 +72,6 @@ test('treats an expired stored token as signed out and clears it', () => {
 
   renderAt('/orders');
 
-  expect(screen.getByText('login page')).toBeInTheDocument();
+  expect(screen.getByText(/login page/)).toBeInTheDocument();
   expect(localStorage.getItem('token')).toBeNull();
 });

@@ -64,7 +64,11 @@ export default function ProductFormScreen({ navigation, route }) {
         showToast('המנה נוספה לתפריט');
       }
 
-      navigation.goBack();
+      // The back button stays live while saving. If it was used, this screen
+      // is already gone and a second goBack would leave the one under it too.
+      if (navigation.isFocused()) {
+        navigation.goBack();
+      }
     } catch (requestError) {
       setError(requestError.message);
       setSaving(false);

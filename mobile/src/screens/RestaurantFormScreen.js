@@ -109,7 +109,11 @@ export default function RestaurantFormScreen({ navigation, route }) {
         showToast('המסעדה נפתחה');
       }
 
-      navigation.goBack();
+      // The back button stays live while saving. If it was used, this screen
+      // is already gone and a second goBack would leave the one under it too.
+      if (navigation.isFocused()) {
+        navigation.goBack();
+      }
     } catch (requestError) {
       setError(requestError.message);
       setSaving(false);

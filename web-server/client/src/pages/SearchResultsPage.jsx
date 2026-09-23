@@ -66,10 +66,11 @@ export default function SearchResultsPage() {
         title={query ? `תוצאות עבור "${query}"` : 'חיפוש'}
         description={
           /* Same rule as the listing: "מחפשים…" only while a search is
-             actually running. */
+             actually running, and no "0 מסעדות" above the empty state that
+             already says nothing matched. */
           status === 'loading' && query
             ? 'מחפשים…'
-            : status === 'ready' && query
+            : status === 'ready' && query && results.length > 0
               ? resultLabel
               : undefined
         }

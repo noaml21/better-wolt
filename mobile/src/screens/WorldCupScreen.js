@@ -147,7 +147,7 @@ export default function WorldCupScreen({ navigation }) {
             title="חגיגת המונדיאל לא זמינה כרגע"
             description="הקולקציה מגיעה מהשרת, והוא לא מחזיק אותה עכשיו."
             actionLabel="לכל המסעדות"
-            onAction={() => navigation.navigate('Tabs', { screen: 'Home' })}
+            onAction={() => navigation.navigate('Tabs', { screen: 'Home' }, { pop: true })}
           />
         ) : (
           <ErrorState description="לא הצלחנו להביא את הקולקציה." onRetry={load} />
@@ -237,7 +237,7 @@ export default function WorldCupScreen({ navigation }) {
         <CartBar
           itemsCount={cart.itemsCount}
           subtotal={cart.subtotal}
-          onPress={() => navigation.navigate('Tabs', { screen: 'Cart' })}
+          onPress={() => navigation.navigate('Tabs', { screen: 'Cart' }, { pop: true })}
         />
       ) : null}
     </Screen>

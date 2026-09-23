@@ -120,7 +120,7 @@ export default function RegisterScreen({ navigation }) {
       });
 
       showToast('נרשמתם. אפשר להתחבר.');
-      navigation.navigate('Login');
+      navigation.navigate('Login', undefined, { pop: true });
     } catch (requestError) {
       setError(requestError.message);
       setSubmitting(false);

@@ -112,7 +112,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
             try {
               await deleteRestaurant(token, restaurant.id);
               showToast('המסעדה נסגרה');
-              navigation.navigate('Tabs', { screen: 'Home' });
+              navigation.navigate('Tabs', { screen: 'Home' }, { pop: true });
             } catch (error) {
               showToast(error.message, { tone: 'error' });
             }
@@ -169,7 +169,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
             title="המסעדה הזו לא נמצאה"
             description="ייתכן שהיא נסגרה או שהקישור שגוי."
             actionLabel="לכל המסעדות"
-            onAction={() => navigation.navigate('Tabs', { screen: 'Home' })}
+            onAction={() => navigation.navigate('Tabs', { screen: 'Home' }, { pop: true })}
           />
         ) : (
           <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={() => load()} />
@@ -298,7 +298,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
         <CartBar
           itemsCount={cart.itemsCount}
           subtotal={cart.subtotal}
-          onPress={() => navigation.navigate('Tabs', { screen: 'Cart' })}
+          onPress={() => navigation.navigate('Tabs', { screen: 'Cart' }, { pop: true })}
         />
       ) : null}
     </Screen>

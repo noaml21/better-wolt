@@ -25,7 +25,13 @@ const Tabs = createBottomTabNavigator();
 /* Signed in, the four tabs are the app. Everything else is pushed over
    them, so a restaurant or an order never loses the tab you came from
    (V3_DESIGN_SPEC §5.2). Headers are off: every screen draws its own
-   ScreenHeader so the layout reads right-to-left. */
+   ScreenHeader so the layout reads right-to-left.
+
+   Going back to the tabs from a pushed screen is
+   `navigate('Tabs', { screen }, { pop: true })`. In React Navigation 7 a
+   plain navigate to a route further down the stack pushes a second copy
+   of it — a whole new set of tabs, with fresh state, under a back button
+   that walks through every copy. */
 
 function MainTabs() {
   return (

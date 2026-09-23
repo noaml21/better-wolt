@@ -112,7 +112,7 @@ export default function TrackingScreen({ navigation, route }) {
             title="ההזמנה הזו לא נמצאה"
             description="ייתכן שהיא נמחקה, או ששייכת לחשבון אחר."
             actionLabel="להזמנות שלי"
-            onAction={() => navigation.navigate('Tabs', { screen: 'Orders' })}
+            onAction={() => navigation.navigate('Tabs', { screen: 'Orders' }, { pop: true })}
           />
         ) : (
           <ErrorState description="לא הצלחנו להביא את פרטי ההזמנה." onRetry={load} />
@@ -205,14 +205,14 @@ export default function TrackingScreen({ navigation, route }) {
           <Button
             variant="secondary"
             fullWidth
-            onPress={() => navigation.navigate('Tabs', { screen: 'Orders' })}
+            onPress={() => navigation.navigate('Tabs', { screen: 'Orders' }, { pop: true })}
           >
             לכל ההזמנות
           </Button>
           <Button
             variant="ghost"
             fullWidth
-            onPress={() => navigation.navigate('Tabs', { screen: 'Home' })}
+            onPress={() => navigation.navigate('Tabs', { screen: 'Home' }, { pop: true })}
           >
             להזמין עוד משהו
           </Button>

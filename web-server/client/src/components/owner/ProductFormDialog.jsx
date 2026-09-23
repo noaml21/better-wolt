@@ -11,6 +11,7 @@ export default function ProductFormDialog({ open, onClose, onSaved, restaurantId
   const isEdit = Boolean(product);
   const [values, setValues] = useState(EMPTY);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
 
@@ -26,6 +27,7 @@ export default function ProductFormDialog({ open, onClose, onSaved, restaurantId
           : EMPTY
       );
       setError('');
+      setFieldErrors({});
     }
   }, [open, product]);
 
@@ -33,20 +35,29 @@ export default function ProductFormDialog({ open, onClose, onSaved, restaurantId
     const { name, value } = event.target;
 
     setValues((current) => ({ ...current, [name]: value }));
+    setFieldErrors((current) => ({ ...current, [name]: undefined }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     const price = Number(values.price);
+    const nextErrors = {};
 
     if (!values.name.trim()) {
-      setError('צריך שם למנה.');
-      return;
+      nextErrors.name = 'צריך שם למנה.';
     }
 
-    if (!Number.isFinite(price) || price < 0) {
-      setError('המחיר צריך להיות מספר, 0 או יותר.');
+    // Number('') is 0, so an empty price has to be caught before the
+    // conversion or a dish saves as free. The same field is "" when the
+    // browser cannot parse what was typed into a number input.
+    if (!values.price.trim() || !Number.isFinite(price) || price < 0) {
+      nextErrors.price = 'המחיר צריך להיות מספר, 0 או יותר.';
+    }
+
+    setFieldErrors(nextErrors);
+
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -97,6 +108,7 @@ export default function ProductFormDialog({ open, onClose, onSaved, restaurantId
           name="name"
           value={values.name}
           onChange={handleChange}
+          error={fieldErrors.name}
           required
           placeholder="לדוגמה: המבורגר קלאסי"
         />
@@ -118,6 +130,7 @@ export default function ProductFormDialog({ open, onClose, onSaved, restaurantId
           inputMode="decimal"
           value={values.price}
           onChange={handleChange}
+          error={fieldErrors.price}
           required
         />
       </form>

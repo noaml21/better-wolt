@@ -1,4 +1,5 @@
-import { Button, IconButton, QuantityStepper, Tag, formatPrice } from '../ui';
+import { IconButton, Tag, formatPrice } from '../ui';
+import CartControl from './CartControl';
 import './DishRow.css';
 
 /* One dish. Customers get add/stepper; the owner gets edit and delete in
@@ -32,20 +33,13 @@ export default function DishRow({
               onClick={() => onDelete(product)}
             />
           </>
-        ) : quantity > 0 ? (
-          <QuantityStepper
-            value={quantity}
-            label={product.name}
-            onDecrease={() => onRemove(product.id)}
-            onIncrease={() => onAdd(product)}
-          />
         ) : (
-          /* Six buttons all called "הוספה" say nothing to a screen reader
-             listing the page's controls; the dish name is added out of
-             sight, after the visible word (WCAG 2.5.3). */
-          <Button size="sm" icon="plus" onClick={() => onAdd(product)}>
-            הוספה<span className="bw-visually-hidden">: {product.name}</span>
-          </Button>
+          <CartControl
+            name={product.name}
+            quantity={quantity}
+            onAdd={() => onAdd(product)}
+            onRemove={() => onRemove(product.id)}
+          />
         )}
       </div>
     </li>

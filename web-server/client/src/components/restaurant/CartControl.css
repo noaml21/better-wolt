@@ -1,0 +1,5 @@
+.bw-cart-control {
+  /* Only a hook for moving focus between the add button and the stepper;
+     it must not become a box of its own in the row's layout. */
+  display: contents;
+}

@@ -14,13 +14,13 @@ import {
   Icon,
   LinkButton,
   Media,
-  QuantityStepper,
   Skeleton,
   Tag,
   formatPrice,
   useToast,
 } from '../components/ui';
 import CartPanel, { CartBar } from '../components/restaurant/CartPanel';
+import CartControl from '../components/restaurant/CartControl';
 import './WorldCupPage.css';
 
 /* The campaign as a page instead of an overlay.
@@ -232,19 +232,13 @@ export default function WorldCupPage() {
                   </span>
 
                   <span className="bw-worldcup-dish__action">
-                    {quantity > 0 ? (
-                      <QuantityStepper
-                        size="sm"
-                        value={quantity}
-                        label={product.name}
-                        onDecrease={() => cart.removeItem(product.id)}
-                        onIncrease={() => cart.addItem(product)}
-                      />
-                    ) : (
-                      <Button size="sm" icon="plus" onClick={() => cart.addItem(product)}>
-                        הוספה<span className="bw-visually-hidden">: {product.name}</span>
-                      </Button>
-                    )}
+                    <CartControl
+                      name={product.name}
+                      quantity={quantity}
+                      stepperSize="sm"
+                      onAdd={() => cart.addItem(product)}
+                      onRemove={() => cart.removeItem(product.id)}
+                    />
                   </span>
                 </li>
               );

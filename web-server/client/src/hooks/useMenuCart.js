@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 /* Cart state for one restaurant page.
 
@@ -9,6 +10,20 @@ import { useCallback, useMemo, useState } from 'react';
 
 export default function useMenuCart() {
   const [lines, setLines] = useState([]);
+  const { user } = useAuth();
+  const account = user?.username ?? null;
+  const cartAccount = useRef(account);
+
+  /* A cart belongs to whoever filled it. The account can change under an
+     open page — signing out or in from another tab — and the next person
+     must not inherit (or order) the previous one's dishes. The mobile
+     client does the same by keying its cart provider on the account. */
+  useEffect(() => {
+    if (cartAccount.current !== account) {
+      cartAccount.current = account;
+      setLines([]);
+    }
+  }, [account]);
 
   const addItem = useCallback((product) => {
     setLines((current) => {

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
-import { createOrder } from '../services/api';
+import { createOrder, getRestaurantById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { dishCount } from '../services/presentation';
@@ -20,6 +20,10 @@ import {
 /* The cart is a summary, not a source of truth: the request carries only
    ids and quantities and the server prices the order (V2_SPEC §3.1), so
    the total here is labelled as the dishes alone. */
+
+/* Contract string (ARCHITECTURE §4.3): the cart names a dish the menu no
+   longer has — the owner removed it after it was added. */
+const DISH_GONE = 'Product not found in restaurant menu';
 
 export default function CartScreen({ navigation }) {
   const styles = useStyles();
@@ -64,13 +68,44 @@ export default function CartScreen({ navigation }) {
         navigation.navigate('Tracking', { orderId: order.id || order._id });
       }
     } catch (requestError) {
-      if (mounted.current) {
-        setError(requestError.message);
+      if (!mounted.current) {
+        return;
       }
+
+      if (requestError.status === 404 && requestError.message === DISH_GONE) {
+        await dropDishesNoLongerOnTheMenu(requestError);
+        return;
+      }
+
+      setError(requestError.message);
     } finally {
       if (mounted.current) {
         setPlacing(false);
       }
+    }
+  };
+
+  /* Nothing was ordered. Read the menu as it is now, take out the dishes
+     that are gone and say which, so the next attempt can go through. */
+  const dropDishesNoLongerOnTheMenu = async (requestError) => {
+    try {
+      const fresh = await getRestaurantById(cart.restaurantId);
+      const onMenu = new Set((fresh?.products || []).map((product) => String(product.id)));
+      const gone = cart.lines.filter((line) => !onMenu.has(line.id));
+
+      gone.forEach((line) => cart.removeLine(line.id));
+      // A toast, not the inline error: if every line is gone the cart
+      // switches to its empty state and the inline message goes with it.
+      showToast(
+        gone.length === 0
+          ? 'התפריט השתנה. בדקו את הסל ונסו שוב.'
+          : gone.length === 1
+            ? `המנה "${gone[0].name}" כבר לא בתפריט והוסרה מהסל. בדקו את הסל ונסו שוב.`
+            : `${gone.length} מנות כבר לא בתפריט והוסרו מהסל. בדקו את הסל ונסו שוב.`,
+        { tone: 'error' }
+      );
+    } catch {
+      setError(requestError.message);
     }
   };
 

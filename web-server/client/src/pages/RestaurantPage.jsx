@@ -48,7 +48,7 @@ export default function RestaurantPage() {
      refresh leaves the page as it was and says so; the change itself
      has already been saved. */
   const load = useCallback(
-    async ({ refresh = false } = {}) => {
+    async ({ refresh = false, failureMessage = 'השינוי נשמר, אבל לא הצלחנו לרענן את העמוד.' } = {}) => {
       const request = latestRequest.current + 1;
 
       latestRequest.current = request;
@@ -66,13 +66,15 @@ export default function RestaurantPage() {
 
         setRestaurant(data);
         setStatus('ready');
+
+        return data;
       } catch (error) {
         if (latestRequest.current !== request) {
           return;
         }
 
         if (refresh && error.status !== 404) {
-          showToast('השינוי נשמר, אבל לא הצלחנו לרענן את העמוד.', { tone: 'error' });
+          showToast(failureMessage, { tone: 'error' });
           return;
         }
 
@@ -95,6 +97,32 @@ export default function RestaurantPage() {
     cart,
     from: `/restaurant/${id}`,
     onPlaced: () => setCartOpen(false),
+    /* The order named a dish that is gone. Nothing was ordered; show the
+       menu as it is now, take the missing dishes out of the cart and say
+       which, so the next attempt can succeed. */
+    onMenuChanged: async () => {
+      const fresh = await load({
+        refresh: true,
+        failureMessage: 'התפריט השתנה ולא הצלחנו לטעון אותו מחדש. רעננו את העמוד ונסו שוב.',
+      });
+
+      if (!fresh) {
+        return;
+      }
+
+      const onMenu = new Set((fresh.products || []).map((product) => product.id));
+      const gone = cart.lines.filter((line) => !onMenu.has(line.id));
+
+      cart.keepOnly(onMenu);
+      showToast(
+        gone.length === 0
+          ? 'התפריט השתנה. בדקו את הסל ונסו שוב.'
+          : gone.length === 1
+            ? `המנה "${gone[0].name}" כבר לא בתפריט והוסרה מהסל. בדקו את הסל ונסו שוב.`
+            : `${gone.length} מנות כבר לא בתפריט והוסרו מהסל. בדקו את הסל ונסו שוב.`,
+        { tone: 'error' }
+      );
+    },
   });
 
   const handleDeleteRestaurant = async () => {

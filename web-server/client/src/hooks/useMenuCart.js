@@ -34,6 +34,11 @@ export default function useMenuCart() {
 
   const clear = useCallback(() => setLines([]), []);
 
+  /* Drops lines whose dish is no longer on the menu (`ids` is a Set). */
+  const keepOnly = useCallback((ids) => {
+    setLines((current) => current.filter((line) => ids.has(line.id)));
+  }, []);
+
   const quantities = useMemo(
     () => Object.fromEntries(lines.map((line) => [line.id, line.quantity])),
     [lines]
@@ -54,5 +59,5 @@ export default function useMenuCart() {
     [lines]
   );
 
-  return { lines, quantities, itemCount, subtotal, addItem, removeItem, clear, toOrderProducts };
+  return { lines, quantities, itemCount, subtotal, addItem, removeItem, clear, keepOnly, toOrderProducts };
 }

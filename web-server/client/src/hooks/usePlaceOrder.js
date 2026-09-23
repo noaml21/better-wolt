@@ -13,7 +13,11 @@ import { useToast } from '../components/ui';
    that placed it; a late failure is reported the same way. `from` is where
    signing in should return to. */
 
-export default function usePlaceOrder({ restaurantId, cart, from, onPlaced }) {
+/* Contract string (ARCHITECTURE §4.3): the cart names a dish the menu no
+   longer has — the owner removed it while the page was open. */
+const DISH_GONE = 'Product not found in restaurant menu';
+
+export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMenuChanged }) {
   const navigate = useNavigate();
   const { isAuthenticated, user, currentUsername } = useAuth();
   const { showToast } = useToast();
@@ -70,13 +74,18 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced }) {
         return;
       }
 
+      if (error.status === 404 && error.message === DISH_GONE && onMenuChanged) {
+        await onMenuChanged();
+        return;
+      }
+
       showToast(error.message, { tone: 'error' });
     } finally {
       if (mounted.current) {
         setPlacing(false);
       }
     }
-  }, [isAuthenticated, user, currentUsername, restaurantId, cart, from, onPlaced, navigate, showToast]);
+  }, [isAuthenticated, user, currentUsername, restaurantId, cart, from, onPlaced, onMenuChanged, navigate, showToast]);
 
   return { placing, placeOrder };
 }

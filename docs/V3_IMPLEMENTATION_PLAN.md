@@ -187,6 +187,27 @@ Also checked and found sound: order placement sends one POST under a double clic
 text size keeps every page inside the viewport, Google Fonts blocked degrades to system fonts, and the production
 build makes one request per page plus the order dock's.
 
+A second pass the same day went after mutations, dialogs and account boundaries, again reproducing each item first:
+
+- A 401 on an authenticated request left both clients signed in over refused requests ("השרת לא הגיב", retries that
+  could not work); it now signs out, and the web login page says the session ended.
+- Placing an order and then leaving, or signing out, before it answered: the web pulled the customer to tracking (or,
+  signed out, to a login that would return the next person to the previous account's order); mobile pulled them onto
+  tracking from another tab, or toasted success on the login screen.
+- Ordering a dish the owner had just removed failed forever with an English contract string; both clients now re-read
+  the menu, drop the missing dish from the cart and name it.
+- Dialogs: a busy submit button dropped focus to `<body>` (and Tab escaped the modal); the × closed a dialog mid-save,
+  hiding a failure; a scrim click did not return focus; forms opened on the × rather than their first field. The
+  account menu claimed `role="menu"` without arrow keys and lost focus on Escape.
+- The owner's "המסעדות שלי" listed every restaurant; the owner's restaurant page kept an empty cart column at ≥ 1100 px;
+  an empty search announced "0 מסעדות"; mobile's curly quotes faced the wrong way around Latin search terms; mobile's
+  Orders tab replaced its list with an error when a background refresh failed.
+
+Checked and sound in this pass: double submits of every owner mutation send one request (2 s latency); every route
+survives a direct load and a reload signed in and out, with invalid ids reaching a "not found" page; ten owner edit
+loops on mobile never showed the wrong dish or stacked a screen; the server takes a restaurant's owner from the
+token even when a client sends another username.
+
 ## Needs a device
 
 Inspected through Expo's web target, so these are the parts a real Android device or emulator still has to confirm:
@@ -196,7 +217,9 @@ Inspected through Expo's web target, so these are the parts a real Android devic
   present in the code but was never exercised. `Screen` pays the top inset, and the tab bar, the cart bar and the toast
   pay the bottom one.
 - `expo-image-picker`: permission prompts and the gallery itself (the ~90 KB guard in the restaurant form is code-level).
-- `Alert` dialogs for destructive confirmations (they render as browser dialogs on the web target).
+- Every `Alert`: closing a restaurant, deleting a dish, and "start a new cart?" when adding from a second restaurant
+  (restaurant screen and World Cup). On the web target `Alert.alert` is a no-op in `react-native-web`, so none of these
+  appears there and none of their outcomes was exercised through the UI.
 - Native scroll and overscroll behaviour, and `RefreshControl` pull-to-refresh on Home and Orders.
 - Platform fonts: the type scale is the platform UI font, which is Roboto on Android rather than the browser's default.
 - A dish or restaurant name with no break opportunity: on the web target it overflows its text box, because

@@ -1,4 +1,4 @@
-import { NETWORK_ERROR, createOrder, deleteOrder, getQuery, getRestaurants, getUserOrders, login, onUnauthorized } from './api';
+import { NETWORK_ERROR, SESSION_ENDED, createOrder, deleteOrder, getQuery, getRestaurants, getUserOrders, login, onUnauthorized } from './api';
 
 function mockResponse(status, body) {
   const text = body === undefined ? '' : JSON.stringify(body);
@@ -104,12 +104,15 @@ test('a 401 on a request that carried a token reports the session as over', asyn
     global.fetch.mockResolvedValue(mockResponse(401, { error: 'Invalid or expired token' }));
 
     localStorage.setItem('token', 'abc.def.ghi');
-    await expect(getUserOrders()).rejects.toMatchObject({ status: 401 });
+    await expect(getUserOrders()).rejects.toMatchObject({ status: 401, message: SESSION_ENDED });
     expect(handler).toHaveBeenCalledTimes(1);
 
     // A wrong password is also a 401, but no session was being used.
     localStorage.removeItem('token');
-    await expect(login({ username: 'a', password: 'b' })).rejects.toMatchObject({ status: 401 });
+    await expect(login({ username: 'a', password: 'b' })).rejects.toMatchObject({
+      status: 401,
+      message: 'Invalid or expired token',
+    });
     expect(handler).toHaveBeenCalledTimes(1);
   } finally {
     unsubscribe();

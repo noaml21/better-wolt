@@ -8,6 +8,10 @@ export const NETWORK_ERROR = 'אין חיבור לשרת. בדקו את החיב
    the page keeps showing an account whose every request is refused. */
 let unauthorizedHandler = null;
 
+/* What the user reads when that happens, wherever the error is shown —
+   a form dialog stays open over a page that has just signed out. */
+export const SESSION_ENDED = 'החיבור פג. צריך להתחבר שוב.';
+
 export function onUnauthorized(handler) {
     unauthorizedHandler = handler;
 
@@ -71,6 +75,7 @@ async function request(endpoint, method = 'GET', data = null) {
 
         if (response.status === 401 && token) {
             unauthorizedHandler?.();
+            message = SESSION_ENDED;
         }
 
         const error = new Error(message);

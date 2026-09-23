@@ -8,7 +8,7 @@
   aspect-ratio: 16 / 10;
   overflow: hidden;
   border-radius: var(--bw-radius-md);
-  background-color: var(--bw-ink);
+  background-color: var(--bw-night);
 }
 
 .bw-sponsored__media video {

@@ -27,7 +27,7 @@ const MAX_INLINE_IMAGE = 90_000;
 
 export default function RestaurantFormScreen({ navigation, route }) {
   const styles = useStyles();
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const { showToast } = useToast();
 
   const existing = route.params?.restaurant || null;
@@ -97,7 +97,6 @@ export default function RestaurantFormScreen({ navigation, route }) {
       address: values.address.trim(),
       phone: values.phone.trim(),
       image: values.image.trim(),
-      username: user?.username,
     };
 
     try {

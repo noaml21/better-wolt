@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getRestaurants } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { getRestaurantMeta } from '../services/restaurantMeta';
 import { restaurantCount } from '../services/counts';
 import { Chip, EmptyState, ErrorState, LinkButton, SectionHeader } from '../components/ui';
@@ -15,7 +17,9 @@ const sorts = [
 ];
 
 export default function RestaurantsPage() {
-  const [restaurants, setRestaurants] = useState([]);
+  const [searchParams] = useSearchParams();
+  const { isAuthenticated, user } = useAuth();
+  const [allRestaurants, setRestaurants] = useState([]);
   const [status, setStatus] = useState('loading');
   const [sort, setSort] = useState('recommended');
 
@@ -36,9 +40,18 @@ export default function RestaurantsPage() {
     load();
   }, [load]);
 
+  /* ?mine=1 is the owner's "המסעדות שלי": the same listing, narrowed to
+     the restaurants whose `username` is theirs (ARCHITECTURE §4.1). */
+  const mine = searchParams.get('mine') === '1' && isAuthenticated && user?.role === 'restaurant';
+  const restaurants = useMemo(
+    () => (mine ? allRestaurants.filter((restaurant) => restaurant.username === user.username) : allRestaurants),
+    [allRestaurants, mine, user]
+  );
+
   /* The whole sentence changes with the count, not just the number. */
-  const restaurantLabel =
-    restaurants.length === 1
+  const restaurantLabel = mine
+    ? `${restaurantCount(restaurants.length)} בחשבון שלכם.`
+    : restaurants.length === 1
       ? 'מסעדה אחת משלוחה אליכם עכשיו.'
       : `${restaurantCount(restaurants.length)} משלוחות אליכם עכשיו.`;
 
@@ -63,7 +76,7 @@ export default function RestaurantsPage() {
     <div className="bw-page">
       <SectionHeader
         level={1}
-        title="כל המסעדות"
+        title={mine ? 'המסעדות שלי' : 'כל המסעדות'}
         description={
           /* Not a binary: on failure the error state below says what
              happened, and a header still promising "loading…" under it
@@ -96,12 +109,21 @@ export default function RestaurantsPage() {
       )}
 
       {status === 'ready' && restaurants.length === 0 && (
-        <EmptyState
-          icon="store"
-          title="אין עדיין מסעדות"
-          description="ברגע שמסעדה תיפתח היא תופיע כאן."
-          action={<LinkButton to="/register">פתיחת מסעדה</LinkButton>}
-        />
+        mine ? (
+          <EmptyState
+            icon="store"
+            title="עוד לא פתחתם מסעדה"
+            description="פותחים מסעדה מעמוד הבית, והיא תופיע כאן."
+            action={<LinkButton to="/">לעמוד הבית</LinkButton>}
+          />
+        ) : (
+          <EmptyState
+            icon="store"
+            title="אין עדיין מסעדות"
+            description="ברגע שמסעדה תיפתח היא תופיע כאן."
+            action={<LinkButton to="/register">פתיחת מסעדה</LinkButton>}
+          />
+        )
       )}
 
       {status !== 'error' && (restaurants.length > 0 || status === 'loading') && (

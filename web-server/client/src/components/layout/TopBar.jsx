@@ -152,17 +152,17 @@ export default function TopBar() {
               </button>
 
               {menuOpen && (
-                <div className="bw-topbar__menu" role="menu">
+                <div className="bw-topbar__menu" id="bw-account-menu">
                   <p className="bw-topbar__menu-header">
                     {user.displayName}
                     <span>{user.role === 'restaurant' ? 'בעלי מסעדה' : 'לקוח'}</span>
                   </p>
-                  <Link to="/orders" className="bw-topbar__menu-item" role="menuitem">
+                  <Link to="/orders" className="bw-topbar__menu-item">
                     <Icon name="bag" size={18} />
                     ההזמנות שלי
                   </Link>
                   {user.role === 'restaurant' && (
-                    <Link to="/restaurants" className="bw-topbar__menu-item" role="menuitem">
+                    <Link to="/restaurants?mine=1" className="bw-topbar__menu-item">
                       <Icon name="store" size={18} />
                       המסעדות שלי
                     </Link>

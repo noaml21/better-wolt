@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { createStyles, rtl, useTheme } from '../theme';
 import { getRestaurants } from '../services/api';
@@ -20,7 +21,10 @@ export default function HomeScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
   const [status, setStatus] = useState('loading');
   const [refreshing, setRefreshing] = useState(false);
+  const shown = useRef(false);
 
+  /* A silent load keeps what is on screen: a failed re-read leaves the
+     list as it was instead of replacing it with the error state. */
   const load = useCallback(async ({ silent = false } = {}) => {
     if (!silent) {
       setStatus('loading');
@@ -31,14 +35,22 @@ export default function HomeScreen({ navigation }) {
 
       setRestaurants(Array.isArray(data) ? data : []);
       setStatus('ready');
+      shown.current = true;
     } catch {
-      setStatus('error');
+      if (!silent || !shown.current) {
+        setStatus('error');
+      }
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  /* Home is a tab, so it stays mounted: loading once would never show a
+     restaurant the owner has just opened, or stop showing one they have
+     just closed. It re-reads on every return, quietly once it has a list. */
+  useFocusEffect(
+    useCallback(() => {
+      load({ silent: shown.current });
+    }, [load])
+  );
 
   const refresh = useCallback(async () => {
     setRefreshing(true);

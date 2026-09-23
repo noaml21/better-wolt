@@ -182,9 +182,9 @@ The mobile client had no linter; it now uses Expo's own setup (`npm run lint` �
 `eslint-config-expo`). It earns its place: on the first run it found a stale import, a `useMemo` whose dependency was
 rebuilt on every render, and three components reading `ref.current` during render.
 
-Three `react-hooks/set-state-in-effect` findings remain, and they are deliberate rather than unexamined:
+Two `react-hooks/set-state-in-effect` findings remain, and they are deliberate rather than unexamined:
 
-- `HomeScreen` and `TrackingScreen` — `useEffect(() => { load(); }, [load])`, where `load` sets `status` to `loading`
+- `TrackingScreen` — `useEffect(() => { load(); }, [load])`, where `load` sets `status` to `loading`
   before it awaits. This is data fetching, not derived state. Removing the setState means either dropping the loading
   state on a retry or leaving stale content on screen while the next request runs; both are worse than the warning, and
   the alternative is a data-fetching library, which V3 is not adding.

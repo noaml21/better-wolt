@@ -190,11 +190,12 @@ Behavior changed in V2 (BF-1…BF-9) is listed in [V2_SPEC.md §5](V2_SPEC.md#5-
 - **Order tracking** — the web tracking page derives progress from `startTime`; the server never advances `status` in V1/V2.
 - **World Cup** — the server seeds the restaurant (`seed/worldCup.js`). **Contract:** the restaurant's name is exactly
   `חגיגת מונדיאל`, and its product names equal the `dishName` values in the clients' presentation lists (web
-  `WorldCupFeature.jsx`, mobile `WorldCupScreen.js`). Web finds the restaurant in `GET /restaurants`; mobile via
+  `client/src/services/worldCup.js`, mobile `src/services/worldCup.js`). Web finds the restaurant in `GET /restaurants`; mobile via
   `GET /search/:query`. Renaming the restaurant or a dish means changing the seed and both clients in one commit.
-- **Cart** — mobile keeps a `CartContext` (single restaurant at a time); web keeps cart state in `RestaurantPage`. Neither is trusted:
-  totals are recomputed by the server.
-- **Large screens** — several mobile screens are 300–680 lines. They are split only when a change touches them, not as a V2 task.
+- **Cart** — mobile keeps a `CartContext` (single restaurant at a time, reset when the account changes); web keeps cart
+  state per page in the `useMenuCart` hook (`RestaurantPage`, `WorldCupPage`). Neither is trusted: totals are recomputed
+  by the server.
+- **Large screens** — several mobile screens are around 300 lines. They are split only when a change touches them, not as a V2 task.
 
 ## 7. Configuration
 
@@ -219,7 +220,8 @@ Docker Compose reads the repo-root `.env`; running the API outside Docker reads 
 - `web-server/test/*.test.js`, `node:test` + `supertest`, against real MongoDB 7 (`npm run test:db:up && npm test`).
 - Black-box over HTTP, one database per test file (`bw_test_*`); helpers in `test/helpers/`.
 - Every endpoint: happy path, auth failure, validation failure, and ownership/cross-user failure where applicable.
-- Web: Jest via `react-scripts test` (API client, `ProtectedRoute`). Mobile: bundle-compile check in CI.
+- Web: Jest via `react-scripts test` (API client, `ProtectedRoute` and session expiry, Hebrew counts). Mobile:
+  bundle-compile check in CI, and `npm run lint` (`expo lint`) locally.
 - CI: `.github/workflows/ci.yml` (`api`, `web`, `docker`, `mobile`).
 
 ## 9. Known limitations (intentional, documented)

@@ -163,6 +163,30 @@ What the pass actually ran, and what it found:
   return, a cart that survived a sign-out, and the owner's "new restaurant" button squeezing the section heading at
   phone width.
 
+### Post-V3 review (2026-09-23)
+
+A pass aimed at what visual sweeps miss: hostile-but-valid data created through the API (long and unbroken names,
+mixed Hebrew/Latin/emoji, ₪0 and ₪1,000,000 prices, an empty menu, a 120-dish menu, dead image URLs), requests
+delayed or failed in Playwright, and account switches mid-request. Each item below was reproduced first:
+
+- An unbroken dish name widened the restaurant page (820 px at 390) and the tracking page, and pushed a dialog's close
+  button off the sheet. Order summaries mixed Latin names into the neighbouring counts; each name is a bidi isolate now.
+- Owner edits reloaded the restaurant page through its skeleton (scroll 5152 → 0, focus to `<body>`); an empty price
+  saved a dish at ₪0; toggling the theme dropped the cart bar's reserved space; the sponsored clip ignored reduced
+  motion and left an empty box when it failed.
+- A slow `GET /orders` landing after sign-out showed the previous account's orders in the dock; an expired token was
+  still treated as a session (mobile on restore, web while the tab stayed open); a dropped connection surfaced the
+  browser's English error text; a 6 MB profile photo got a bare "Payload too large".
+- Mobile: going back to the tabs pushed another set of tabs each time (React Navigation 7 `navigate` semantics); a form
+  saved while the owner tapped back also left the screen under it; returning to a restaurant or to Home did not keep
+  the scroll or show a just-created restaurant.
+- Accessibility: pages that are only an empty or error state had no `<h1>`; every "add" button was named just "הוספה".
+
+Also checked and found sound: order placement sends one POST under a double click with 2 s latency (both clients),
+500/429/413 keep the cart and re-enable the button, every route's loading and error states match their headings, 200 %
+text size keeps every page inside the viewport, Google Fonts blocked degrades to system fonts, and the production
+build makes one request per page plus the order dock's.
+
 ## Needs a device
 
 Inspected through Expo's web target, so these are the parts a real Android device or emulator still has to confirm:
@@ -175,6 +199,11 @@ Inspected through Expo's web target, so these are the parts a real Android devic
 - `Alert` dialogs for destructive confirmations (they render as browser dialogs on the web target).
 - Native scroll and overscroll behaviour, and `RefreshControl` pull-to-refresh on Home and Orders.
 - Platform fonts: the type scale is the platform UI font, which is Roboto on Android rather than the browser's default.
+- A dish or restaurant name with no break opportunity: on the web target it overflows its text box, because
+  `react-native-web` leaves CSS's default word breaking; Android's text layout breaks inside a word that cannot fit.
+  Confirm it wraps on a device (the web client's own fix is CSS and does not apply).
+- The sign-out on resume after the token has expired listens to `AppState`; on the web target that is page visibility,
+  which is how it was exercised. A real background → foreground on a device is the check that counts.
 
 ## Linting the mobile app
 

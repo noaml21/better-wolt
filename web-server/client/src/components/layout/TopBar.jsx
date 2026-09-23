@@ -20,6 +20,7 @@ export default function TopBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const searchInputRef = useRef(null);
   const menuRef = useRef(null);
+  const menuButtonRef = useRef(null);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -43,8 +44,14 @@ export default function TopBar() {
       }
     };
 
+    /* Escape from inside the menu would unmount the link that has focus
+       and leave the keyboard on <body>; focus goes back to the button. */
     const closeOnEscape = (event) => {
       if (event.key === 'Escape') {
+        if (menuRef.current?.contains(document.activeElement)) {
+          menuButtonRef.current?.focus();
+        }
+
         setMenuOpen(false);
       }
     };
@@ -123,12 +130,15 @@ export default function TopBar() {
                 ההזמנות שלי
               </Link>
 
+              {/* A disclosure of links, not an ARIA menu: role="menu" promises
+                  arrow-key navigation, and these are reached with Tab. */}
               <button
+                ref={menuButtonRef}
                 type="button"
                 className="bw-topbar__avatar-button"
                 onClick={() => setMenuOpen((open) => !open)}
                 aria-expanded={menuOpen}
-                aria-haspopup="menu"
+                aria-controls="bw-account-menu"
               >
                 {user.image ? (
                   <img src={user.image} alt="" className="bw-topbar__avatar" />
@@ -161,7 +171,6 @@ export default function TopBar() {
                     type="button"
                     className="bw-topbar__menu-item bw-topbar__menu-item--danger"
                     onClick={handleLogout}
-                    role="menuitem"
                   >
                     <Icon name="logout" size={18} />
                     התנתקות

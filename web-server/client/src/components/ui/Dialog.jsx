@@ -64,8 +64,14 @@ export default function Dialog({ open, onClose, title, description, children, fo
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
+    /* A form opens on its first field. Anything else opens on the first
+       control, which is the close button — for a confirmation that is
+       the safe choice, since its first action is the destructive one. */
+    const firstField = panelRef.current?.querySelector(
+      '.bw-dialog__body input:not([disabled]), .bw-dialog__body textarea:not([disabled]), .bw-dialog__body select:not([disabled])'
+    );
     const firstFocusable = panelRef.current?.querySelector(FOCUSABLE);
-    (firstFocusable || panelRef.current)?.focus();
+    (firstField || firstFocusable || panelRef.current)?.focus();
 
     return () => {
       document.body.style.overflow = previousOverflow;
@@ -88,7 +94,17 @@ export default function Dialog({ open, onClose, title, description, children, fo
   }
 
   return createPortal(
-    <div className="bw-dialog-scrim" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div
+      className="bw-dialog-scrim"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          /* The press would otherwise move focus to <body> after the
+             dialog has already handed it back to its opener. */
+          event.preventDefault();
+          onClose();
+        }
+      }}
+    >
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <div
         ref={panelRef}

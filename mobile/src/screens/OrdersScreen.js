@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { createStyles, rtl, useTheme } from '../theme';
@@ -33,7 +33,11 @@ export default function OrdersScreen({ navigation }) {
   const [orders, setOrders] = useState([]);
   const [status, setStatus] = useState('loading');
   const [refreshing, setRefreshing] = useState(false);
+  const shown = useRef(false);
 
+  /* Re-read on every visit to the tab; once a list is on screen, a failed
+     re-read keeps it rather than swapping it for the error state (the
+     same rule as Home and the restaurant screen). */
   const load = useCallback(
     async ({ silent = false } = {}) => {
       if (!silent) {
@@ -45,8 +49,11 @@ export default function OrdersScreen({ navigation }) {
 
         setOrders(Array.isArray(data) ? [...data].reverse() : []);
         setStatus('ready');
+        shown.current = true;
       } catch {
-        setStatus('error');
+        if (!silent || !shown.current) {
+          setStatus('error');
+        }
       }
     },
     [token]

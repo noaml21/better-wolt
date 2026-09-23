@@ -63,7 +63,9 @@ export function formatOrderNumber(orderId) {
 
 export function summariseItems(order, limit = 3) {
   const items = order?.orderItems || [];
-  const names = items.slice(0, limit).map((item) => `${item.quantity}× ${item.name}`);
+  // Each name is its own bidi isolate (FSI…PDI): a dish called "Pizza 30cm"
+  // would otherwise pull the neighbouring count and separator into its run.
+  const names = items.slice(0, limit).map((item) => `${item.quantity}× \u2068${item.name}\u2069`);
   const rest = items.length - names.length;
 
   return rest > 0 ? `${names.join(' · ')} ועוד ${rest}` : names.join(' · ');

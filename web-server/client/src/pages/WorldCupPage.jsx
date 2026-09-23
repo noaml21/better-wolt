@@ -112,7 +112,16 @@ export default function WorldCupPage() {
     element
       .play()
       .then(() => setPlaying(true))
-      .catch(() => showToast('הדפדפן חסם את הנגינה', { tone: 'error' }));
+      /* NotAllowedError is the browser's autoplay policy; anything else
+         (NotSupportedError, a network failure) means the file never
+         arrived, and blaming the browser for that sends people to the
+         wrong settings. */
+      .catch((error) =>
+        showToast(
+          error?.name === 'NotAllowedError' ? 'הדפדפן חסם את הנגינה' : 'לא הצלחנו לטעון את המוזיקה',
+          { tone: 'error' }
+        )
+      );
   };
 
   const handlePlaceOrder = async () => {

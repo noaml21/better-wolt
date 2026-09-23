@@ -218,7 +218,12 @@ export default function WorldCupScreen({ navigation }) {
                     onIncrease={() => addToCart(item)}
                   />
                 ) : (
-                  <Button size="sm" icon="plus" onPress={() => addToCart(item)}>
+                  <Button
+                    size="sm"
+                    icon="plus"
+                    onPress={() => addToCart(item)}
+                    accessibilityLabel={`הוספה: ${item.name}`}
+                  >
                     הוספה
                   </Button>
                 )}

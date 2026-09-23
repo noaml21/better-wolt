@@ -31,7 +31,12 @@ export default function DishRow({ product, quantity = 0, onAdd, onRemove, isOwne
             onIncrease={() => onAdd(product)}
           />
         ) : (
-          <Button size="sm" icon="plus" onPress={() => onAdd(product)}>
+          <Button
+            size="sm"
+            icon="plus"
+            onPress={() => onAdd(product)}
+            accessibilityLabel={`הוספה: ${product.name}`}
+          >
             הוספה
           </Button>
         )}

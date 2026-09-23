@@ -233,7 +233,7 @@ export default function WorldCupPage() {
                       />
                     ) : (
                       <Button size="sm" icon="plus" onClick={() => cart.addItem(product)}>
-                        הוספה
+                        הוספה<span className="bw-visually-hidden">: {product.name}</span>
                       </Button>
                     )}
                   </span>

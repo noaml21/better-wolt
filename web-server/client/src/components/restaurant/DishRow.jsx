@@ -40,8 +40,11 @@ export default function DishRow({
             onIncrease={() => onAdd(product)}
           />
         ) : (
+          /* Six buttons all called "הוספה" say nothing to a screen reader
+             listing the page's controls; the dish name is added out of
+             sight, after the visible word (WCAG 2.5.3). */
           <Button size="sm" icon="plus" onClick={() => onAdd(product)}>
-            הוספה
+            הוספה<span className="bw-visually-hidden">: {product.name}</span>
           </Button>
         )}
       </div>

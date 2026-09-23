@@ -15,6 +15,7 @@ export default function Button({
   loading = false,
   disabled = false,
   fullWidth = false,
+  accessibilityLabel,
   style,
 }) {
   const styles = useStyles();
@@ -28,6 +29,7 @@ export default function Button({
          hitSlop rather than from the shape (V3_DESIGN_SPEC §4.4). */
       hitSlop={size === 'sm' ? (TOUCH_TARGET - SM_HEIGHT) / 2 : undefined}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       style={({ pressed }) => [
         styles.base,

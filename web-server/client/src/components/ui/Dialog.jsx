@@ -38,7 +38,13 @@ export default function Dialog({ open, onClose, title, description, children, fo
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
 
-      if (event.shiftKey && document.activeElement === first) {
+      /* Focus can rest on something that is not in the tab order — the
+         panel itself, or a region that took focus when the control in it
+         went away. The browser would tab from there to the page behind. */
+      if (!focusable.includes(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
       } else if (!event.shiftKey && document.activeElement === last) {

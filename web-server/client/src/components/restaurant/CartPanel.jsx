@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Button, Icon, QuantityStepper, formatPrice } from '../ui';
 import './CartPanel.css';
 
@@ -17,9 +17,23 @@ export default function CartPanel({
   variant = 'panel',
 }) {
   const isEmpty = lines.length === 0;
+  const panel = useRef(null);
+  const lineLeaving = useRef(false);
+
+  /* Taking a line to zero removes the row that holds focus. In the sheet
+     that would drop focus to <body>, behind the modal, so it moves to the
+     cart itself, which stays put (its heading is hidden in the sheet). */
+  useEffect(() => {
+    if (lineLeaving.current) {
+      lineLeaving.current = false;
+      panel.current?.focus();
+    }
+  }, [lines.length]);
 
   return (
     <section
+      ref={panel}
+      tabIndex={-1}
       className={`bw-cart bw-cart--${variant}`}
       aria-labelledby="bw-cart-title"
       aria-live="polite"
@@ -51,7 +65,10 @@ export default function CartPanel({
                   size="sm"
                   value={line.quantity}
                   label={line.name}
-                  onDecrease={() => onRemove(line.id)}
+                  onDecrease={() => {
+                    lineLeaving.current = line.quantity === 1;
+                    onRemove(line.id);
+                  }}
                   onIncrease={() => onAdd(line)}
                 />
               </li>

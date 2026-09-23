@@ -174,7 +174,7 @@ export default function RegisterScreen({ navigation }) {
 
         <View style={styles.avatarText}>
           <Text style={styles.avatarTitle}>{image ? 'תמונה נבחרה' : 'תמונת פרופיל'}</Text>
-          <Text style={styles.avatarHint}>לא חובה. אפשר להוסיף גם אחר כך.</Text>
+          <Text style={styles.avatarHint}>לא חובה.</Text>
         </View>
       </Pressable>
 

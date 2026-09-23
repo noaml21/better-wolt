@@ -16,6 +16,12 @@ const EMPTY = {
   role: 'customer',
 };
 
+/* POST /users takes a body of up to 5 MB and the photo travels inside it
+   as base64, a third larger than the file. A phone photo is often bigger
+   than that, and the server's answer, "Payload too large", does not say
+   which field was the problem — so the size is checked when it is picked. */
+const MAX_AVATAR_BYTES = 3 * 1024 * 1024;
+
 /* The password rule mirrors the server's, which answers
    "Password must be 8-72 UTF-8 bytes and contain at least one letter and
    one digit" (ARCHITECTURE §4.3). Checking it here saves a round trip;
@@ -65,6 +71,16 @@ export default function RegisterPage() {
       return;
     }
 
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatar(null);
+      setErrors((current) => ({ ...current, avatar: 'התמונה גדולה מ-3MB. בחרו תמונה קטנה יותר.' }));
+      // Let the same file be picked again after it has been made smaller.
+      event.target.value = '';
+      return;
+    }
+
+    setErrors((current) => ({ ...current, avatar: undefined }));
+
     const reader = new FileReader();
 
     reader.onloadend = () => setAvatar(reader.result);
@@ -95,13 +111,22 @@ export default function RegisterPage() {
         image: avatar || '',
         role: values.role,
       });
-
-      await login(values.username.trim(), values.password);
-      showToast('החשבון נוצר. ברוכים הבאים!');
-      navigate('/');
     } catch (requestError) {
       setFormError(requestError.message);
       setSubmitting(false);
+      return;
+    }
+
+    /* The account exists from here on. If signing in fails (a dropped
+       connection, the login rate limit), staying on this form would invite
+       a second submit that can only answer "Username already taken". */
+    try {
+      await login(values.username.trim(), values.password);
+      showToast('החשבון נוצר. ברוכים הבאים!');
+      navigate('/');
+    } catch {
+      showToast('החשבון נוצר, אבל הכניסה לא הצליחה. התחברו כדי להמשיך.', { tone: 'error' });
+      navigate('/login');
     }
   };
 
@@ -211,7 +236,13 @@ export default function RegisterPage() {
             <Button variant="secondary" size="sm" icon="user" onClick={() => fileInputRef.current?.click()}>
               {avatar ? 'החלפת התמונה' : 'הוספת תמונת פרופיל'}
             </Button>
-            <p className="bw-meta">לא חובה. אפשר להוסיף גם אחר כך.</p>
+            {errors.avatar ? (
+              <p className="bw-field__error" id="bw-avatar-error" role="alert">
+                {errors.avatar}
+              </p>
+            ) : (
+              <p className="bw-meta">לא חובה. עד 3MB.</p>
+            )}
           </div>
 
           <input
@@ -221,6 +252,7 @@ export default function RegisterPage() {
             accept="image/*"
             onChange={handleAvatar}
             aria-label="בחירת תמונת פרופיל"
+            aria-describedby={errors.avatar ? 'bw-avatar-error' : undefined}
           />
         </div>
 

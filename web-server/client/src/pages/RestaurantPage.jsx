@@ -153,6 +153,7 @@ export default function RestaurantPage() {
     return (
       <div className="bw-page bw-page--narrow">
         <EmptyState
+          level={1}
           icon="store"
           title="המסעדה הזו לא נמצאה"
           description="ייתכן שהיא נסגרה או שהקישור שגוי."
@@ -165,7 +166,7 @@ export default function RestaurantPage() {
   if (status === 'error') {
     return (
       <div className="bw-page bw-page--narrow">
-        <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={() => load()} />
+        <ErrorState level={1} description="לא הצלחנו להביא את פרטי המסעדה." onRetry={() => load()} />
       </div>
     );
   }

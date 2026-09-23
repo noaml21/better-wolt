@@ -71,6 +71,7 @@ export default function OrderTrackingPage() {
     return (
       <div className="bw-page bw-page--narrow">
         <EmptyState
+          level={1}
           icon="bag"
           title="ההזמנה הזו לא נמצאה"
           description="ייתכן שהיא נמחקה, או ששייכת לחשבון אחר."
@@ -83,7 +84,7 @@ export default function OrderTrackingPage() {
   if (status === 'error') {
     return (
       <div className="bw-page bw-page--narrow">
-        <ErrorState description="לא הצלחנו להביא את פרטי ההזמנה." onRetry={load} />
+        <ErrorState level={1} description="לא הצלחנו להביא את פרטי ההזמנה." onRetry={load} />
       </div>
     );
   }

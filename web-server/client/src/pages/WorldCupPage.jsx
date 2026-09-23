@@ -154,6 +154,7 @@ export default function WorldCupPage() {
     return (
       <div className="bw-page bw-page--narrow">
         <EmptyState
+          level={1}
           icon="trophy"
           title="חגיגת המונדיאל לא זמינה כרגע"
           description="הקולקציה מגיעה מהשרת, והוא לא מחזיק אותה עכשיו."
@@ -166,7 +167,7 @@ export default function WorldCupPage() {
   if (status === 'error') {
     return (
       <div className="bw-page bw-page--narrow">
-        <ErrorState description="לא הצלחנו להביא את הקולקציה." onRetry={load} />
+        <ErrorState level={1} description="לא הצלחנו להביא את הקולקציה." onRetry={load} />
       </div>
     );
   }

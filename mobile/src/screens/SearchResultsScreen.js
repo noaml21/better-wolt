@@ -118,7 +118,7 @@ export default function SearchResultsScreen({ navigation, route }) {
         ListHeaderComponent={
           status === 'ready' && results.length > 0 ? (
             <Text style={styles.count}>
-              {resultCount(results.length)} עבור “{submitted}”
+              {`${resultCount(results.length)} עבור "${submitted}"`}
             </Text>
           ) : null
         }
@@ -137,7 +137,7 @@ export default function SearchResultsScreen({ navigation, route }) {
           ) : status === 'ready' ? (
             <EmptyState
               icon="search"
-              title={`לא מצאנו כלום עבור “${submitted}”`}
+              title={`לא מצאנו כלום עבור "${submitted}"`}
               description="נסו שם של מסעדה, מנה או סוג מטבח."
             />
           ) : (

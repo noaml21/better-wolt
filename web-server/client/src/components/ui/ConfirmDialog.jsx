@@ -15,7 +15,9 @@ export default function ConfirmDialog({
   loading = false,
 }) {
   return (
-    <Dialog open={open} onClose={onClose} title={title} size="sm">
+    /* Not closable while the action runs: its outcome is reported from
+       here (or by leaving the page), not into a dialog that is gone. */
+    <Dialog open={open} onClose={loading ? () => {} : onClose} title={title} size="sm">
       <p style={{ color: 'var(--bw-ink-muted)' }}>{description}</p>
 
       <div className="bw-actions" style={{ marginBlockStart: 'var(--bw-space-6)' }}>

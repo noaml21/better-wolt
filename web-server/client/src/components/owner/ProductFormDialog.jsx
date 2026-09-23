@@ -84,10 +84,19 @@ export default function ProductFormDialog({ open, onClose, onSaved, restaurantId
     }
   };
 
+  /* Cancel is disabled while saving, and so are Escape, the scrim and
+     the close button: a dialog closed mid-save has nowhere to show the
+     error if the save then fails. */
+  const close = () => {
+    if (!saving) {
+      onClose();
+    }
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       title={isEdit ? 'עריכת מנה' : 'הוספת מנה לתפריט'}
       footer={
         <>

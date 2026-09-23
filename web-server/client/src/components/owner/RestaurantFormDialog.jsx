@@ -65,10 +65,19 @@ export default function RestaurantFormDialog({ open, onClose, onSaved, restauran
     }
   };
 
+  /* Cancel is disabled while saving, and so are Escape, the scrim and
+     the close button: a dialog closed mid-save has nowhere to show the
+     error if the save then fails. */
+  const close = () => {
+    if (!saving) {
+      onClose();
+    }
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       title={isEdit ? 'עריכת פרטי המסעדה' : 'פתיחת מסעדה חדשה'}
       description={
         isEdit ? 'השינויים יופיעו מיד בעמוד המסעדה.' : 'אחרי הפתיחה אפשר להוסיף מנות לתפריט.'

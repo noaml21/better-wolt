@@ -5,7 +5,14 @@ import './Button.css';
 
 /* Primary action, in four tones and three sizes.
    `loading` swaps the label for a spinner of the same size, so the button
-   never changes width mid-action (spec §4.4). */
+   never changes width mid-action (spec §4.4).
+
+   A loading button refuses activation but is not `disabled`: a disabled
+   element cannot hold focus, so the button that was just pressed would
+   drop focus to <body> — out of a dialog's focus trap, and away from the
+   form whose error is about to appear. Swallowing the click also stops
+   a second submit, including Enter in a field (implicit submission
+   clicks the submit button). */
 
 export default function Button({
   children,
@@ -18,6 +25,7 @@ export default function Button({
   type = 'button',
   className = '',
   disabled,
+  onClick,
   ...rest
 }) {
   const classes = [
@@ -35,8 +43,17 @@ export default function Button({
     <button
       type={type}
       className={classes}
-      disabled={disabled || loading}
+      disabled={disabled}
+      aria-disabled={loading || undefined}
       aria-busy={loading || undefined}
+      onClick={(event) => {
+        if (loading) {
+          event.preventDefault();
+          return;
+        }
+
+        onClick?.(event);
+      }}
       {...rest}
     >
       {loading && <Spinner className="bw-button__spinner" size={size === 'lg' ? 22 : 18} />}

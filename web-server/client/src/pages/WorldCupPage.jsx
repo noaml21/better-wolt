@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getRestaurants } from '../services/api';
 import { findWorldCupRestaurant } from '../services/restaurantMeta';
 import { worldCupDishes } from '../services/worldCup';
 import { dishCount } from '../services/counts';
-import { useAuth } from '../context/AuthContext';
 import useMenuCart from '../hooks/useMenuCart';
 import usePlaceOrder from '../hooks/usePlaceOrder';
 import {
@@ -45,8 +43,6 @@ function Flag({ team, fallback = null }) {
 }
 
 export default function WorldCupPage() {
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const cart = useMenuCart();
   const audio = useRef(null);

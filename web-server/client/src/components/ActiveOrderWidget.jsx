@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserOrders } from '../services/api';
@@ -14,24 +14,40 @@ const REFRESH_MS = 60000;
 const HIDDEN_PATHS = ['/tracking', '/login', '/register'];
 
 export default function ActiveOrderWidget() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
-  const [activeOrders, setActiveOrders] = useState([]);
+  const account = isAuthenticated ? user?.username : null;
+  const [fetched, setFetched] = useState({ account: null, orders: [] });
+  const latestRequest = useRef(0);
 
+  /* Orders belong to an account. A request still on its way when the
+     account signs out (or another one signs in) must not land: only the
+     newest request may write, and what it wrote is shown only while the
+     same account is signed in. */
   const refresh = useCallback(async () => {
-    if (!isAuthenticated) {
-      setActiveOrders([]);
+    const request = latestRequest.current + 1;
+
+    latestRequest.current = request;
+
+    if (!account) {
+      setFetched({ account: null, orders: [] });
       return;
     }
 
     try {
       const orders = await getUserOrders();
 
-      setActiveOrders(Array.isArray(orders) ? orders.filter(isActive) : []);
+      if (latestRequest.current === request) {
+        setFetched({ account, orders: Array.isArray(orders) ? orders.filter(isActive) : [] });
+      }
     } catch (error) {
-      setActiveOrders([]);
+      if (latestRequest.current === request) {
+        setFetched({ account, orders: [] });
+      }
     }
-  }, [isAuthenticated]);
+  }, [account]);
+
+  const activeOrders = fetched.account === account ? fetched.orders : [];
 
   useEffect(() => {
     refresh();

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Alert, FlatList, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,7 +37,10 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   const restaurantId = route.params?.restaurantId;
   const [restaurant, setRestaurant] = useState(null);
   const [status, setStatus] = useState('loading');
+  const shown = useRef(false);
 
+  /* A silent load keeps what is on screen: a failed re-read leaves the
+     menu as it was instead of replacing it with the error state. */
   const load = useCallback(
     async ({ silent = false } = {}) => {
       if (!silent) {
@@ -47,7 +50,12 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
       try {
         setRestaurant(await getRestaurantById(restaurantId));
         setStatus('ready');
+        shown.current = true;
       } catch (error) {
+        if (silent && error.status !== 404) {
+          return;
+        }
+
         setStatus(error.status === 404 ? 'missing' : 'error');
       }
     },
@@ -55,11 +63,12 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   );
 
   /* Coming back from a dish form should show the change, so the menu is
-     re-read on focus — quietly, to keep the screen from flashing. */
+     re-read on focus — quietly once it has been shown, so the list is not
+     swapped for a skeleton and the owner keeps their place in it. */
   useFocusEffect(
     useCallback(() => {
-      load({ silent: Boolean(restaurant) });
-    }, [load]) // eslint-disable-line react-hooks/exhaustive-deps
+      load({ silent: shown.current });
+    }, [load])
   );
 
   const isOwner = Boolean(user?.username) && user.username === restaurant?.username;
@@ -163,7 +172,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
             onAction={() => navigation.navigate('Tabs', { screen: 'Home' })}
           />
         ) : (
-          <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={load} />
+          <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={() => load()} />
         )}
       </Screen>
     );

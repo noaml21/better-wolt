@@ -106,6 +106,14 @@ export default function RestaurantPage() {
       setCartOpen(false);
       navigate(`/tracking/${order.id}`);
     } catch (error) {
+      /* A 401 has already signed the session out; the order needs a
+         fresh sign-in, the same path as ordering while signed out. */
+      if (error.status === 401) {
+        showToast('החיבור פג. צריך להתחבר שוב כדי להזמין', { tone: 'error' });
+        navigate('/login', { state: { from: `/restaurant/${id}` } });
+        return;
+      }
+
       showToast(error.message, { tone: 'error' });
     } finally {
       setPlacing(false);

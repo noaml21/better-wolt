@@ -1,4 +1,4 @@
-import { NETWORK_ERROR, createOrder, deleteOrder, getQuery, getRestaurants, login } from './api';
+import { NETWORK_ERROR, createOrder, deleteOrder, getQuery, getRestaurants, getUserOrders, login, onUnauthorized } from './api';
 
 function mockResponse(status, body) {
   const text = body === undefined ? '' : JSON.stringify(body);
@@ -94,4 +94,24 @@ test('a request that never got an answer fails with a readable message', async (
     message: NETWORK_ERROR,
     status: 0,
   });
+});
+
+test('a 401 on a request that carried a token reports the session as over', async () => {
+  const handler = jest.fn();
+  const unsubscribe = onUnauthorized(handler);
+
+  try {
+    global.fetch.mockResolvedValue(mockResponse(401, { error: 'Invalid or expired token' }));
+
+    localStorage.setItem('token', 'abc.def.ghi');
+    await expect(getUserOrders()).rejects.toMatchObject({ status: 401 });
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    // A wrong password is also a 401, but no session was being used.
+    localStorage.removeItem('token');
+    await expect(login({ username: 'a', password: 'b' })).rejects.toMatchObject({ status: 401 });
+    expect(handler).toHaveBeenCalledTimes(1);
+  } finally {
+    unsubscribe();
+  }
 });

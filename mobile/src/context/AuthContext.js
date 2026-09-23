@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // אנחנו מייבאים את פונקציית ההתחברות מה-API שבנית במשימה הקודמת
-import { login as apiLogin } from '../services/api';
+import { login as apiLogin, onUnauthorized } from '../services/api';
 import {
   ActivityIndicator,
   AppState,
@@ -143,6 +143,17 @@ export function AuthProvider({ children }) {
 
     return () => subscription.remove();
   }, [token, logout, showToast]);
+
+  /* The server refused the token on a real request: the same outcome as
+     running out, reached from the other side. */
+  useEffect(
+    () =>
+      onUnauthorized(() => {
+        logout();
+        showToast('החיבור פג. צריך להתחבר שוב.', { tone: 'error' });
+      }),
+    [logout, showToast]
+  );
 
   // מעבירים את כל הכלים האלו לכל המסכים באפליקציה
   return (

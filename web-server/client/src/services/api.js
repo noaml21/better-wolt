@@ -2,6 +2,22 @@ const BASE_URL = '/api';
 
 export const NETWORK_ERROR = 'אין חיבור לשרת. בדקו את החיבור ונסו שוב.';
 
+/* A 401 on a request that carried a token means the session is over
+   (expired, or the server no longer accepts it), not that this one
+   request failed. The auth context subscribes and signs out; without it
+   the page keeps showing an account whose every request is refused. */
+let unauthorizedHandler = null;
+
+export function onUnauthorized(handler) {
+    unauthorizedHandler = handler;
+
+    return () => {
+        if (unauthorizedHandler === handler) {
+            unauthorizedHandler = null;
+        }
+    };
+}
+
 // restaurants functions
 // ------------------------------------------------------
 //getRestaurants(),getRestaurantById(id),createRestaurant(restaurantData),
@@ -51,6 +67,10 @@ async function request(endpoint, method = 'GET', data = null) {
             }
         } catch (error) {
             // response body is not JSON or is empty
+        }
+
+        if (response.status === 401 && token) {
+            unauthorizedHandler?.();
         }
 
         const error = new Error(message);

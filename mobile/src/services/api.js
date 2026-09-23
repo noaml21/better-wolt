@@ -5,6 +5,21 @@ const BASE_URL = (
 
 export const NETWORK_ERROR = 'אין חיבור לשרת. בדקו את החיבור ונסו שוב.';
 
+/* A 401 on a request that carried a token means the session is over,
+   not that this one request failed. AuthContext subscribes and signs out;
+   without it every screen keeps failing under a greeting by name. */
+let unauthorizedHandler = null;
+
+export function onUnauthorized(handler) {
+  unauthorizedHandler = handler;
+
+  return () => {
+    if (unauthorizedHandler === handler) {
+      unauthorizedHandler = null;
+    }
+  };
+}
+
 async function request(endpoint, options = {}, token = null) {
   let response;
 
@@ -44,6 +59,10 @@ async function request(endpoint, options = {}, token = null) {
         message;
     } catch {
       // The server did not return JSON.
+    }
+
+    if (response.status === 401 && token) {
+      unauthorizedHandler?.();
     }
 
     const error = new Error(message);

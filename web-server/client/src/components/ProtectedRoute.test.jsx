@@ -2,6 +2,7 @@ import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
+import { getUserOrders } from '../services/api';
 
 function base64Url(value) {
   return btoa(JSON.stringify(value)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
@@ -95,5 +96,31 @@ test('signs out when the session runs out while the page is open', () => {
     expect(localStorage.getItem('token')).toBeNull();
   } finally {
     jest.useRealTimers();
+  }
+});
+
+test('signs out when the server refuses the session, and the page gives way to login', async () => {
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  localStorage.setItem('token', fakeJwt({ username: 'dana', exp }));
+  localStorage.setItem('user', JSON.stringify({ id: '1', username: 'dana' }));
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 401,
+    json: () => Promise.resolve({ error: 'Invalid or expired token' }),
+    text: () => Promise.resolve(''),
+  });
+
+  try {
+    renderAt('/orders');
+    expect(screen.getByText('my orders')).toBeInTheDocument();
+
+    await act(async () => {
+      await getUserOrders().catch(() => {});
+    });
+
+    expect(screen.getByText('login page → /orders')).toBeInTheDocument();
+    expect(localStorage.getItem('token')).toBeNull();
+  } finally {
+    delete global.fetch;
   }
 });

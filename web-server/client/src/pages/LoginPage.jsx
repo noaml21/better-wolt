@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const usernameRef = useRef(null);
-  const { login } = useAuth();
+  const { login, sessionEnded } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -81,6 +81,9 @@ export default function LoginPage() {
     >
       <form className="bw-stack" onSubmit={handleSubmit} noValidate>
         {error && <InlineMessage>{error}</InlineMessage>}
+        {!error && sessionEnded && (
+          <InlineMessage tone="info">החיבור פג. התחברו שוב כדי להמשיך מאיפה שהייתם.</InlineMessage>
+        )}
 
         <Field
           label="שם משתמש"

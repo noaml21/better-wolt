@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState, useContext } from 'react';
 // הייבוא שהיה חסר: מושך את פונקציית ה-login מקובץ ה-api שבנינו
-import { login as apiLogin } from '../services/api';
+import { login as apiLogin, onUnauthorized } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -58,6 +58,7 @@ function restoreStoredAuth() {
 
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(restoreStoredAuth);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const { user, token } = auth;
 
   const isAuthenticated = !!user && !!token;
@@ -83,6 +84,7 @@ export const AuthProvider = ({ children }) => {
       if (exp * 1000 <= Date.now()) {
         setAuth({ user: null, token: null });
         clearStoredAuth();
+        setSessionEnded(true);
       }
     };
 
@@ -94,6 +96,18 @@ export const AuthProvider = ({ children }) => {
       document.removeEventListener('visibilitychange', expireIfDue);
     };
   }, [token]);
+
+  /* The server refused the token on a real request: same outcome as
+     running out, reached from the other side. */
+  useEffect(
+    () =>
+      onUnauthorized(() => {
+        setAuth({ user: null, token: null });
+        clearStoredAuth();
+        setSessionEnded(true);
+      }),
+    []
+  );
 
   const login = async (username, password) => {
     try {
@@ -124,6 +138,7 @@ export const AuthProvider = ({ children }) => {
 
       // עדכון ה-State של React
       setAuth({ user: realUser, token: realToken });
+      setSessionEnded(false);
 
       // שמירה בזיכרון של הדפדפן
       localStorage.setItem('user', JSON.stringify(realUser));
@@ -140,10 +155,11 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     // מנקים גם מה-RAM וגם מהדיסק
     clearAuth();
+    setSessionEnded(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, sessionEnded, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

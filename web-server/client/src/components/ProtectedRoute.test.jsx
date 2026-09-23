@@ -124,3 +124,20 @@ test('signs out when the server refuses the session, and the page gives way to l
     delete global.fetch;
   }
 });
+
+test('signing out in another tab signs this tab out too', () => {
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  localStorage.setItem('token', fakeJwt({ username: 'dana', exp }));
+  localStorage.setItem('user', JSON.stringify({ id: '1', username: 'dana' }));
+
+  renderAt('/orders');
+  expect(screen.getByText('my orders')).toBeInTheDocument();
+
+  // What the other tab's logout leaves behind, and the event this tab gets.
+  localStorage.clear();
+  act(() => {
+    window.dispatchEvent(new StorageEvent('storage', { key: 'token' }));
+  });
+
+  expect(screen.getByText('login page → /orders')).toBeInTheDocument();
+});

@@ -29,14 +29,25 @@ function clearStoredAuth() {
   localStorage.removeItem('token');
 }
 
-function restoreStoredAuth() {
+/* `clean` removes a stored session that is unusable. Only the tab that is
+   starting up may do that: a tab following another tab's sign-in sees the
+   two keys land one after the other, and must not wipe the half-written
+   session in between. */
+function restoreStoredAuth({ clean = true } = {}) {
+  const signedOut = () => {
+    if (clean) {
+      clearStoredAuth();
+    }
+
+    return { user: null, token: null };
+  };
+
   try {
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('token');
 
     if (!storedUser || !storedToken) {
-      clearStoredAuth();
-      return { user: null, token: null };
+      return signedOut();
     }
 
     const user = JSON.parse(storedUser);
@@ -45,19 +56,17 @@ function restoreStoredAuth() {
 
     if (!user || typeof user !== 'object' || !user.username ||
         !payload?.username || payload.username !== user.username || isExpired) {
-      clearStoredAuth();
-      return { user: null, token: null };
+      return signedOut();
     }
 
     return { user, token: storedToken };
   } catch (error) {
-    clearStoredAuth();
-    return { user: null, token: null };
+    return signedOut();
   }
 }
 
 export const AuthProvider = ({ children }) => {
-  const [auth, setAuth] = useState(restoreStoredAuth);
+  const [auth, setAuth] = useState(() => restoreStoredAuth());
   const [sessionEnded, setSessionEnded] = useState(false);
   const { user, token } = auth;
 
@@ -106,6 +115,24 @@ export const AuthProvider = ({ children }) => {
       document.removeEventListener('visibilitychange', expireIfDue);
     };
   }, [token]);
+
+  /* Every tab shares one stored session, and the API client sends
+     whichever token is stored. Signing in or out in another tab must move
+     this one too, or it keeps showing one account while acting as another
+     (an owner's controls, sending a customer's token). The storage event
+     only fires in the other tabs. */
+  useEffect(() => {
+    const follow = (event) => {
+      if (event.key === null || event.key === 'token' || event.key === 'user') {
+        setAuth(restoreStoredAuth({ clean: false }));
+        setSessionEnded(false);
+      }
+    };
+
+    window.addEventListener('storage', follow);
+
+    return () => window.removeEventListener('storage', follow);
+  }, []);
 
   /* The server refused the token on a real request: same outcome as
      running out, reached from the other side. */

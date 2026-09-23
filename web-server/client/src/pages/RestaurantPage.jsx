@@ -41,27 +41,48 @@ export default function RestaurantPage() {
      the restaurant you just left replaces the one you are reading. */
   const latestRequest = useRef(0);
 
-  const load = useCallback(async () => {
-    const request = latestRequest.current + 1;
+  /* `refresh` re-reads the restaurant after the owner changed it. The
+     page stays on screen while it does: dropping to the skeleton would
+     unmount the menu, throw away the scroll position halfway down a long
+     menu, and lose the element keyboard focus returns to. A failed
+     refresh leaves the page as it was and says so; the change itself
+     has already been saved. */
+  const load = useCallback(
+    async ({ refresh = false } = {}) => {
+      const request = latestRequest.current + 1;
 
-    latestRequest.current = request;
-    setStatus('loading');
+      latestRequest.current = request;
 
-    try {
-      const data = await getRestaurantById(id);
-
-      if (latestRequest.current !== request) {
-        return;
+      if (!refresh) {
+        setStatus('loading');
       }
 
-      setRestaurant(data);
-      setStatus('ready');
-    } catch (error) {
-      if (latestRequest.current === request) {
+      try {
+        const data = await getRestaurantById(id);
+
+        if (latestRequest.current !== request) {
+          return;
+        }
+
+        setRestaurant(data);
+        setStatus('ready');
+      } catch (error) {
+        if (latestRequest.current !== request) {
+          return;
+        }
+
+        if (refresh && error.status !== 404) {
+          showToast('השינוי נשמר, אבל לא הצלחנו לרענן את העמוד.', { tone: 'error' });
+          return;
+        }
+
         setStatus(error.status === 404 ? 'missing' : 'error');
       }
-    }
-  }, [id]);
+    },
+    [id, showToast]
+  );
+
+  const refresh = useCallback(() => load({ refresh: true }), [load]);
 
   useEffect(() => {
     load();
@@ -110,7 +131,7 @@ export default function RestaurantPage() {
 
     try {
       await deleteProduct(restaurant.id, product.id);
-      await load();
+      await refresh();
       showToast(`${product.name} הוסרה מהתפריט`);
     } catch (error) {
       showToast(error.message, { tone: 'error' });
@@ -144,7 +165,7 @@ export default function RestaurantPage() {
   if (status === 'error') {
     return (
       <div className="bw-page bw-page--narrow">
-        <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={load} />
+        <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={() => load()} />
       </div>
     );
   }
@@ -265,7 +286,7 @@ export default function RestaurantPage() {
         open={editingRestaurant}
         restaurant={restaurant}
         onClose={() => setEditingRestaurant(false)}
-        onSaved={load}
+        onSaved={refresh}
       />
 
       <ProductFormDialog
@@ -273,7 +294,7 @@ export default function RestaurantPage() {
         product={productDialog.product}
         restaurantId={restaurant.id}
         onClose={() => setProductDialog({ open: false, product: null })}
-        onSaved={load}
+        onSaved={refresh}
       />
 
       <ConfirmDialog

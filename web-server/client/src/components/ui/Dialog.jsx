@@ -64,8 +64,15 @@ export default function Dialog({ open, onClose, title, description, children, fo
     return () => {
       document.body.style.overflow = previousOverflow;
 
-      if (openerRef.current instanceof HTMLElement) {
-        openerRef.current.focus();
+      /* The opener can be gone by now — the delete button of the dish
+         that was just deleted. Focus left on a detached node falls to
+         <body>, so hand it to <main> instead, without scrolling there. */
+      const opener = openerRef.current;
+
+      if (opener instanceof HTMLElement && opener.isConnected) {
+        opener.focus();
+      } else {
+        document.getElementById('main')?.focus({ preventScroll: true });
       }
     };
   }, [open]);

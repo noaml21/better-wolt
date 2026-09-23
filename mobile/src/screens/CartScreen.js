@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
 import { createOrder } from '../services/api';
@@ -29,6 +29,20 @@ export default function CartScreen({ navigation }) {
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
 
+  /* The answer can come after the customer has moved on. Signing out (or
+     switching account) unmounts the tabs, and then the order is not this
+     screen's to report; moving to another tab keeps the cart mounted but
+     unfocused, and then it must not be pulled onto the tracking screen. */
+  const mounted = useRef(true);
+
+  useEffect(() => {
+    mounted.current = true;
+
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
   const placeOrder = async () => {
     setPlacing(true);
     setError('');
@@ -39,13 +53,24 @@ export default function CartScreen({ navigation }) {
         products: cart.toOrderProducts(),
       });
 
+      if (!mounted.current) {
+        return;
+      }
+
       cart.clear();
       showToast('ההזמנה נשלחה');
-      navigation.navigate('Tracking', { orderId: order.id || order._id });
+
+      if (navigation.isFocused()) {
+        navigation.navigate('Tracking', { orderId: order.id || order._id });
+      }
     } catch (requestError) {
-      setError(requestError.message);
+      if (mounted.current) {
+        setError(requestError.message);
+      }
     } finally {
-      setPlacing(false);
+      if (mounted.current) {
+        setPlacing(false);
+      }
     }
   };
 

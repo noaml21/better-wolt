@@ -174,7 +174,7 @@ export default function RestaurantPage() {
         }
       />
 
-      <div className="bw-restaurant-page__layout">
+      <div className={`bw-restaurant-page__layout ${isOwner ? 'bw-restaurant-page__layout--menu-only' : ''}`}>
         <section className="bw-restaurant-page__menu" aria-labelledby="bw-menu-title">
           <SectionHeader
             id="bw-menu-title"

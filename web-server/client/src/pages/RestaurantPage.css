@@ -15,6 +15,11 @@
     grid-template-columns: minmax(0, 1fr) 340px;
   }
 
+  /* The owner has no cart, so no column is kept for one. */
+  .bw-restaurant-page__layout--menu-only {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .bw-restaurant-page__cart {
     display: block;
   }

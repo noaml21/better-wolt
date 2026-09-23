@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getRestaurants } from '../services/api';
 import { findWorldCupRestaurant } from '../services/restaurantMeta';
 import { useAuth } from '../context/AuthContext';
-import { Button, ErrorState, SectionHeader } from '../components/ui';
+import { Button, EmptyState, ErrorState, SectionHeader } from '../components/ui';
 import HeroBand from '../components/discovery/HeroBand';
 import CampaignCard from '../components/discovery/CampaignCard';
 import SponsoredCard from '../components/discovery/SponsoredCard';
@@ -39,6 +39,7 @@ export default function HomePage() {
   const everyday = restaurants.filter((restaurant) => restaurant !== campaign);
   const heroImages = everyday.filter((restaurant) => restaurant.image).map((restaurant) => restaurant.image);
   const canCreateRestaurant = isAuthenticated && user?.role === 'restaurant';
+  const isEmpty = status === 'ready' && everyday.length === 0;
 
   return (
     <>
@@ -51,7 +52,7 @@ export default function HomePage() {
             description="השרת לא הגיב. אפשר לנסות שוב בעוד רגע."
             onRetry={loadRestaurants}
           />
-        ) : (
+      ) : (
           <div className="bw-home">
             {campaign && <CampaignCard restaurant={campaign} to="/world-cup" />}
 
@@ -59,7 +60,7 @@ export default function HomePage() {
               <SectionHeader
                 id="bw-home-restaurants"
                 title="כל המסעדות"
-                description="נבחרת המסעדות שמשלוחות אליכם עכשיו."
+                description={isEmpty ? undefined : 'נבחרת המסעדות שמשלוחות אליכם עכשיו.'}
                 action={
                   canCreateRestaurant && (
                     <Button icon="store" variant="secondary" onClick={() => setCreateOpen(true)}>
@@ -69,22 +70,32 @@ export default function HomePage() {
                 }
               />
 
-              <ul
-                className="bw-restaurant-grid"
-                aria-busy={status === 'loading'}
-                aria-label="רשימת המסעדות"
-              >
-                {status === 'loading'
-                  ? Array.from({ length: 6 }, (_, index) => <RestaurantCardSkeleton key={index} />)
-                  : everyday.flatMap((restaurant, index) =>
-                      index === SPONSORED_POSITION
-                        ? [
-                            <SponsoredCard key="sponsored" />,
-                            <RestaurantCard key={restaurant.id} restaurant={restaurant} />,
-                          ]
-                        : [<RestaurantCard key={restaurant.id} restaurant={restaurant} />]
-                    )}
-              </ul>
+              {/* The heading promises a selection; with nothing to show,
+                  say so instead of leaving an empty grid under it. */}
+              {isEmpty ? (
+                <EmptyState
+                  icon="store"
+                  title="אין עדיין מסעדות"
+                  description="ברגע שמסעדה תיפתח היא תופיע כאן."
+                />
+              ) : (
+                <ul
+                  className="bw-restaurant-grid"
+                  aria-busy={status === 'loading'}
+                  aria-label="רשימת המסעדות"
+                >
+                  {status === 'loading'
+                    ? Array.from({ length: 6 }, (_, index) => <RestaurantCardSkeleton key={index} />)
+                    : everyday.flatMap((restaurant, index) =>
+                        index === SPONSORED_POSITION
+                          ? [
+                              <SponsoredCard key="sponsored" />,
+                              <RestaurantCard key={restaurant.id} restaurant={restaurant} />,
+                            ]
+                          : [<RestaurantCard key={restaurant.id} restaurant={restaurant} />]
+                      )}
+                </ul>
+              )}
             </section>
           </div>
         )}

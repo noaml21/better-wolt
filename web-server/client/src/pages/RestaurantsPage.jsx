@@ -70,19 +70,22 @@ export default function RestaurantsPage() {
              reads like the page is lying. */
           status === 'loading'
             ? 'טוענים את הרשימה…'
-            : status === 'ready'
+            : status === 'ready' && restaurants.length > 0
               ? restaurantLabel
               : undefined
         }
       />
 
-      <div className="bw-filter-row" role="group" aria-label="סדר התצוגה">
-        {sorts.map((option) => (
-          <Chip key={option.id} selected={sort === option.id} onClick={() => setSort(option.id)}>
-            {option.label}
-          </Chip>
-        ))}
-      </div>
+      {/* Sorting is offered only when there is a list to sort. */}
+      {(status === 'loading' || restaurants.length > 0) && status !== 'error' && (
+        <div className="bw-filter-row" role="group" aria-label="סדר התצוגה">
+          {sorts.map((option) => (
+            <Chip key={option.id} selected={sort === option.id} onClick={() => setSort(option.id)}>
+              {option.label}
+            </Chip>
+          ))}
+        </div>
+      )}
 
       {status === 'error' && (
         <ErrorState

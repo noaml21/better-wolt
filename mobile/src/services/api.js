@@ -3,21 +3,34 @@ const BASE_URL = (
   process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8080/api'
 ).replace(/\/+$/, '');
 
+export const NETWORK_ERROR = 'אין חיבור לשרת. בדקו את החיבור ונסו שוב.';
+
 async function request(endpoint, options = {}, token = null) {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
+  let response;
 
-      ...(token
-        ? {
-          Authorization: `Bearer ${token}`,
-        }
-        : {}),
+  // fetch() rejects only when no answer arrived at all, with the
+  // platform's own English message ("Network request failed"), which
+  // would otherwise reach a toast or a form as-is.
+  try {
+    response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
 
-      ...options.headers,
-    },
-  });
+        ...(token
+          ? {
+            Authorization: `Bearer ${token}`,
+          }
+          : {}),
+
+        ...options.headers,
+      },
+    });
+  } catch {
+    const error = new Error(NETWORK_ERROR);
+    error.status = 0;
+    throw error;
+  }
 
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;

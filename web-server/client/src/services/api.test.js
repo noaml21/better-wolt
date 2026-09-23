@@ -1,4 +1,4 @@
-import { createOrder, deleteOrder, getQuery, getRestaurants, login } from './api';
+import { NETWORK_ERROR, createOrder, deleteOrder, getQuery, getRestaurants, login } from './api';
 
 function mockResponse(status, body) {
   const text = body === undefined ? '' : JSON.stringify(body);
@@ -85,4 +85,13 @@ test('204 No Content resolves to null', async () => {
   global.fetch.mockResolvedValue(mockResponse(204));
 
   await expect(deleteOrder('o1')).resolves.toBeNull();
+});
+
+test('a request that never got an answer fails with a readable message', async () => {
+  global.fetch.mockRejectedValue(new TypeError('Failed to fetch'));
+
+  await expect(createOrder({ restaurant: 'r1', products: [] })).rejects.toMatchObject({
+    message: NETWORK_ERROR,
+    status: 0,
+  });
 });

@@ -1,5 +1,7 @@
 const BASE_URL = '/api';
 
+export const NETWORK_ERROR = 'אין חיבור לשרת. בדקו את החיבור ונסו שוב.';
+
 // restaurants functions
 // ------------------------------------------------------
 //getRestaurants(),getRestaurantById(id),createRestaurant(restaurantData),
@@ -26,7 +28,18 @@ async function request(endpoint, method = 'GET', data = null) {
         config.body = JSON.stringify(data);
     }
 
-    const response = await fetch(`${BASE_URL}${endpoint}`, config);
+    let response;
+
+    // fetch() rejects only when no answer arrived at all. Its message is
+    // the browser's own ("Failed to fetch", "Load failed"), in English and
+    // different per browser, and it would reach a toast as-is.
+    try {
+        response = await fetch(`${BASE_URL}${endpoint}`, config);
+    } catch {
+        const error = new Error(NETWORK_ERROR);
+        error.status = 0;
+        throw error;
+    }
 
     if (!response.ok) {
         let message = `Error: ${response.status}`;

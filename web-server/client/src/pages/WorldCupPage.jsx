@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createOrder, getRestaurants } from '../services/api';
+import { getRestaurants } from '../services/api';
 import { findWorldCupRestaurant } from '../services/restaurantMeta';
 import { worldCupDishes } from '../services/worldCup';
 import { dishCount } from '../services/counts';
 import { useAuth } from '../context/AuthContext';
 import useMenuCart from '../hooks/useMenuCart';
+import usePlaceOrder from '../hooks/usePlaceOrder';
 import {
   Button,
   Dialog,
@@ -52,7 +53,6 @@ export default function WorldCupPage() {
 
   const [restaurant, setRestaurant] = useState(null);
   const [status, setStatus] = useState('loading');
-  const [placing, setPlacing] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
 
@@ -124,40 +124,15 @@ export default function WorldCupPage() {
       );
   };
 
-  const handlePlaceOrder = async () => {
-    if (!isAuthenticated) {
-      showToast('צריך להתחבר כדי להזמין', { tone: 'error' });
-      navigate('/login', { state: { from: '/world-cup' } });
-
-      return;
-    }
-
-    setPlacing(true);
-
-    try {
-      const order = await createOrder({
-        restaurant: restaurant.id,
-        products: cart.toOrderProducts(),
-      });
-
-      cart.clear();
+  const { placing, placeOrder: handlePlaceOrder } = usePlaceOrder({
+    restaurantId: restaurant?.id,
+    cart,
+    from: '/world-cup',
+    onPlaced: () => {
       setCartOpen(false);
       audio.current?.pause();
-      navigate(`/tracking/${order.id}`);
-    } catch (error) {
-      /* A 401 has already signed the session out; the order needs a
-         fresh sign-in, the same path as ordering while signed out. */
-      if (error.status === 401) {
-        showToast('החיבור פג. צריך להתחבר שוב כדי להזמין', { tone: 'error' });
-        navigate('/login', { state: { from: '/world-cup' } });
-        return;
-      }
-
-      showToast(error.message, { tone: 'error' });
-    } finally {
-      setPlacing(false);
-    }
-  };
+    },
+  });
 
   if (status === 'loading') {
     return (

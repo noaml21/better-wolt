@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { createOrder, deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
+import { deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import useMenuCart from '../hooks/useMenuCart';
+import usePlaceOrder from '../hooks/usePlaceOrder';
 import { dishCount } from '../services/counts';
 import {
   Button,
@@ -29,7 +30,6 @@ export default function RestaurantPage() {
 
   const [restaurant, setRestaurant] = useState(null);
   const [status, setStatus] = useState('loading');
-  const [placing, setPlacing] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [editingRestaurant, setEditingRestaurant] = useState(false);
   const [productDialog, setProductDialog] = useState({ open: false, product: null });
@@ -90,35 +90,12 @@ export default function RestaurantPage() {
 
   const isOwner = isAuthenticated && user?.username === restaurant?.username;
 
-  const handlePlaceOrder = async () => {
-    if (!isAuthenticated) {
-      showToast('צריך להתחבר כדי להזמין', { tone: 'error' });
-      navigate('/login', { state: { from: `/restaurant/${id}` } });
-      return;
-    }
-
-    setPlacing(true);
-
-    try {
-      const order = await createOrder({ restaurant: restaurant.id, products: cart.toOrderProducts() });
-
-      cart.clear();
-      setCartOpen(false);
-      navigate(`/tracking/${order.id}`);
-    } catch (error) {
-      /* A 401 has already signed the session out; the order needs a
-         fresh sign-in, the same path as ordering while signed out. */
-      if (error.status === 401) {
-        showToast('החיבור פג. צריך להתחבר שוב כדי להזמין', { tone: 'error' });
-        navigate('/login', { state: { from: `/restaurant/${id}` } });
-        return;
-      }
-
-      showToast(error.message, { tone: 'error' });
-    } finally {
-      setPlacing(false);
-    }
-  };
+  const { placing, placeOrder: handlePlaceOrder } = usePlaceOrder({
+    restaurantId: restaurant?.id,
+    cart,
+    from: `/restaurant/${id}`,
+    onPlaced: () => setCartOpen(false),
+  });
 
   const handleDeleteRestaurant = async () => {
     setRemoving(true);

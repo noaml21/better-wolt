@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, useContext } from 'react';
+import { createContext, useCallback, useEffect, useRef, useState, useContext } from 'react';
 // הייבוא שהיה חסר: מושך את פונקציית ה-login מקובץ ה-api שבנינו
 import { login as apiLogin, onUnauthorized } from '../services/api';
 
@@ -62,6 +62,16 @@ export const AuthProvider = ({ children }) => {
   const { user, token } = auth;
 
   const isAuthenticated = !!user && !!token;
+
+  /* Who is signed in right now, for work that finishes after the page
+     that started it is gone and can no longer read this context. */
+  const latestUser = useRef(user);
+
+  useEffect(() => {
+    latestUser.current = user;
+  }, [user]);
+
+  const currentUsername = useCallback(() => latestUser.current?.username ?? null, []);
 
   const clearAuth = () => {
     setAuth({ user: null, token: null });
@@ -159,7 +169,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated, sessionEnded, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated, sessionEnded, currentUsername, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

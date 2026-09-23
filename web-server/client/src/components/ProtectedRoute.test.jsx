@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import ProtectedRoute from './ProtectedRoute';
@@ -74,4 +74,26 @@ test('treats an expired stored token as signed out and clears it', () => {
 
   expect(screen.getByText(/login page/)).toBeInTheDocument();
   expect(localStorage.getItem('token')).toBeNull();
+});
+
+test('signs out when the session runs out while the page is open', () => {
+  jest.useFakeTimers();
+
+  try {
+    const exp = Math.floor(Date.now() / 1000) + 60;
+    localStorage.setItem('token', fakeJwt({ username: 'dana', exp }));
+    localStorage.setItem('user', JSON.stringify({ id: '1', username: 'dana' }));
+
+    renderAt('/orders');
+    expect(screen.getByText('my orders')).toBeInTheDocument();
+
+    act(() => {
+      jest.advanceTimersByTime(61 * 1000);
+    });
+
+    expect(screen.getByText('login page → /orders')).toBeInTheDocument();
+    expect(localStorage.getItem('token')).toBeNull();
+  } finally {
+    jest.useRealTimers();
+  }
 });

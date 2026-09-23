@@ -1,4 +1,4 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useEffect, useState, useContext } from 'react';
 // הייבוא שהיה חסר: מושך את פונקציית ה-login מקובץ ה-api שבנינו
 import { login as apiLogin } from '../services/api';
 
@@ -66,6 +66,34 @@ export const AuthProvider = ({ children }) => {
     setAuth({ user: null, token: null });
     clearStoredAuth();
   };
+
+  /* The token is checked when the page loads, but a tab can stay open
+     past its 24 h life, and from then on every request is a 401 while the
+     page still shows the account. Sign out when it runs out: on time, and
+     again when the tab comes back into view, because timers do not run
+     while the machine sleeps. */
+  useEffect(() => {
+    const exp = token ? decodeJwt(token)?.exp : null;
+
+    if (!exp) {
+      return undefined;
+    }
+
+    const expireIfDue = () => {
+      if (exp * 1000 <= Date.now()) {
+        setAuth({ user: null, token: null });
+        clearStoredAuth();
+      }
+    };
+
+    const timer = window.setTimeout(expireIfDue, Math.max(0, exp * 1000 - Date.now()));
+    document.addEventListener('visibilitychange', expireIfDue);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', expireIfDue);
+    };
+  }, [token]);
 
   const login = async (username, password) => {
     try {

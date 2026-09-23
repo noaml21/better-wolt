@@ -153,6 +153,8 @@
 .bw-tracking__item-name {
   display: inline-flex;
   gap: var(--bw-space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .bw-tracking__item-quantity {

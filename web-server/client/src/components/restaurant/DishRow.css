@@ -28,6 +28,13 @@
   font-weight: 600;
 }
 
+/* The column aligns to flex-start, which sizes each line to its
+   min-content; `anywhere` lets an unbroken word count as breakable there. */
+.bw-dish__name,
+.bw-dish__description {
+  overflow-wrap: anywhere;
+}
+
 .bw-dish__description {
   color: var(--bw-ink-muted);
   font-size: var(--bw-caption);
@@ -47,6 +54,9 @@
 
 .bw-menu-list {
   display: grid;
+  /* An implicit track is as wide as its longest unbreakable word; this
+     one may shrink so a long dish name wraps instead of widening the page. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--bw-space-3);
 }
 

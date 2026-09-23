@@ -87,7 +87,7 @@ export default function Dialog({ open, onClose, title, description, children, fo
         onKeyDown={handleKeyDown}
       >
         <header className="bw-dialog__header">
-          <div>
+          <div className="bw-dialog__heading">
             <h2 className="bw-dialog__title" id={titleId}>
               {title}
             </h2>

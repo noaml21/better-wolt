@@ -38,9 +38,17 @@
   padding: var(--bw-space-6) var(--bw-space-6) var(--bw-space-4);
 }
 
+.bw-dialog__heading {
+  min-width: 0;
+}
+
+/* Titles name the thing being edited or removed, and those names are
+   typed by owners: one long word must wrap, not push the close button
+   off the sheet. */
 .bw-dialog__title {
   font-size: var(--bw-h3);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .bw-dialog__description {

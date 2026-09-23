@@ -21,6 +21,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Names, dishes and addresses are typed by people; a word with no
+     break opportunity must still fit the box it is given. */
+  overflow-wrap: break-word;
 }
 
 h1,

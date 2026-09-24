@@ -75,7 +75,7 @@ export default function OrderAgain({ restaurants, token, onOpen }) {
             style={({ pressed }) => [styles.item, pressed && styles.pressed]}
           >
             <View style={styles.thumb}>
-              <Media uri={restaurant.image} style={styles.image} fallback={<Plate restaurant={restaurant} size={13} />} />
+              <Media uri={restaurant.image} style={styles.image} fallback={<Plate restaurant={restaurant} size={12} style={styles.plate} />} />
             </View>
             <View style={styles.text}>
               <Text style={styles.name} numberOfLines={1}>
@@ -112,6 +112,7 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
   thumb: { width: 56, height: 56, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: colors.sunken },
   image: { width: '100%', height: '100%' },
+  plate: { padding: 4 },
   text: { flex: 1, gap: 2 },
   name: { ...type.body, ...rtl.text, fontWeight: '700', color: colors.ink },
   day: { ...type.caption, ...rtl.text, fontWeight: '400', color: colors.inkMuted },

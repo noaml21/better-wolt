@@ -1,9 +1,12 @@
-import { IconButton, Tag, formatPrice } from '../ui';
+import { IconButton, formatPrice } from '../ui';
 import CartControl from './CartControl';
 import './DishRow.css';
 
-/* One dish. Customers get add/stepper; the owner gets edit and delete in
-   the same place, so the menu is managed where it is read. */
+/* One dish, read the way a menu is read: name, what is in it, what it
+   costs. The add action repeats on every row, so it stays quiet — a small
+   round control at the row's end (V4 spec §5) — and the dish name is the
+   loudest thing in the row. The owner gets edit and delete in the same
+   place, so the menu is managed where it is read. */
 
 export default function DishRow({
   product,
@@ -14,12 +17,22 @@ export default function DishRow({
   onEdit,
   onDelete,
 }) {
+  const inCart = quantity > 0;
+
   return (
-    <li className="bw-dish">
+    <li className={`bw-dish ${inCart ? 'bw-dish--in-cart' : ''}`}>
       <div className="bw-dish__text">
-        <h3 className="bw-dish__name">{product.name}</h3>
+        <h3 className="bw-dish__name">
+          {/* The stepper already says how many; this is the glance. */}
+          {inCart && (
+            <span className="bw-dish__count bw-num" aria-hidden="true">
+              {quantity}
+            </span>
+          )}
+          <span className="bw-dish__label">{product.name}</span>
+        </h3>
         {product.description && <p className="bw-dish__description">{product.description}</p>}
-        <Tag className="bw-dish__price">{formatPrice(product.price)}</Tag>
+        <p className="bw-dish__price bw-num">{formatPrice(product.price)}</p>
       </div>
 
       <div className="bw-dish__action">

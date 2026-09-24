@@ -2,138 +2,122 @@
   margin-block-end: var(--bw-space-7);
 }
 
+/* The frame's height comes from its aspect ratio, so nothing below it
+   moves when the photo lands, and it never eats a short laptop screen. */
 .bw-restaurant-hero__media {
   position: relative;
-  height: 240px;
+  display: flex;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: var(--bw-radius-lg);
   background-color: var(--bw-sunken);
 }
 
 .bw-restaurant-hero__media img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.bw-restaurant-hero__placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  font-family: var(--bw-font-display);
-  font-size: 6rem;
-  color: var(--bw-ink);
-  opacity: 0.16;
+/* A scrim, not a decoration: it is what makes the name legible on a
+   bright photograph. Only drawn when there is a photograph. */
+.bw-restaurant-hero__media--photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20, 12, 32, 0.8) 0%, rgba(20, 12, 32, 0.35) 38%, rgba(20, 12, 32, 0) 62%);
+  pointer-events: none;
 }
 
-.bw-restaurant-hero__card {
-  position: relative;
+.bw-restaurant-hero__name {
+  position: absolute;
   z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-3);
-  width: calc(100% - var(--bw-space-8));
-  margin-inline: auto;
-  margin-block-start: -56px;
-  padding: var(--bw-space-6);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-surface);
-  box-shadow: var(--bw-e2);
+  inset-inline: var(--bw-space-5);
+  inset-block-end: var(--bw-space-4);
+  font-size: clamp(1.75rem, 1.2rem + 2.4vw, var(--bw-display-l));
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
-.bw-restaurant-hero__headline {
-  display: flex;
-  align-items: baseline;
-  gap: var(--bw-space-4);
+.bw-restaurant-hero__media--photo .bw-restaurant-hero__name {
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(20, 12, 32, 0.35);
 }
 
-.bw-restaurant-hero__headline h1 {
-  font-size: var(--bw-h1);
+/* On a plate the plate's word already fills the frame; the name moves to
+   the bottom edge in the plate's own ink, at the same place as on a photo. */
+.bw-restaurant-hero__media:not(.bw-restaurant-hero__media--photo) .bw-restaurant-hero__name {
+  color: inherit;
+  font-size: clamp(2rem, 1.2rem + 3.6vw, var(--bw-display-xl));
+}
+
+.bw-restaurant-hero__media .bw-plate {
+  position: absolute;
+  inset: 0;
+}
+
+/* The hero already sets the whole name large; the plate's own word would
+   say it twice, so only the plate's tint is kept here. */
+.bw-restaurant-hero__media .bw-plate__word {
+  display: none;
+}
+
+.bw-restaurant-hero__media:not(.bw-restaurant-hero__media--photo) {
+  color: var(--bw-ink);
 }
 
 .bw-restaurant-hero__facts {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bw-space-3) var(--bw-space-5);
+  align-items: center;
+  gap: var(--bw-space-2) var(--bw-space-5);
+  margin-block-start: var(--bw-space-4);
   color: var(--bw-ink-muted);
   font-size: var(--bw-caption);
   font-weight: 500;
 }
 
-.bw-restaurant-hero__facts span {
+.bw-restaurant-hero__facts > span,
+.bw-restaurant-hero__phone {
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-2);
+}
+
+.bw-restaurant-hero__phone {
+  min-height: 32px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.bw-restaurant-hero__phone:hover {
+  color: var(--bw-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .bw-restaurant-hero__free {
   color: var(--bw-herb);
 }
 
-.bw-restaurant-hero__owner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--bw-space-3);
-  margin-block-start: var(--bw-space-2);
-  padding-block-start: var(--bw-space-4);
-  border-block-start: 1px solid var(--bw-line);
-}
-
-.bw-restaurant-hero__owner-label {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--bw-space-2);
-  color: var(--bw-ink-muted);
-  font-size: var(--bw-caption);
-  font-weight: 600;
-}
-
-.bw-restaurant-hero__owner-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--bw-space-2);
-}
-
 @media (min-width: 900px) {
   .bw-restaurant-hero__media {
-    height: 340px;
+    /* A fixed height here: capping an aspect ratio with max-height makes
+       the browser narrow the frame to keep the ratio. */
+    aspect-ratio: auto;
+    height: clamp(240px, 24vw, 340px);
   }
 
-  /* Wide enough for the name and the facts to share one line: stacked,
-     they left most of the card empty and it read as a bar rather than a
-     card. The owner's row keeps a line of its own. */
-  .bw-restaurant-hero__card {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    column-gap: var(--bw-space-7);
-    width: calc(100% - var(--bw-space-10));
-    margin-block-start: -72px;
-    padding: var(--bw-space-7);
+  .bw-restaurant-hero__name {
+    inset-inline: var(--bw-space-7);
+    inset-block-end: var(--bw-space-6);
   }
 
-  .bw-restaurant-hero__owner {
-    flex-basis: 100%;
-  }
-}
-
-@media (max-width: 599px) {
-  .bw-restaurant-hero__media {
-    height: 190px;
-  }
-
-  .bw-restaurant-hero__card {
-    width: calc(100% - var(--bw-space-4));
-    margin-block-start: -40px;
-    padding: var(--bw-space-5);
-  }
-
-  .bw-restaurant-hero__headline h1 {
-    font-size: var(--bw-h2);
+  .bw-restaurant-hero__facts {
+    margin-block-start: var(--bw-space-5);
+    font-size: var(--bw-body);
   }
 }

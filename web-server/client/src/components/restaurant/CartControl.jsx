@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Button, QuantityStepper } from '../ui';
+import { Icon, QuantityStepper } from '../ui';
 import './CartControl.css';
 
 /* "Add" until the dish is in the cart, then a stepper. The first add
@@ -7,7 +7,11 @@ import './CartControl.css';
    replaces the stepper, so without a hand-off a keyboard user's focus
    falls to <body> and their place in the menu is gone. When a click is
    about to swap the controls, focus follows to the new one: the
-   stepper's "more" after adding, the add button after removing. */
+   stepper's "more" after adding, the add button after removing.
+
+   The add button is a quiet round control (V4 spec §5): it repeats on
+   every row, so it must not outshout the dish. It has no visible word,
+   and its accessible name carries the dish (WCAG 2.5.3 / 4.1.2). */
 
 export default function CartControl({ name, quantity, onAdd, onRemove, stepperSize = 'md' }) {
   const container = useRef(null);
@@ -40,18 +44,17 @@ export default function CartControl({ name, quantity, onAdd, onRemove, stepperSi
           onIncrease={onAdd}
         />
       ) : (
-        <Button
-          size="sm"
-          icon="plus"
+        <button
+          type="button"
+          className="bw-add"
+          aria-label={`הוספה: ${name}`}
           onClick={() => {
             swapping.current = true;
             onAdd();
           }}
         >
-          {/* The dish name is added out of sight, after the visible word:
-              a list of controls all called "הוספה" says nothing (WCAG 2.5.3). */}
-          הוספה<span className="bw-visually-hidden">: {name}</span>
-        </Button>
+          <Icon name="plus" size={20} />
+        </button>
       )}
     </span>
   );

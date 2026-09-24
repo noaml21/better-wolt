@@ -1,0 +1,45 @@
+.bw-plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--bw-space-5);
+  overflow: hidden;
+  container-type: size;
+}
+
+.bw-plate__word {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  max-width: 100%;
+  font-family: var(--bw-font-display);
+  /* Sized from the plate, not the viewport: the same word fills a card
+     and a hero alike, and a long one wraps rather than escaping. */
+  font-size: clamp(1.5rem, 22cqmin, 5.5rem);
+  line-height: 1.05;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.bw-plate--amber {
+  background-color: var(--bw-amber-tint);
+  color: var(--bw-ink);
+}
+
+.bw-plate--flame {
+  background-color: var(--bw-flame-tint);
+  color: var(--bw-flame-deep);
+}
+
+.bw-plate--herb {
+  background-color: var(--bw-herb-tint);
+  color: var(--bw-herb);
+}
+
+.bw-plate--ink {
+  background-color: var(--bw-ink-tint);
+  color: var(--bw-ink);
+}

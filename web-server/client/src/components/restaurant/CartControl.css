@@ -3,3 +3,45 @@
      it must not become a box of its own in the row's layout. */
   display: contents;
 }
+
+.bw-add {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-flame-tint);
+  color: var(--bw-flame-deep);
+  cursor: pointer;
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease),
+    transform var(--bw-fast) var(--bw-ease);
+}
+
+/* The control draws 40px; the finger gets 48. */
+.bw-add::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+@media (hover: hover) {
+  .bw-add:hover {
+    background-color: var(--bw-flame);
+    color: var(--bw-on-flame);
+  }
+}
+
+.bw-add:active {
+  transform: scale(0.94);
+}
+
+body.dark .bw-add {
+  color: var(--bw-flame);
+}
+
+body.dark .bw-add:hover {
+  color: var(--bw-on-flame);
+}

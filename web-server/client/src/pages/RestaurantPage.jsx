@@ -16,6 +16,8 @@ import {
 } from '../components/ui';
 import RestaurantHero, { RestaurantHeroSkeleton } from '../components/restaurant/RestaurantHero';
 import DishRow from '../components/restaurant/DishRow';
+import MenuFilter, { MENU_FILTER_THRESHOLD, matchesDish } from '../components/restaurant/MenuFilter';
+import OwnerPanel from '../components/owner/OwnerPanel';
 import CartPanel, { CartBar } from '../components/restaurant/CartPanel';
 import RestaurantFormDialog from '../components/owner/RestaurantFormDialog';
 import ProductFormDialog from '../components/owner/ProductFormDialog';
@@ -35,6 +37,7 @@ export default function RestaurantPage() {
   const [productDialog, setProductDialog] = useState({ open: false, product: null });
   const [confirm, setConfirm] = useState(null);
   const [removing, setRemoving] = useState(false);
+  const [menuQuery, setMenuQuery] = useState('');
 
   /* Moving between restaurants without a reload means two requests can
      be in flight; only the newest one may write, or a slow answer for
@@ -88,6 +91,7 @@ export default function RestaurantPage() {
 
   useEffect(() => {
     load();
+    setMenuQuery('');
   }, [load]);
 
   const isOwner = isAuthenticated && user?.username === restaurant?.username;
@@ -212,41 +216,49 @@ export default function RestaurantPage() {
   }
 
   const products = restaurant.products || [];
+  const filterable = products.length > MENU_FILTER_THRESHOLD;
+  const shownProducts = filterable ? products.filter((product) => matchesDish(product, menuQuery)) : products;
+  const openAddDish = () => setProductDialog({ open: true, product: null });
+  const confirmClose = () =>
+    setConfirm({
+      title: `לסגור את ${restaurant.name}?`,
+      description: 'המסעדה והתפריט שלה יימחקו. אי אפשר לבטל את הפעולה.',
+      confirmLabel: 'סגירת המסעדה',
+      onConfirm: handleDeleteRestaurant,
+    });
 
   return (
     <div className="bw-page bw-restaurant-page">
-      <RestaurantHero
-        restaurant={restaurant}
-        isOwner={isOwner}
-        onEdit={() => setEditingRestaurant(true)}
-        onDelete={() =>
-          setConfirm({
-            title: `לסגור את ${restaurant.name}?`,
-            description: 'המסעדה והתפריט שלה יימחקו. אי אפשר לבטל את הפעולה.',
-            confirmLabel: 'סגירת המסעדה',
-            onConfirm: handleDeleteRestaurant,
-          })
-        }
-      />
+      <RestaurantHero restaurant={restaurant} />
 
-      <div className={`bw-restaurant-page__layout ${isOwner ? 'bw-restaurant-page__layout--menu-only' : ''}`}>
+      <div className={`bw-restaurant-page__layout ${isOwner ? 'bw-restaurant-page__layout--owner' : ''}`}>
+        {/* First in the DOM for the owner: the tools come before the menu
+            they act on, in reading order and in tab order. */}
+        {isOwner && (
+          <aside className="bw-restaurant-page__side">
+            <OwnerPanel
+              products={products}
+              onAddDish={openAddDish}
+              onEdit={() => setEditingRestaurant(true)}
+              onDelete={confirmClose}
+            />
+          </aside>
+        )}
+
         <section className="bw-restaurant-page__menu" aria-labelledby="bw-menu-title">
           <SectionHeader
             id="bw-menu-title"
             title="התפריט"
             description={products.length ? dishCount(products.length) : undefined}
-            action={
-              isOwner && (
-                <Button
-                  variant="secondary"
-                  icon="plus"
-                  onClick={() => setProductDialog({ open: true, product: null })}
-                >
-                  הוספת מנה
-                </Button>
-              )
-            }
           />
+
+          {filterable && (
+            <MenuFilter
+              value={menuQuery}
+              onChange={setMenuQuery}
+              resultLabel={shownProducts.length ? `${dishCount(shownProducts.length)} מתאימות` : 'אין מנה מתאימה'}
+            />
+          )}
 
           {products.length === 0 ? (
             <EmptyState
@@ -258,16 +270,23 @@ export default function RestaurantPage() {
                   : 'המסעדה עוד לא פרסמה מנות. שווה לבדוק שוב מאוחר יותר.'
               }
               action={
-                isOwner && (
-                  <Button onClick={() => setProductDialog({ open: true, product: null })}>
-                    הוספת מנה
-                  </Button>
-                )
+                isOwner && <Button onClick={openAddDish}>הוספת מנה</Button>
+              }
+            />
+          ) : shownProducts.length === 0 ? (
+            <EmptyState
+              icon="search"
+              title={`אין בתפריט מנה שמתאימה ל"${menuQuery.trim()}"`}
+              description="נסו מילה אחרת, או חזרו לתפריט המלא."
+              action={
+                <Button variant="secondary" onClick={() => setMenuQuery('')}>
+                  לתפריט המלא
+                </Button>
               }
             />
           ) : (
             <ul className="bw-menu-list">
-              {products.map((product) => (
+              {shownProducts.map((product) => (
                 <DishRow
                   key={product.id}
                   product={product}
@@ -290,7 +309,7 @@ export default function RestaurantPage() {
         </section>
 
         {!isOwner && (
-          <aside className="bw-restaurant-page__cart">
+          <aside className="bw-restaurant-page__side bw-restaurant-page__cart">
             <CartPanel
               lines={cart.lines}
               itemCount={cart.itemCount}

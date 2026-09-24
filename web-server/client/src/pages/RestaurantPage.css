@@ -1,7 +1,7 @@
 .bw-restaurant-page__layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--bw-space-7);
+  gap: var(--bw-space-6);
   align-items: start;
 }
 
@@ -9,19 +9,32 @@
   display: none;
 }
 
-/* The cart only becomes a panel when there is room for it beside the menu. */
+/* The side column opens when there is room beside the menu: the cart for
+   a customer, the management tools for the owner. The owner's tools come
+   first in the DOM, so they are placed into the side column explicitly. */
 @media (min-width: 1100px) {
   .bw-restaurant-page__layout {
     grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--bw-space-8);
   }
 
-  /* The owner has no cart, so no column is kept for one. */
-  .bw-restaurant-page__layout--menu-only {
-    grid-template-columns: minmax(0, 1fr);
+  .bw-restaurant-page__layout--owner .bw-restaurant-page__side {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+  }
+
+  .bw-restaurant-page__layout--owner .bw-restaurant-page__menu {
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .bw-restaurant-page__cart {
     display: block;
+  }
+
+  .bw-restaurant-page__side {
+    align-self: stretch;
   }
 }
 

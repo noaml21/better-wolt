@@ -5,6 +5,7 @@ export { default as Dialog } from './Dialog';
 export { default as Field, RadioGroup } from './Field';
 export { default as Icon } from './Icon';
 export { default as Media } from './Media';
+export { default as Plate } from './Plate';
 export { default as QuantityStepper } from './QuantityStepper';
 export { default as SectionHeader } from './SectionHeader';
 export { default as Skeleton } from './Skeleton';

@@ -1,30 +1,58 @@
 .bw-stepper {
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-space-1);
-  padding: 3px;
+  gap: 2px;
+  padding: 2px;
   border: 1px solid var(--bw-line);
   border-radius: var(--bw-radius-pill);
   background-color: var(--bw-surface);
 }
 
 .bw-stepper__button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-flame-tint);
-  color: var(--bw-flame-deep);
-  transition: background-color var(--bw-fast) var(--bw-ease),
+  background-color: var(--bw-sunken);
+  color: var(--bw-ink);
+  cursor: pointer;
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease),
     transform var(--bw-fast) var(--bw-ease);
 }
 
-.bw-stepper__button:hover {
-  background-color: var(--bw-flame);
-  color: var(--bw-on-flame);
+/* Taller hit area than the drawing; the buttons sit side by side, so it
+   only grows vertically. */
+.bw-stepper__button::before {
+  content: '';
+  position: absolute;
+  inset: -6px 0;
+}
+
+/* "More" is the action being repeated, so it keeps the add control's
+   tint; "less" is neutral — removing is not the thing being offered. */
+.bw-stepper__button:last-child {
+  background-color: var(--bw-flame-tint);
+  color: var(--bw-flame-deep);
+}
+
+body.dark .bw-stepper__button:last-child {
+  color: var(--bw-flame);
+}
+
+@media (hover: hover) {
+  .bw-stepper__button:hover {
+    background-color: var(--bw-line);
+  }
+
+  .bw-stepper__button:last-child:hover,
+  body.dark .bw-stepper__button:last-child:hover {
+    background-color: var(--bw-flame);
+    color: var(--bw-on-flame);
+  }
 }
 
 .bw-stepper__button:active {
@@ -32,13 +60,17 @@
 }
 
 .bw-stepper__value {
-  min-width: 26px;
+  min-width: 28px;
   text-align: center;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .bw-stepper--sm .bw-stepper__button {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
+}
+
+.bw-stepper--sm .bw-stepper__button::before {
+  inset: -8px 0;
 }

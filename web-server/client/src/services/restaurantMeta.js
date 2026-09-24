@@ -37,6 +37,15 @@ export function getRestaurantMeta(restaurant) {
   };
 }
 
+/* The tint a restaurant's plate uses when it has no photo (V4 spec §4.1).
+   Derived from the id like the rest of this file, so a restaurant keeps
+   its colour everywhere it appears. */
+const PLATE_TONES = ['amber', 'flame', 'herb', 'ink'];
+
+export function getPlateTone(restaurant) {
+  return PLATE_TONES[(hashId(restaurant?.id) >>> 5) % PLATE_TONES.length];
+}
+
 /* The seeded campaign restaurant (ARCHITECTURE §6). Its name is contract. */
 export const WORLD_CUP_RESTAURANT_NAME = 'חגיגת מונדיאל';
 

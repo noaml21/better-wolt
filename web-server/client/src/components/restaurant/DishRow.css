@@ -1,48 +1,94 @@
+/* The menu is one surface divided by hairlines (V4 spec §4.3), not a
+   stack of cards: the rows are read in sequence, like a printed menu. */
+.bw-menu-list {
+  display: grid;
+  /* An implicit track is as wide as its longest unbreakable word; this
+     one may shrink so a long dish name wraps instead of widening the page. */
+  grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-surface);
+  overflow: hidden;
+}
+
 .bw-dish {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--bw-space-5);
-  padding: var(--bw-space-5);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-md);
-  background-color: var(--bw-surface);
-  transition: border-color var(--bw-base) var(--bw-ease), box-shadow var(--bw-base) var(--bw-ease);
+  padding: var(--bw-space-4) var(--bw-space-6);
 }
 
-.bw-dish:hover {
-  border-color: transparent;
-  box-shadow: var(--bw-e2);
+/* The hairline stops short of the edges so rows read as one list. */
+.bw-dish + .bw-dish::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--bw-space-6);
+  border-block-start: 1px solid var(--bw-line);
 }
 
 .bw-dish__text {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--bw-space-2);
+  gap: var(--bw-space-1);
   min-width: 0;
 }
 
 .bw-dish__name {
-  font-size: var(--bw-h3);
+  display: flex;
+  align-items: baseline;
+  gap: var(--bw-space-2);
+  font-size: 1.0625rem;
+  line-height: 1.35;
   font-weight: 600;
 }
 
-/* The column aligns to flex-start, which sizes each line to its
-   min-content; `anywhere` lets an unbroken word count as breakable there. */
+.bw-dish__label {
+  min-width: 0;
+  unicode-bidi: isolate;
+}
+
+.bw-dish__count {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 6px;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-flame);
+  color: var(--bw-on-flame);
+  font-size: var(--bw-micro);
+  font-weight: 700;
+  transform: translateY(-1px);
+}
+
+/* The column is a flex column, which sizes each line to its min-content;
+   `anywhere` lets an unbroken word count as breakable there. */
 .bw-dish__name,
 .bw-dish__description {
   overflow-wrap: anywhere;
 }
 
 .bw-dish__description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  max-width: 60ch;
   color: var(--bw-ink-muted);
-  font-size: var(--bw-caption);
-  max-width: 56ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
 .bw-dish__price {
   margin-block-start: var(--bw-space-1);
+  color: var(--bw-ink);
+  font-size: var(--bw-body);
+  font-weight: 600;
 }
 
 .bw-dish__action {
@@ -52,21 +98,13 @@
   flex-shrink: 0;
 }
 
-.bw-menu-list {
-  display: grid;
-  /* An implicit track is as wide as its longest unbreakable word; this
-     one may shrink so a long dish name wraps instead of widening the page. */
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--bw-space-3);
-}
-
 @media (max-width: 479px) {
   .bw-dish {
-    gap: var(--bw-space-4);
+    gap: var(--bw-space-3);
     padding: var(--bw-space-4);
   }
 
-  .bw-dish__name {
-    font-size: var(--bw-body-l);
+  .bw-dish + .bw-dish::before {
+    inset-inline: var(--bw-space-4);
   }
 }

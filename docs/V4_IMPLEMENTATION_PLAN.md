@@ -18,8 +18,11 @@ from the first unchecked box.
 - [x] **V4.4a — Web foundations.** `.bw-num` role; every price, total and tag in Rubik with tabular figures (the
       tracking countdown moves with V4.4d); themed selection, caret, accent and scrollbar; the theme follows the system
       until chosen, applied before first paint; `.playwright-mcp/` ignored.
-- [ ] **V4.4b — Web restaurant.** Hero with name on photo, plates, flat dish list, quiet add control, menu filter,
-      owner toolbar and row actions.
+- [x] **V4.4b — Web restaurant.** Name on the photo over a scrim (plate tint when there is no photo), facts on the
+      page with a `tel:` link, one hairline-divided menu surface, a 40 px round add control (48 px hit area) and a
+      neutral −/tinted + stepper, in-cart count on the dish name, a menu filter above 8 dishes, and the owner's tools
+      in the side column (a toolbar above the menu below 1100 px). Focus hand-off add ↔ stepper re-verified by
+      keyboard.
 - [ ] **V4.4c — Web cart and checkout.** Cart with restaurant name, honest note, total in the CTA, inline checkout
       messages, price corrections explained on tracking, dock steps aside for the cart bar.
 - [ ] **V4.4d — Web tracking.** Arrival clock time, stage times, rail on `scaleX` (detector finding), receipt list.

@@ -1,5 +1,5 @@
 .bw-home {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-space-9);
+  gap: var(--bw-space-8);
 }

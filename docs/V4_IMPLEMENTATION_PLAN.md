@@ -37,8 +37,11 @@ from the first unchecked box.
       (היום / אתמול / "22 בספטמבר"), each day one hairline list; every past order has "פרטים" (its receipt on the
       tracking page) and "להזמין שוב". The dock no longer repeats itself on `/orders`, and it is painted `night`
       (it turned into a pale pill in dark mode).
-- [ ] **V4.4f — Web discovery.** Plates on cards, hero compaction, campaign strip, "להזמין שוב" row, search shows the
-      matched dish.
+- [x] **V4.4f — Web discovery.** Cards use the plate when there is no photo, a Rubik "מנות מ-₪…" label, and hover
+      zooms the photo without moving the card; the hero loses its decorative glow and its three photos become captioned
+      links to their restaurants; the campaign is an amber strip with a flag row (no eyebrow label); signed-in
+      customers get "להזמין שוב" from their own orders (one extra `GET /orders`, account-guarded, silent on failure);
+      search results say which dish, description or address matched, with the text marked.
 - [ ] **V4.4g — Web auth, World Cup, 404.** Brand panel, campaign page on the new rows.
 - [ ] **V4.5 — Mobile.** Same moves idiomatically: dish rows + add control, price type, cart CTA with total, orders
       sections, tracking arrival time, plates, campaign card.

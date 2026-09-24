@@ -7,19 +7,6 @@
   color: var(--bw-on-night);
 }
 
-/* One warm light source, behind the photos. */
-.bw-hero::before {
-  content: '';
-  position: absolute;
-  inset-block-start: -30%;
-  inset-inline-end: -10%;
-  width: 640px;
-  height: 640px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(217, 58, 30, 0.38) 0%, rgba(217, 58, 30, 0) 68%);
-  pointer-events: none;
-}
-
 .bw-hero__inner {
   position: relative;
   display: grid;
@@ -28,7 +15,7 @@
   gap: var(--bw-space-8);
   max-width: var(--bw-content-max);
   margin-inline: auto;
-  padding: var(--bw-space-9) var(--bw-gutter);
+  padding: var(--bw-space-8) var(--bw-gutter);
 }
 
 .bw-hero__text {
@@ -129,7 +116,7 @@ body.dark .bw-hero__search {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Photos: pinned snapshots, not a gallery. */
+/* Photos: pinned snapshots, each one a way into its restaurant. */
 .bw-hero__photos {
   display: none;
   gap: var(--bw-space-4);
@@ -137,28 +124,69 @@ body.dark .bw-hero__search {
 }
 
 .bw-hero__photo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--bw-radius-lg);
-  box-shadow: var(--bw-e3);
+  min-height: 128px;
+  transform: rotate(1.2deg);
 }
 
 .bw-hero__photo--tall {
   grid-row: span 2;
-  min-height: 300px;
+  min-height: 272px;
   transform: rotate(-1.5deg);
 }
 
-.bw-hero__photos img:not(.bw-hero__photo--tall) {
-  min-height: 142px;
-  transform: rotate(1.2deg);
+.bw-hero__photo-link {
+  position: relative;
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--bw-radius-lg);
+  background-color: rgba(255, 255, 255, 0.06);
+  box-shadow: var(--bw-e3);
+  color: #fff;
+  text-decoration: none;
+}
+
+.bw-hero__photo-link img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 420ms var(--bw-ease);
+}
+
+/* The name sits on its photo over a short scrim, like the restaurant
+   page's hero. */
+.bw-hero__photo-link::after {
+  content: '';
+  position: absolute;
+  inset: 45% 0 0;
+  background: linear-gradient(to top, rgba(20, 12, 32, 0.72), rgba(20, 12, 32, 0));
+  pointer-events: none;
+}
+
+.bw-hero__photo-name {
+  position: absolute;
+  z-index: 1;
+  inset-inline: var(--bw-space-3);
+  inset-block-end: var(--bw-space-2);
+  overflow: hidden;
+  font-size: var(--bw-caption);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .bw-hero__photo-link:hover img {
+    transform: scale(1.04);
+  }
 }
 
 @media (min-width: 900px) {
   .bw-hero__inner {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    padding-block: var(--bw-space-10);
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    padding-block: var(--bw-space-9);
   }
 
   .bw-hero__photos {

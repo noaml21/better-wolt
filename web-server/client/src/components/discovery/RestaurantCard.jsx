@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
-import { Icon, Media, Rating, Skeleton, Tag, formatPrice } from '../ui';
+import { Icon, Media, Plate, Rating, Skeleton, formatPrice } from '../ui';
 import { getMenuHighlights, getRestaurantMeta } from '../../services/restaurantMeta';
 import './RestaurantCard.css';
 
 /* The unit of discovery: photo first, then the three things that decide
-   an order — who, how good, how fast. The whole card is one link. */
+   an order — who, how good, how fast. The whole card is one link.
+   `note` replaces the menu highlights when the context has something more
+   specific to say (search: the dish that matched). */
 
-export default function RestaurantCard({ restaurant }) {
+export default function RestaurantCard({ restaurant, note }) {
   const meta = getRestaurantMeta(restaurant);
   const highlights = getMenuHighlights(restaurant);
 
@@ -17,15 +19,13 @@ export default function RestaurantCard({ restaurant }) {
           <Media
             src={restaurant.image}
             loading="lazy"
-            fallback={
-              <span className="bw-restaurant-card__placeholder" aria-hidden="true">
-                {restaurant.name?.trim().charAt(0)}
-              </span>
-            }
+            fallback={<Plate restaurant={restaurant} />}
           />
 
           {meta.fromPrice !== null && (
-            <Tag className="bw-restaurant-card__promo">מנות מ-{formatPrice(meta.fromPrice)}</Tag>
+            <span className="bw-restaurant-card__from">
+              מנות מ-<span className="bw-num">{formatPrice(meta.fromPrice)}</span>
+            </span>
           )}
         </div>
 
@@ -35,12 +35,16 @@ export default function RestaurantCard({ restaurant }) {
             <Rating value={meta.rating} />
           </div>
 
-          {highlights && <p className="bw-restaurant-card__highlights">{highlights}</p>}
+          {note ? (
+            <p className="bw-restaurant-card__note">{note}</p>
+          ) : (
+            highlights && <p className="bw-restaurant-card__highlights">{highlights}</p>
+          )}
 
           <p className="bw-restaurant-card__meta">
             <span>
               <Icon name="clock" size={15} />
-              {meta.eta} דק׳
+              <span className="bw-num">{meta.eta}</span> דק׳
             </span>
             <span className={meta.deliveryFee === 0 ? 'bw-restaurant-card__free' : undefined}>
               <Icon name="scooter" size={15} />

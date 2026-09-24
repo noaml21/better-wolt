@@ -10,20 +10,21 @@
   color: inherit;
   text-decoration: none;
   border-radius: var(--bw-radius-md);
-  transition: transform var(--bw-base) var(--bw-ease);
 }
 
-.bw-restaurant-card__link:hover {
-  text-decoration: none;
-  transform: translateY(-3px);
-}
+/* Hover moves the food, never the card (V4 spec §4.4). */
+@media (hover: hover) {
+  .bw-restaurant-card__link:hover {
+    text-decoration: none;
+  }
 
-.bw-restaurant-card__link:hover .bw-restaurant-card__media img {
-  transform: scale(1.04);
-}
+  .bw-restaurant-card__link:hover .bw-restaurant-card__media img {
+    transform: scale(1.03);
+  }
 
-.bw-restaurant-card__link:hover .bw-restaurant-card__name {
-  color: var(--bw-flame-deep);
+  .bw-restaurant-card__link:hover .bw-restaurant-card__name {
+    color: var(--bw-flame-deep);
+  }
 }
 
 .bw-restaurant-card__media {
@@ -38,26 +39,22 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--bw-slow) var(--bw-ease);
+  transition: transform 420ms var(--bw-ease);
 }
 
-.bw-restaurant-card__placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  font-family: var(--bw-font-display);
-  font-size: 3.5rem;
-  color: var(--bw-ink);
-  opacity: 0.18;
-}
-
-.bw-restaurant-card__promo {
+.bw-restaurant-card__from {
   position: absolute;
   inset-block-end: var(--bw-space-3);
   inset-inline-start: var(--bw-space-3);
   max-width: calc(100% - var(--bw-space-6));
-  overflow: hidden;
+  padding: 3px var(--bw-space-2);
+  border-radius: var(--bw-radius-xs);
+  background-color: var(--bw-surface);
+  color: var(--bw-ink);
+  font-size: var(--bw-micro);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--bw-e1);
 }
 
 .bw-restaurant-card__heading .bw-rating {
@@ -67,7 +64,7 @@
 .bw-restaurant-card__body {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-space-2);
+  gap: 6px;
   padding-block-start: var(--bw-space-3);
 }
 
@@ -81,7 +78,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--bw-h3);
+  font-size: 1.0625rem;
   font-weight: 700;
   transition: color var(--bw-fast) var(--bw-ease);
 }
@@ -93,6 +90,24 @@
   overflow: hidden;
   color: var(--bw-ink-muted);
   font-size: var(--bw-caption);
+}
+
+.bw-restaurant-card__note {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  color: var(--bw-ink);
+  font-size: var(--bw-caption);
+  font-weight: 500;
+}
+
+.bw-restaurant-card__note mark {
+  padding-inline: 2px;
+  border-radius: 3px;
+  background-color: var(--bw-amber-tint);
+  color: inherit;
+  font-weight: 700;
 }
 
 .bw-restaurant-card__meta {

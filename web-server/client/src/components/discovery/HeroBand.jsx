@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Chip, Icon, Media } from '../ui';
 import './HeroBand.css';
 
@@ -8,7 +8,7 @@ import './HeroBand.css';
 
 const quickSearches = ['פיצה', 'המבורגר', 'סושי', 'חומוס', 'פסטה', 'מתוק'];
 
-export default function HeroBand({ images = [] }) {
+export default function HeroBand({ restaurants = [] }) {
   const navigate = useNavigate();
   /* The cluster is three photographs or none. A photo that fails to load
      drops out of the running and the next restaurant's photo takes its
@@ -18,7 +18,9 @@ export default function HeroBand({ images = [] }) {
   const markBroken = useCallback((src) => {
     setBroken((current) => (current.has(src) ? current : new Set(current).add(src)));
   }, []);
-  const photos = images.filter((src) => src && !broken.has(src)).slice(0, 3);
+  /* Each photo is a way in: it opens the restaurant it came from, and
+     says whose it is, so the band is not decoration. */
+  const photos = restaurants.filter((restaurant) => restaurant.image && !broken.has(restaurant.image)).slice(0, 3);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -59,11 +61,16 @@ export default function HeroBand({ images = [] }) {
         </div>
 
         {photos.length === 3 && (
-          <div className="bw-hero__photos" aria-hidden="true">
-            <Media className="bw-hero__photo bw-hero__photo--tall" src={photos[0]} onFail={markBroken} />
-            <Media className="bw-hero__photo" src={photos[1]} onFail={markBroken} />
-            <Media className="bw-hero__photo" src={photos[2]} onFail={markBroken} />
-          </div>
+          <ul className="bw-hero__photos" aria-label="מהמטבחים הערב">
+            {photos.map((restaurant, index) => (
+              <li key={restaurant.id} className={`bw-hero__photo ${index === 0 ? 'bw-hero__photo--tall' : ''}`}>
+                <Link to={`/restaurant/${restaurant.id}`} className="bw-hero__photo-link">
+                  <Media src={restaurant.image} onFail={markBroken} />
+                  <span className="bw-hero__photo-name">{restaurant.name}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </section>

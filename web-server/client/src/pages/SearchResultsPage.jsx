@@ -10,6 +10,53 @@ import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/
 
 const suggestions = ['פיצה', 'המבורגר', 'סושי', 'חומוס', 'פסטה'];
 
+/* Why a restaurant matched, when its name does not say so (V4 audit B3).
+   The server matches name, address, dish names and descriptions (ARCHITECTURE
+   §4.2) but only returns restaurants; the same literal, case-insensitive test
+   run here names the dish or the address, with the searched text marked. */
+function markMatch(text, term) {
+  const at = text.toLowerCase().indexOf(term);
+
+  if (at < 0) {
+    return text;
+  }
+
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark>{text.slice(at, at + term.length)}</mark>
+      {text.slice(at + term.length)}
+    </>
+  );
+}
+
+export function matchNote(restaurant, query) {
+  const term = query.trim().toLowerCase();
+
+  if (!term || restaurant.name?.toLowerCase().includes(term)) {
+    return null;
+  }
+
+  const products = restaurant.products || [];
+  const byName = products.find((product) => product.name?.toLowerCase().includes(term));
+
+  if (byName) {
+    return <>נמצא בתפריט: {markMatch(byName.name, term)}</>;
+  }
+
+  const byDescription = products.find((product) => product.description?.toLowerCase().includes(term));
+
+  if (byDescription) {
+    return <>נמצא בתפריט: {byDescription.name} ({markMatch(byDescription.description, term)})</>;
+  }
+
+  if (restaurant.address?.toLowerCase().includes(term)) {
+    return <>בכתובת: {markMatch(restaurant.address, term)}</>;
+  }
+
+  return null;
+}
+
 export default function SearchResultsPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -123,7 +170,7 @@ export default function SearchResultsPage() {
       {status === 'ready' && results.length > 0 && (
         <ul className="bw-restaurant-grid" aria-label="תוצאות החיפוש">
           {results.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+            <RestaurantCard key={restaurant.id} restaurant={restaurant} note={matchNote(restaurant, query)} />
           ))}
         </ul>
       )}

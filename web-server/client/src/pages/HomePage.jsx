@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getRestaurants } from '../services/api';
 import { findWorldCupRestaurant } from '../services/restaurantMeta';
+import { restaurantCount } from '../services/counts';
 import { useAuth } from '../context/AuthContext';
 import { Button, EmptyState, ErrorState, SectionHeader } from '../components/ui';
 import HeroBand from '../components/discovery/HeroBand';
 import CampaignCard from '../components/discovery/CampaignCard';
+import OrderAgain from '../components/discovery/OrderAgain';
 import SponsoredCard from '../components/discovery/SponsoredCard';
 import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/RestaurantCard';
 import RestaurantFormDialog from '../components/owner/RestaurantFormDialog';
@@ -37,7 +39,6 @@ export default function HomePage() {
 
   const campaign = findWorldCupRestaurant(restaurants);
   const everyday = restaurants.filter((restaurant) => restaurant !== campaign);
-  const heroImages = everyday.filter((restaurant) => restaurant.image).map((restaurant) => restaurant.image);
   const canCreateRestaurant = isAuthenticated && user?.role === 'restaurant';
   const isEmpty = status === 'ready' && everyday.length === 0;
 
@@ -50,7 +51,7 @@ export default function HomePage() {
 
   return (
     <>
-      <HeroBand images={heroImages} />
+      <HeroBand restaurants={everyday} />
 
       <div className="bw-page">
         {status === 'error' ? (
@@ -61,13 +62,19 @@ export default function HomePage() {
           />
       ) : (
           <div className="bw-home">
+            {status === 'ready' && <OrderAgain restaurants={restaurants} />}
+
             {campaign && <CampaignCard restaurant={campaign} to="/world-cup" />}
 
             <section aria-labelledby="bw-home-restaurants">
               <SectionHeader
                 id="bw-home-restaurants"
                 title="כל המסעדות"
-                description={isEmpty ? undefined : 'נבחרת המסעדות שמשלוחות אליכם עכשיו.'}
+                description={
+                  status === 'ready' && !isEmpty
+                    ? `${restaurantCount(everyday.length)} שמשלוחות אליכם עכשיו.`
+                    : undefined
+                }
                 action={
                   canCreateRestaurant && (
                     <Button icon="store" variant="secondary" onClick={() => setCreateOpen(true)}>

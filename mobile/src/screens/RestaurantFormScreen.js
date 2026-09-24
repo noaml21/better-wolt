@@ -114,6 +114,18 @@ export default function RestaurantFormScreen({ navigation, route }) {
         navigation.goBack();
       }
     } catch (requestError) {
+      /* What this form edits is gone (removed on another device). Retrying
+         can only fail again; the screen underneath re-reads on focus. */
+      if (requestError.status === 404 && isEdit) {
+        showToast('המסעדה הזו כבר לא קיימת.', { tone: 'error' });
+
+        if (navigation.isFocused()) {
+          navigation.goBack();
+        }
+
+        return;
+      }
+
       setError(requestError.message);
       setSaving(false);
     }

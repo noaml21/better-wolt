@@ -70,6 +70,18 @@ export default function ProductFormScreen({ navigation, route }) {
         navigation.goBack();
       }
     } catch (requestError) {
+      /* What this form edits is gone (removed on another device). Retrying
+         can only fail again; the screen underneath re-reads on focus. */
+      if (requestError.status === 404) {
+        showToast(requestError.message === 'Restaurant not found' ? 'המסעדה הזו כבר לא קיימת.' : 'המנה הזו כבר לא בתפריט.', { tone: 'error' });
+
+        if (navigation.isFocused()) {
+          navigation.goBack();
+        }
+
+        return;
+      }
+
       setError(requestError.message);
       setSaving(false);
     }

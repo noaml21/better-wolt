@@ -208,9 +208,16 @@
 .bw-cart__cta .bw-button__label {
   display: flex;
   flex: 1;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--bw-space-3);
+  gap: 0 var(--bw-space-3);
+}
+
+/* Each half stays whole; a very large total moves to its own line
+   rather than breaking the action's name. */
+.bw-cart__cta .bw-button__label > span {
+  white-space: nowrap;
 }
 
 .bw-cart__cta-total {

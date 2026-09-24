@@ -7,7 +7,12 @@ export function formatPrice(amount) {
   const value = Number(amount);
   const safe = Number.isFinite(value) ? value : 0;
 
-  return `₪${safe % 1 === 0 ? safe : safe.toFixed(2)}`;
+  const [whole, fraction] = (safe % 1 === 0 ? String(safe) : safe.toFixed(2)).split('.');
+  // Grouped by hand rather than with Intl, so both clients (and every JS
+  // engine they run on) write ₪1,000,000 the same way.
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  return `₪${grouped}${fraction ? `.${fraction}` : ''}`;
 }
 
 /* The price tag, the status pill and the rating — the mobile half of the

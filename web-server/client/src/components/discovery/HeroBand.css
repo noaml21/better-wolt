@@ -197,3 +197,11 @@ body.dark .bw-hero__search {
     font-size: var(--bw-display-xl);
   }
 }
+
+/* The narrowest phones: the button gives up some padding so the field
+   keeps enough width to show its placeholder. */
+@media (max-width: 359px) {
+  .bw-hero__search button {
+    padding-inline: var(--bw-space-4);
+  }
+}

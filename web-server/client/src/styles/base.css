@@ -224,6 +224,22 @@ html {
   scrollbar-color: var(--bw-line) transparent;
 }
 
+/* Text people typed (dish and restaurant names, descriptions) takes its
+   direction from its own first strong character, so a line that starts
+   in English reads in English order inside the Hebrew page, while it
+   stays aligned with the Hebrew around it. */
+.bw-dish__label,
+.bw-dish__description,
+.bw-cart__line-name,
+.bw-restaurant-card__name,
+.bw-restaurant-card__highlights,
+.bw-tracking__item-label,
+.bw-past-order__name,
+.bw-worldcup-dish__name {
+  unicode-bidi: plaintext;
+  text-align: right;
+}
+
 .bw-nowrap {
   white-space: nowrap;
 }

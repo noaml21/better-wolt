@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -74,9 +74,14 @@ export default function TopBar() {
     }
   };
 
+  /* Leave and sign out in one render. React Router applies navigation as
+     a transition; an urgent sign-out would render first, on the page being
+     left, and a protected page's guard would then send you to /login
+     carrying this account's page as the place to return to — where the
+     next person to sign in would be sent. */
   const handleLogout = () => {
-    logout();
     navigate('/');
+    startTransition(() => logout());
   };
 
   return (

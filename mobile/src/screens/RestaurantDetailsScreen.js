@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { Alert, FlatList, Text, View } from 'react-native';
+import { Alert, FlatList, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStyles, rtl, space, useTheme } from '../theme';
@@ -40,6 +40,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   const [restaurant, setRestaurant] = useState(null);
   const [status, setStatus] = useState('loading');
   const [failedImage, setFailedImage] = useState(null);
+  const [menuQuery, setMenuQuery] = useState('');
   const shown = useRef(false);
 
   /* A silent load keeps what is on screen: a failed re-read leaves the
@@ -199,6 +200,15 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   const showCartBar = !isOwner && cart.itemsCount > 0 && cart.restaurantId === String(restaurant.id);
 
   const hasPhoto = Boolean(restaurant.image) && failedImage !== restaurant.image;
+  /* Finding one dish in a long menu (V4 audit A3): the API has no
+     categories, so the menu can be narrowed by what is typed instead.
+     Same threshold and matching as the web client. */
+  const filterable = products.length > 8;
+  const term = menuQuery.trim().toLowerCase();
+  const shownProducts =
+    filterable && term
+      ? products.filter((product) => `${product.name} ${product.description || ''}`.toLowerCase().includes(term))
+      : products;
 
   const header = (
     <View>
@@ -271,32 +281,61 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
           {products.length ? <Text style={styles.menuCount}>{dishCount(products.length)}</Text> : null}
         </View>
       </View>
+
+      {filterable ? (
+        <View style={styles.filter}>
+          <Icon name="search" size={18} color={colors.inkMuted} />
+          <TextInput
+            value={menuQuery}
+            onChangeText={setMenuQuery}
+            placeholder="חיפוש בתפריט"
+            placeholderTextColor={colors.inkMuted}
+            accessibilityLabel="חיפוש בתפריט"
+            returnKeyType="search"
+            style={styles.filterInput}
+          />
+          {menuQuery ? (
+            <IconButton icon="close" label="ניקוי החיפוש" size={16} onPress={() => setMenuQuery('')} />
+          ) : null}
+        </View>
+      ) : null}
     </View>
   );
 
   return (
     <Screen topInset={false}>
       <FlatList
-        data={products}
+        data={shownProducts}
         keyExtractor={(product) => String(product.id)}
         ListHeaderComponent={header}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <EmptyState
-            icon="bag"
-            title="התפריט עוד ריק"
-            description={
-              isOwner
-                ? 'הוסיפו את המנה הראשונה והיא תופיע כאן ללקוחות.'
-                : 'המסעדה עוד לא פרסמה מנות. שווה לבדוק שוב מאוחר יותר.'
-            }
-            actionLabel={isOwner ? 'הוספת מנה' : undefined}
-            onAction={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
-          />
+          products.length > 0 ? (
+            <EmptyState
+              icon="search"
+              title={`אין בתפריט מנה שמתאימה ל"${menuQuery.trim()}"`}
+              description="נסו מילה אחרת, או חזרו לתפריט המלא."
+              actionLabel="לתפריט המלא"
+              onAction={() => setMenuQuery('')}
+            />
+          ) : (
+            <EmptyState
+              icon="bag"
+              title="התפריט עוד ריק"
+              description={
+                isOwner
+                  ? 'הוסיפו את המנה הראשונה והיא תופיע כאן ללקוחות.'
+                  : 'המסעדה עוד לא פרסמה מנות. שווה לבדוק שוב מאוחר יותר.'
+              }
+              actionLabel={isOwner ? 'הוספת מנה' : undefined}
+              onAction={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
+            />
+          )
         }
         renderItem={({ item, index }) => (
           <DishRow
             first={index === 0}
-            last={index === products.length - 1}
+            last={index === shownProducts.length - 1}
             product={item}
             quantity={cart.restaurantId === String(restaurant.id) ? cart.quantities[item.id] || 0 : 0}
             onAdd={addToCart}
@@ -371,6 +410,19 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
   ownerTitle: { ...type.bodyL, fontWeight: '700', color: colors.ink },
   ownerActions: { ...rtl.row, flexWrap: 'wrap', gap: space[2] },
 
+  filter: {
+    ...rtl.row,
+    alignItems: 'center',
+    gap: space[2],
+    minHeight: 48,
+    marginBottom: space[4],
+    paddingHorizontal: space[4],
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  filterInput: { ...type.body, ...rtl.text, flex: 1, minHeight: 44, color: colors.ink },
   menuHeader: {
     ...rtl.row,
     alignItems: 'flex-end',

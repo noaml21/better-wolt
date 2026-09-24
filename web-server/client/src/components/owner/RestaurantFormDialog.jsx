@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createRestaurant, updateRestaurant } from '../../services/api';
 import { Button, Dialog, Field, InlineMessage, useToast } from '../ui';
+import ImagePreview from './ImagePreview';
 
 /* Create or edit a restaurant. The server owns validation and the error
    strings it returns are shown verbatim (ARCHITECTURE §4.3). */
@@ -127,6 +128,8 @@ export default function RestaurantFormDialog({ open, onClose, onSaved, restauran
           value={values.phone}
           onChange={handleChange}
           placeholder="03-0000000"
+          dir="ltr"
+          inputMode="tel"
         />
         <Field
           label="קישור לתמונה"
@@ -136,6 +139,11 @@ export default function RestaurantFormDialog({ open, onClose, onSaved, restauran
           onChange={handleChange}
           hint="תמונה רחבה של המסעדה או של מנה מובילה."
           placeholder="https://"
+          dir="ltr"
+        />
+        <ImagePreview
+          src={values.image.trim()}
+          restaurant={{ id: restaurant?.id || 'new', name: values.name || restaurant?.name || '' }}
         />
       </form>
     </Dialog>

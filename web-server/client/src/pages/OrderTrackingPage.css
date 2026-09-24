@@ -4,21 +4,37 @@
   gap: var(--bw-space-6);
 }
 
-.bw-tracking__intro h1 {
-  font-size: var(--bw-h2);
+.bw-tracking__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
 }
 
-/* The one loud surface in the product. */
+.bw-tracking__intro h1 {
+  font-size: clamp(2rem, 1.6rem + 1.6vw, var(--bw-display-l));
+}
+
+.bw-tracking__restaurant {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--bw-line);
+  text-underline-offset: 3px;
+}
+
+.bw-tracking__restaurant:hover {
+  color: var(--bw-ink);
+  text-decoration-color: currentColor;
+}
+
+/* The product's one loud surface (V3 spec §3.2), and its showpiece. */
 .bw-tracking__stage {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--bw-space-2);
-  padding: var(--bw-space-8) var(--bw-space-6) var(--bw-space-7);
+  gap: var(--bw-space-5);
+  padding: var(--bw-space-7) var(--bw-space-6);
   border-radius: var(--bw-radius-lg);
   background-color: var(--bw-night);
   color: var(--bw-on-night);
-  text-align: center;
 }
 
 .bw-tracking__stage--arrived {
@@ -26,114 +42,235 @@
   color: var(--bw-on-herb);
 }
 
-.bw-tracking__countdown-label {
+.bw-tracking__eta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--bw-space-1);
+}
+
+.bw-tracking__big {
+  font-size: clamp(3.25rem, 2.6rem + 3vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.bw-tracking__big.bw-display {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.bw-tracking__sub {
   color: var(--bw-amber);
-  font-size: var(--bw-caption);
+  font-size: var(--bw-body);
   font-weight: 600;
 }
 
-.bw-tracking__stage--arrived .bw-tracking__countdown-label {
+.bw-tracking__stage--arrived .bw-tracking__sub {
   color: inherit;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
-.bw-tracking__countdown {
-  display: flex;
+.bw-tracking__done {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 84px;
-  font-size: 4.5rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-}
-
-.bw-tracking__status {
-  font-size: var(--bw-body-l);
-  opacity: 0.85;
-}
-
-/* Rail ---------------------------------------------------------------- */
-
-.bw-tracking__rail {
-  width: 100%;
-  margin-block-start: var(--bw-space-7);
-}
-
-.bw-tracking__track {
-  position: relative;
-  height: 4px;
-  margin-inline: 18px;
+  width: 56px;
+  height: 56px;
+  margin-block-end: var(--bw-space-2);
   border-radius: var(--bw-radius-pill);
   background-color: rgba(255, 255, 255, 0.18);
 }
 
-.bw-tracking__stage--arrived .bw-tracking__track {
-  background-color: rgba(0, 0, 0, 0.16);
+.bw-tracking__status {
+  font-size: var(--bw-body-l);
+  opacity: 0.88;
 }
 
-.bw-tracking__fill {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-amber);
-  transition: width var(--bw-story) var(--bw-ease);
+/* Rail: four stops with the time each begins. Each segment fills on its
+   own (getSegmentFill), drawn with transform so the fill never lays the
+   rail out again (the detector's layout-transition finding). Vertical on
+   phones, horizontal from 600px. */
+
+.bw-track {
+  --dot: 28px;
+  display: flex;
+  flex-direction: column;
+  margin-block-start: var(--bw-space-2);
 }
 
-.bw-tracking__rider {
-  position: absolute;
-  inset-block-start: 50%;
+.bw-track__stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--dot) 1fr auto;
+  align-items: center;
+  column-gap: var(--bw-space-3);
+  min-height: 52px;
+  padding-block-end: var(--bw-space-4);
+}
+
+.bw-track__stop:last-child {
+  min-height: 0;
+  padding-block-end: 0;
+}
+
+.bw-track__dot {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  margin-inline-start: -19px;
+  width: var(--dot);
+  height: var(--dot);
+  border: 2px solid rgba(255, 255, 255, 0.28);
   border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-night);
+  transition: background-color var(--bw-base) var(--bw-ease), border-color var(--bw-base) var(--bw-ease);
+}
+
+.bw-track__stop--done .bw-track__dot,
+.bw-track__stop--current .bw-track__dot {
+  border-color: var(--bw-amber);
   background-color: var(--bw-amber);
   color: var(--bw-on-amber);
-  transform: translateY(-50%);
-  transition: inset-inline-start var(--bw-story) var(--bw-ease);
 }
 
-.bw-tracking__stops {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--bw-space-2);
-  margin-block-start: var(--bw-space-6);
-  font-size: var(--bw-micro);
+/* The stop the order is at breathes, slowly. Purely decorative: the
+   stage note says the same thing in text. */
+.bw-track__stop--current .bw-track__dot::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 rgba(240, 162, 21, 0.55);
+  animation: bw-track-halo 2.4s var(--bw-ease) infinite;
+}
+
+@keyframes bw-track-halo {
+  0% {
+    box-shadow: 0 0 0 0 rgba(240, 162, 21, 0.5);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 12px rgba(240, 162, 21, 0);
+  }
+}
+
+.bw-track__segment {
+  position: absolute;
+  inset-inline-start: calc(var(--dot) / 2 - 1px);
+  inset-block: calc(var(--dot) + 2px) 2px;
+  width: 2px;
+  overflow: hidden;
+  border-radius: var(--bw-radius-pill);
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.bw-track__fill {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bw-amber);
+  transform: scaleY(var(--fill, 0));
+  transform-origin: top;
+  transition: transform var(--bw-story) var(--bw-ease);
+}
+
+.bw-track__label {
+  font-size: var(--bw-body);
   font-weight: 600;
+  opacity: 0.6;
 }
 
-.bw-tracking__stop {
-  flex: 1;
-  opacity: 0.5;
-  transition: opacity var(--bw-base) var(--bw-ease);
-}
-
-.bw-tracking__stop:first-child {
-  text-align: start;
-}
-
-.bw-tracking__stop:last-child {
-  text-align: end;
-}
-
-.bw-tracking__stop--done {
+.bw-track__stop--done .bw-track__label,
+.bw-track__stop--current .bw-track__label {
   opacity: 1;
 }
 
-/* Summary ------------------------------------------------------------- */
+.bw-track__time {
+  font-size: var(--bw-caption);
+  font-weight: 500;
+  opacity: 0.7;
+}
 
-.bw-tracking__summary {
+.bw-tracking__stage--arrived .bw-track__dot {
+  background-color: var(--bw-on-herb);
+  border-color: var(--bw-on-herb);
+  color: var(--bw-herb);
+}
+
+.bw-tracking__stage--arrived .bw-track__segment {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.bw-tracking__stage--arrived .bw-track__fill {
+  background-color: var(--bw-on-herb);
+}
+
+@media (min-width: 600px) {
+  .bw-tracking__stage {
+    padding: var(--bw-space-8);
+  }
+
+  .bw-track {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  }
+
+  .bw-track__stop {
+    grid-template-columns: auto;
+    grid-template-rows: var(--dot) auto auto;
+    justify-items: start;
+    row-gap: var(--bw-space-1);
+    align-items: start;
+    min-height: 0;
+    padding-block-end: 0;
+  }
+
+  .bw-track__dot {
+    margin-block-end: var(--bw-space-2);
+  }
+
+  .bw-track__segment {
+    inset-inline: calc(var(--dot) + 6px) 6px;
+    inset-block: calc(var(--dot) / 2 - 1px) auto;
+    width: auto;
+    height: 2px;
+  }
+
+  /* RTL-only app: the rail runs from the right. */
+  .bw-track__fill {
+    transform: scaleX(var(--fill, 0));
+    transform-origin: right;
+  }
+
+  .bw-track__label {
+    font-size: var(--bw-caption);
+  }
+}
+
+/* Receipt ------------------------------------------------------------- */
+
+.bw-tracking__receipt {
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-4);
-  padding: var(--bw-space-5);
+  padding: var(--bw-space-6);
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-surface);
 }
 
-.bw-tracking__summary h2 {
-  font-size: var(--bw-h3);
+.bw-tracking__receipt-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+}
+
+.bw-tracking__receipt-head h2 {
+  font-size: 1.25rem;
 }
 
 .bw-tracking__items {
@@ -147,20 +284,25 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--bw-space-4);
-  font-size: var(--bw-body);
 }
 
 .bw-tracking__item-name {
-  display: inline-flex;
+  display: flex;
+  align-items: baseline;
   gap: var(--bw-space-2);
   min-width: 0;
+}
+
+.bw-tracking__item-label {
+  min-width: 0;
   overflow-wrap: anywhere;
+  unicode-bidi: isolate;
 }
 
 .bw-tracking__item-quantity {
-  color: var(--bw-flame-deep);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  color: var(--bw-ink-muted);
+  font-weight: 600;
 }
 
 .bw-tracking__total {
@@ -169,22 +311,10 @@
   justify-content: space-between;
   padding-block-start: var(--bw-space-4);
   border-block-start: 1px solid var(--bw-line);
+  font-weight: 600;
 }
 
 .bw-tracking__total strong {
-  font-family: var(--bw-font-ui);
+  font-size: 1.5rem;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--bw-h2);
-}
-
-@media (min-width: 600px) {
-  .bw-tracking__countdown {
-    font-size: 5.5rem;
-    min-height: 100px;
-  }
-
-  .bw-tracking__stops {
-    font-size: var(--bw-caption);
-  }
 }

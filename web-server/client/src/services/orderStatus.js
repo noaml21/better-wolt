@@ -44,6 +44,38 @@ export function getStageIndex(secondsLeft) {
   return 0;
 }
 
+/* When each stage begins, in seconds after the order was placed — the
+   same thresholds getStageIndex reads, stated the other way round. */
+export const STAGE_STARTS = [0, DELIVERY_SECONDS - 1740, DELIVERY_SECONDS - 900, DELIVERY_SECONDS];
+
+/* How far along the segment after stage `index` the order is, 0…1. The
+   tracking rail draws stages evenly spaced, so each segment fills at its
+   own pace rather than the first one taking 3% of the width. */
+export function getSegmentFill(index, secondsLeft) {
+  const elapsed = DELIVERY_SECONDS - secondsLeft;
+  const from = STAGE_STARTS[index];
+  const to = STAGE_STARTS[index + 1];
+
+  if (to === undefined) {
+    return 0;
+  }
+
+  return Math.min(1, Math.max(0, (elapsed - from) / (to - from)));
+}
+
+const clockFormat = new Intl.DateTimeFormat('he-IL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+
+export function formatClock(epochMs) {
+  return clockFormat.format(new Date(epochMs));
+}
+
+/* The clock time each stage starts, for an order with a startTime. */
+export function getStageTimes(order) {
+  const start = Number(order?.startTime);
+
+  return Number.isFinite(start) ? STAGE_STARTS.map((offset) => formatClock(start + offset * 1000)) : [];
+}
+
 export function getProgress(secondsLeft) {
   return Math.min(100, Math.max(0, ((DELIVERY_SECONDS - secondsLeft) / DELIVERY_SECONDS) * 100));
 }

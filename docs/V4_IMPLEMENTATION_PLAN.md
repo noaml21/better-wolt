@@ -28,7 +28,11 @@ from the first unchecked box.
       itself (`usePlaceOrder().problem`, dismissible, cleared on retry or account change). A total the server
       corrected is handed to tracking in navigation state and explained there. The order dock hides while the cart
       bar is up. Verified with the order endpoint intercepted (500, menu-changed 404, corrected total). Web Jest 29.
-- [ ] **V4.4d — Web tracking.** Arrival clock time, stage times, rail on `scaleX` (detector finding), receipt list.
+- [x] **V4.4d — Web tracking.** The big number is the arrival clock time (Rubik, tabular) with "עוד N דק׳" under
+      it; four stops with the time each begins, vertical on phones and horizontal from 600 px; each segment fills on
+      its own through `transform` (detector clean again); the current stop's halo is decorative and stops under
+      reduced motion; the receipt is one surface; "להזמין שוב" leads back to the restaurant. Stages checked by
+      intercepting `GET /orders/:id` at 5, 21 and 32 minutes, light and dark, 1440 and 390.
 - [ ] **V4.4e — Web orders.** Active/past sections, rows in one surface, dates in words, reorder.
 - [ ] **V4.4f — Web discovery.** Plates on cards, hero compaction, campaign strip, "להזמין שוב" row, search shows the
       matched dish.

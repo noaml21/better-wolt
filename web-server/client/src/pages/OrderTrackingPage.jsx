@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { getOrderById } from '../services/api';
 import {
-  formatCountdown,
+  formatClock,
   formatOrderNumber,
-  getProgress,
   getSecondsLeft,
+  getSegmentFill,
   getStageIndex,
+  getStageTimes,
   stages,
+  DELIVERY_SECONDS,
 } from '../services/orderStatus';
+import { itemCount } from '../services/counts';
 import {
-  Card,
   EmptyState,
   ErrorState,
   Icon,
@@ -94,74 +96,124 @@ export default function OrderTrackingPage() {
   }
 
   const stageIndex = getStageIndex(secondsLeft);
-  const progress = getProgress(secondsLeft);
   const arrived = secondsLeft <= 0;
   const stage = stages[stageIndex];
+  const stageTimes = getStageTimes(order);
+  const arrivalTime = Number.isFinite(Number(order.startTime))
+    ? formatClock(Number(order.startTime) + DELIVERY_SECONDS * 1000)
+    : null;
+  const minutesLeft = Math.ceil(secondsLeft / 60);
+  const units = (order.orderItems || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
 
   return (
     <div className="bw-page bw-page--narrow bw-tracking">
       <header className="bw-tracking__intro">
-        <h1>{arrived ? 'ההזמנה הגיעה' : 'ההזמנה בדרך'}</h1>
+        <h1 className="bw-display">{arrived ? 'ההזמנה הגיעה' : 'ההזמנה בדרך'}</h1>
         <p className="bw-meta">
-          {order.restaurantName}
+          {order.restaurant ? (
+            <Link className="bw-tracking__restaurant" to={`/restaurant/${order.restaurant}`}>
+              {order.restaurantName}
+            </Link>
+          ) : (
+            order.restaurantName
+          )}
           {' · '}
           <span className="bw-order-number">{formatOrderNumber(order.id)}</span>
         </p>
       </header>
 
-      <section className={`bw-tracking__stage ${arrived ? 'bw-tracking__stage--arrived' : ''}`}>
-        <p className="bw-tracking__countdown-label">{arrived ? 'ההזמנה הגיעה' : 'זמן משוער להגעה'}</p>
+      <section
+        className={`bw-tracking__stage ${arrived ? 'bw-tracking__stage--arrived' : ''}`}
+        aria-label="מצב ההזמנה"
+      >
+        <div className="bw-tracking__eta">
+          {arrived ? (
+            <>
+              <span className="bw-tracking__done" aria-hidden="true">
+                <Icon name="check" size={36} strokeWidth={2.4} />
+              </span>
+              <p className="bw-tracking__big bw-display">בתיאבון</p>
+              {arrivalTime && (
+                <p className="bw-tracking__sub">
+                  הגיעה ב-<span className="bw-num">{arrivalTime}</span>
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              {/* The clock time is what a person plans around; the
+                  minutes are the reassurance. Neither is announced every
+                  tick — the stage note below is the live region. */}
+              <p className="bw-tracking__big bw-num" aria-live="off">
+                {arrivalTime}
+              </p>
+              <p className="bw-tracking__sub">
+                הגעה משוערת · עוד <span className="bw-num">{minutesLeft}</span> דק׳
+              </p>
+            </>
+          )}
+        </div>
 
-        <p className="bw-tracking__countdown bw-display" aria-live="off">
-          {arrived ? <Icon name="check" size={64} strokeWidth={2.2} /> : formatCountdown(secondsLeft)}
-        </p>
-
-        <p className="bw-tracking__status" role="status">
+        {/* The live region. Once delivered the big word already says it,
+            so the note is kept for screen readers only. */}
+        <p className={`bw-tracking__status ${arrived ? 'bw-visually-hidden' : ''}`} role="status">
           {stage.note}
         </p>
 
-        <div className="bw-tracking__rail">
-          <div className="bw-tracking__track" aria-hidden="true">
-            <span className="bw-tracking__fill" style={{ width: `${progress}%` }} />
-            <span className="bw-tracking__rider" style={{ insetInlineStart: `${progress}%` }}>
-              <Icon name={arrived ? 'check' : 'scooter'} size={20} />
-            </span>
-          </div>
+        <ol className="bw-track">
+          {stages.map((item, index) => {
+            const done = index < stageIndex || arrived;
+            const current = index === stageIndex && !arrived;
 
-          <ol className="bw-tracking__stops">
-            {stages.map((item, index) => (
+            return (
               <li
                 key={item.key}
-                className={`bw-tracking__stop ${index <= stageIndex ? 'bw-tracking__stop--done' : ''}`}
+                className={`bw-track__stop ${done ? 'bw-track__stop--done' : ''} ${current ? 'bw-track__stop--current' : ''}`}
                 aria-current={index === stageIndex ? 'step' : undefined}
               >
-                {item.label}
+                <span className="bw-track__dot" aria-hidden="true">
+                  {done && <Icon name="check" size={14} strokeWidth={2.6} />}
+                  {current && <Icon name="scooter" size={16} />}
+                </span>
+                {index < stages.length - 1 && (
+                  <span className="bw-track__segment" aria-hidden="true">
+                    <span
+                      className="bw-track__fill"
+                      style={{ '--fill': arrived ? 1 : getSegmentFill(index, secondsLeft) }}
+                    />
+                  </span>
+                )}
+                <span className="bw-track__label">{item.label}</span>
+                {stageTimes[index] && <span className="bw-track__time bw-num">{stageTimes[index]}</span>}
               </li>
-            ))}
-          </ol>
-        </div>
+            );
+          })}
+        </ol>
       </section>
 
-      <Card className="bw-tracking__summary">
-        <h2>מה בהזמנה</h2>
+      <section className="bw-tracking__receipt" aria-labelledby="bw-receipt-title">
+        <header className="bw-tracking__receipt-head">
+          <h2 id="bw-receipt-title">מה בהזמנה</h2>
+          <span className="bw-meta">{itemCount(units)}</span>
+        </header>
 
         <ul className="bw-tracking__items">
           {(order.orderItems || []).map((item) => (
             <li key={item.productId}>
               <span className="bw-tracking__item-name">
-                <span className="bw-tracking__item-quantity" dir="ltr">
+                <span className="bw-tracking__item-quantity bw-num" dir="ltr">
                   {item.quantity}×
                 </span>
-                {item.name}
+                <span className="bw-tracking__item-label">{item.name}</span>
               </span>
-              <span>{formatPrice(item.price * item.quantity)}</span>
+              <span className="bw-num">{formatPrice(item.price * item.quantity)}</span>
             </li>
           ))}
         </ul>
 
         <p className="bw-tracking__total">
           <span>סך הכול</span>
-          <strong>{formatPrice(order.total)}</strong>
+          <strong className="bw-num">{formatPrice(order.total)}</strong>
         </p>
 
         {priceCorrection && (
@@ -171,14 +223,16 @@ export default function OrderTrackingPage() {
             העדכני: <span className="bw-num">{formatPrice(priceCorrection.charged)}</span>.
           </InlineMessage>
         )}
-      </Card>
+      </section>
 
       <div className="bw-actions">
-        <LinkButton to="/orders" variant="secondary">
+        {order.restaurant && (
+          <LinkButton to={`/restaurant/${order.restaurant}`} variant="secondary" icon="store">
+            להזמין שוב
+          </LinkButton>
+        )}
+        <LinkButton to="/orders" variant="ghost">
           לכל ההזמנות
-        </LinkButton>
-        <LinkButton to="/restaurants" variant="ghost">
-          להזמין עוד משהו
         </LinkButton>
       </div>
     </div>

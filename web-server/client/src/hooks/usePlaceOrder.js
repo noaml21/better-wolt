@@ -15,9 +15,10 @@ import { useToast } from '../components/ui';
    act on even when the page is still open. `from` is where
    signing in should return to. */
 
-/* Contract string (ARCHITECTURE §4.3): the cart names a dish the menu no
-   longer has — the owner removed it while the page was open. */
-const DISH_GONE = 'Product not found in restaurant menu';
+/* Contract strings (ARCHITECTURE §4.3): the cart names a dish the menu no
+   longer has, or the restaurant itself is gone — changed by the owner
+   while the page was open. */
+const MENU_GONE = ['Product not found in restaurant menu', 'Restaurant not found'];
 
 export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMenuChanged }) {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
         return;
       }
 
-      if (error.status === 404 && error.message === DISH_GONE && onMenuChanged) {
+      if (error.status === 404 && MENU_GONE.includes(error.message) && onMenuChanged) {
         await onMenuChanged();
         return;
       }

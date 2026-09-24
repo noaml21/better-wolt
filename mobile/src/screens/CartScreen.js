@@ -24,6 +24,7 @@ import {
 /* Contract string (ARCHITECTURE §4.3): the cart names a dish the menu no
    longer has — the owner removed it after it was added. */
 const DISH_GONE = 'Product not found in restaurant menu';
+const RESTAURANT_GONE = 'Restaurant not found';
 
 export default function CartScreen({ navigation }) {
   const styles = useStyles();
@@ -69,6 +70,12 @@ export default function CartScreen({ navigation }) {
       }
     } catch (requestError) {
       if (!mounted.current) {
+        return;
+      }
+
+      if (requestError.status === 404 && requestError.message === RESTAURANT_GONE) {
+        cart.clear();
+        showToast('המסעדה נסגרה בינתיים, והסל התרוקן.', { tone: 'error' });
         return;
       }
 

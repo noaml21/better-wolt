@@ -108,9 +108,10 @@ export default function RestaurantPage() {
     cart,
     from: `/restaurant/${id}`,
     onPlaced: () => setCartOpen(false),
-    /* The order named a dish that is gone. Nothing was ordered; show the
-       menu as it is now, take the missing dishes out of the cart and say
-       which, so the next attempt can succeed. */
+    /* The order named a dish that is gone, or the restaurant is. Nothing
+       was ordered; show the menu as it is now (a closed restaurant turns
+       the page into its "not found" state), take the missing dishes out
+       of the cart and say which, so the next attempt can succeed. */
     onMenuChanged: async () => {
       const fresh = await load({
         refresh: true,

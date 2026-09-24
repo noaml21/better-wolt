@@ -1,20 +1,48 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
-import { Button, Card, IconButton, QuantityStepper, Tag, formatPrice } from '../ui';
+import { Icon, IconButton, QuantityStepper, formatPrice } from '../ui';
 
-/* One dish. Customers add and adjust; the owner edits and deletes in the
+/* One dish, read the way a menu is read: name, what is in it, what it
+   costs (V4 spec §5). Rows sit together on one surface divided by
+   hairlines — `first`/`last` round the surface's corners — instead of a
+   card each. The add action repeats on every row, so it is a quiet round
+   control, not a labelled button. The owner edits and deletes in the
    same row, so the menu is managed where it is read. */
 
-export default function DishRow({ product, quantity = 0, onAdd, onRemove, isOwner, onEdit, onDelete }) {
+export default function DishRow({
+  product,
+  quantity = 0,
+  onAdd,
+  onRemove,
+  isOwner,
+  onEdit,
+  onDelete,
+  first = false,
+  last = false,
+}) {
   const styles = useStyles();
+  const inCart = quantity > 0;
 
   return (
-    <Card style={styles.card}>
+    <View style={[styles.row, first && styles.first, last && styles.last]}>
+      {!first ? <View style={styles.hairline} /> : null}
+
       <View style={styles.text}>
-        <Text style={styles.name}>{product.name}</Text>
-        {product.description ? <Text style={styles.description}>{product.description}</Text> : null}
-        <Tag style={styles.price}>{formatPrice(product.price)}</Tag>
+        <View style={styles.nameRow}>
+          {inCart ? (
+            <View style={styles.count} accessibilityElementsHidden importantForAccessibility="no">
+              <Text style={styles.countText}>{quantity}</Text>
+            </View>
+          ) : null}
+          <Text style={styles.name}>{product.name}</Text>
+        </View>
+        {product.description ? (
+          <Text style={styles.description} numberOfLines={2}>
+            {product.description}
+          </Text>
+        ) : null}
+        <Text style={styles.price}>{formatPrice(product.price)}</Text>
       </View>
 
       <View style={styles.action}>
@@ -23,7 +51,7 @@ export default function DishRow({ product, quantity = 0, onAdd, onRemove, isOwne
             <IconButton icon="edit" label={`עריכת ${product.name}`} variant="outline" onPress={() => onEdit(product)} />
             <IconButton icon="trash" label={`מחיקת ${product.name}`} variant="danger" onPress={() => onDelete(product)} />
           </>
-        ) : quantity > 0 ? (
+        ) : inCart ? (
           <QuantityStepper
             value={quantity}
             label={product.name}
@@ -31,32 +59,68 @@ export default function DishRow({ product, quantity = 0, onAdd, onRemove, isOwne
             onIncrease={() => onAdd(product)}
           />
         ) : (
-          <Button
-            size="sm"
-            icon="plus"
+          <Pressable
             onPress={() => onAdd(product)}
+            hitSlop={4}
+            accessibilityRole="button"
             accessibilityLabel={`הוספה: ${product.name}`}
+            style={({ pressed }) => [styles.add, pressed && styles.addPressed]}
           >
-            הוספה
-          </Button>
+            <Icon name="plus" size={20} color={styles.addGlyph.color} />
+          </Pressable>
         )}
       </View>
-    </Card>
+    </View>
   );
 }
 
-const useStyles = createStyles(({ colors, space, type }) => ({
-  card: {
+const useStyles = createStyles(({ colors, space, radius, type, isDark }) => ({
+  row: {
     ...rtl.row,
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: space[4],
-    padding: space[4],
-    marginBottom: space[3],
+    gap: space[3],
+    paddingHorizontal: space[4],
+    paddingVertical: space[4],
+    backgroundColor: colors.surface,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.line,
   },
-  text: { flex: 1, gap: space[2], alignItems: 'flex-end' },
-  name: { ...type.h3, ...rtl.text, color: colors.ink },
-  description: { ...type.caption, ...rtl.text, color: colors.inkMuted },
-  price: { marginTop: space[1] },
+  first: { borderTopWidth: 1, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
+  last: { borderBottomWidth: 1, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
+  hairline: {
+    position: 'absolute',
+    top: 0,
+    left: space[4],
+    right: space[4],
+    height: 1,
+    backgroundColor: colors.line,
+  },
+  text: { flex: 1, gap: 4, alignItems: 'flex-end' },
+  nameRow: { ...rtl.row, alignItems: 'center', gap: space[2], maxWidth: '100%' },
+  count: {
+    minWidth: 22,
+    height: 22,
+    paddingHorizontal: 6,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.flame,
+  },
+  countText: { ...type.micro, ...type.num, color: colors.onFlame, fontWeight: '800' },
+  name: { ...type.h3, ...rtl.text, flexShrink: 1, fontSize: 17, lineHeight: 23, fontWeight: '600', color: colors.ink },
+  description: { ...type.caption, ...rtl.text, fontWeight: '400', fontSize: 14, lineHeight: 20, color: colors.inkMuted },
+  price: { ...type.price, ...rtl.text, marginTop: 2, color: colors.ink },
   action: { ...rtl.row, alignItems: 'center', gap: space[2] },
+  add: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.flameTint,
+  },
+  addPressed: { opacity: 0.85, transform: [{ scale: 0.94 }] },
+  addGlyph: { color: isDark ? colors.flame : colors.flameDeep },
 }));

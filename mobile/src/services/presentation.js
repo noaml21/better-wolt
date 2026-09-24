@@ -36,6 +36,14 @@ export function getRestaurantMeta(restaurant) {
   };
 }
 
+/* The tint a restaurant's plate uses when it has no photo (V4 spec §4.1);
+   the web client derives the same tone from the same id. */
+const PLATE_TONES = ['amber', 'flame', 'herb', 'ink'];
+
+export function getPlateTone(restaurant) {
+  return PLATE_TONES[(hashId(restaurant?.id) >>> 5) % PLATE_TONES.length];
+}
+
 export function getMenuHighlights(restaurant, limit = 3) {
   return (restaurant?.products || [])
     .slice(0, limit)
@@ -125,4 +133,105 @@ export function orderCount(count) {
 
 export function resultCount(count) {
   return count === 1 ? 'תוצאה אחת' : `${count} תוצאות`;
+}
+
+/* V4 tracking and history helpers — the web client's orderStatus.js has
+   the same rules (docs/V4_DESIGN_SPEC.md §5, §6). */
+
+/* When each stage begins, in seconds after the order was placed: the
+   thresholds getStageIndex reads, stated the other way round. */
+export const STAGE_STARTS = [0, DELIVERY_SECONDS - 1740, DELIVERY_SECONDS - 900, DELIVERY_SECONDS];
+
+export function getSegmentFill(index, secondsLeft) {
+  const elapsed = DELIVERY_SECONDS - secondsLeft;
+  const from = STAGE_STARTS[index];
+  const to = STAGE_STARTS[index + 1];
+
+  if (to === undefined) {
+    return 0;
+  }
+
+  return Math.min(1, Math.max(0, (elapsed - from) / (to - from)));
+}
+
+/* Hermes' Intl is enough for times; padded by hand so the clock reads
+   the same on every engine. */
+export function formatClock(epochMs) {
+  const date = new Date(epochMs);
+
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+export function getStageTimes(order) {
+  const start = Number(order?.startTime);
+
+  return Number.isFinite(start) ? STAGE_STARTS.map((offset) => formatClock(start + offset * 1000)) : [];
+}
+
+export function getArrivalTime(order) {
+  const start = Number(order?.startTime);
+
+  return Number.isFinite(start) ? formatClock(start + DELIVERY_SECONDS * 1000) : null;
+}
+
+const MONTHS = ['בינואר', 'בפברואר', 'במרץ', 'באפריל', 'במאי', 'ביוני', 'ביולי', 'באוגוסט', 'בספטמבר', 'באוקטובר', 'בנובמבר', 'בדצמבר'];
+
+function localDateKey(date) {
+  const pad = (value) => String(value).padStart(2, '0');
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/* An order's day in words: היום, אתמול, or "22 בספטמבר". */
+export function formatOrderDay(dateKey, now = new Date()) {
+  if (!dateKey) {
+    return '';
+  }
+
+  if (dateKey === localDateKey(now)) {
+    return 'היום';
+  }
+
+  if (dateKey === localDateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))) {
+    return 'אתמול';
+  }
+
+  const [, month, day] = dateKey.split('-').map(Number);
+
+  return month && day ? `${day} ${MONTHS[month - 1]}` : dateKey;
+}
+
+/* Why a search result matched when its name does not say so (V4 audit
+   B3): the dish, the dish's description, or the address. Returns the
+   pieces so the screen can mark the searched text. */
+export function getMatchNote(restaurant, query) {
+  const term = String(query || '').trim().toLowerCase();
+
+  if (!term || restaurant?.name?.toLowerCase().includes(term)) {
+    return null;
+  }
+
+  const split = (text) => {
+    const at = text.toLowerCase().indexOf(term);
+
+    return at < 0 ? { before: text, match: '', after: '' } : { before: text.slice(0, at), match: text.slice(at, at + term.length), after: text.slice(at + term.length) };
+  };
+  const products = restaurant?.products || [];
+  const byName = products.find((product) => product.name?.toLowerCase().includes(term));
+
+  if (byName) {
+    return { label: 'נמצא בתפריט: ', ...split(byName.name) };
+  }
+
+  const byDescription = products.find((product) => product.description?.toLowerCase().includes(term));
+
+  if (byDescription) {
+    return { label: `נמצא בתפריט: ${byDescription.name} · `, ...split(byDescription.description) };
+  }
+
+  if (restaurant?.address?.toLowerCase().includes(term)) {
+    return { label: 'בכתובת: ', ...split(restaurant.address) };
+  }
+
+  return null;
 }

@@ -1,13 +1,15 @@
 import React from 'react';
 import { Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
-import { Card, Media, MetaItem, Rating, Tag, formatPrice } from '../ui';
+import { Card, Media, MetaItem, Plate, Rating, formatPrice } from '../ui';
 import { getMenuHighlights, getRestaurantMeta } from '../services/presentation';
 
 /* Photo first, then the three things that decide an order. Mirrors the
    web card so the two clients read as one product. */
 
-export default function RestaurantCard({ restaurant, onPress }) {
+/* `note` replaces the menu highlights when the screen has something more
+   specific to say (search: what matched). */
+export default function RestaurantCard({ restaurant, onPress, note }) {
   const styles = useStyles();
   const meta = getRestaurantMeta(restaurant);
   const highlights = getMenuHighlights(restaurant);
@@ -18,11 +20,13 @@ export default function RestaurantCard({ restaurant, onPress }) {
         <Media
           uri={restaurant.image}
           style={styles.image}
-          fallback={<Text style={styles.placeholder}>{restaurant.name?.trim().charAt(0)}</Text>}
+          fallback={<Plate restaurant={restaurant} size={40} />}
         />
 
         {meta.fromPrice !== null ? (
-          <Tag style={styles.tag}>מנות מ-{formatPrice(meta.fromPrice)}</Tag>
+          <View style={styles.from}>
+            <Text style={styles.fromText}>מנות מ-{formatPrice(meta.fromPrice)}</Text>
+          </View>
         ) : null}
       </View>
 
@@ -34,7 +38,9 @@ export default function RestaurantCard({ restaurant, onPress }) {
           <Rating value={meta.rating} />
         </View>
 
-        {highlights ? (
+        {note ? (
+          <View style={styles.noteRow}>{note}</View>
+        ) : highlights ? (
           <Text style={styles.highlights} numberOfLines={1}>
             {highlights}
           </Text>
@@ -55,14 +61,17 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
   card: { marginBottom: space[5], overflow: 'hidden' },
   media: { height: 170, backgroundColor: colors.sunken, justifyContent: 'center' },
   image: { width: '100%', height: '100%' },
-  placeholder: {
-    textAlign: 'center',
-    fontSize: 56,
-    fontWeight: '800',
-    color: colors.ink,
-    opacity: 0.16,
+  from: {
+    position: 'absolute',
+    bottom: space[3],
+    right: space[3],
+    paddingHorizontal: space[2],
+    paddingVertical: 3,
+    borderRadius: radius.xs,
+    backgroundColor: colors.surface,
   },
-  tag: { position: 'absolute', bottom: space[3], right: space[3] },
+  fromText: { ...type.micro, ...type.num, color: colors.ink },
+  noteRow: { alignItems: 'flex-end' },
   body: { padding: space[4], gap: space[2] },
   heading: { ...rtl.row, alignItems: 'center', gap: space[3] },
   name: { ...type.h3, ...rtl.text, flexShrink: 1, color: colors.ink },

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Text, TextInput, View } from 'react-native';
 import { createStyles, rtl, useTheme } from '../theme';
 import { searchRestaurants } from '../services/api';
-import { resultCount } from '../services/presentation';
+import { getMatchNote, resultCount } from '../services/presentation';
 import { EmptyState, ErrorState, Icon, IconButton, Screen, SkeletonCard } from '../ui';
 import RestaurantCard from '../components/RestaurantCard';
 
@@ -148,18 +148,41 @@ export default function SearchResultsScreen({ navigation, route }) {
             />
           )
         }
-        renderItem={({ item }) => (
-          <RestaurantCard
-            restaurant={item}
-            onPress={() => navigation.navigate('RestaurantDetails', { restaurantId: item.id })}
-          />
-        )}
+        renderItem={({ item }) => {
+          const note = getMatchNote(item, submitted);
+
+          return (
+            <RestaurantCard
+              restaurant={item}
+              note={note ? <MatchNote note={note} /> : null}
+              onPress={() => navigation.navigate('RestaurantDetails', { restaurantId: item.id })}
+            />
+          );
+        }}
       />
     </Screen>
   );
 }
 
+/* Why a result matched when its name does not say so (V4 audit B3), with
+   the searched text marked — the same note the web client shows. The
+   results are always for `submitted`, the query that produced them. */
+function MatchNote({ note }) {
+  const styles = useStyles();
+
+  return (
+    <Text style={styles.note} numberOfLines={1}>
+      {note.label}
+      {note.before}
+      {note.match ? <Text style={styles.noteMark}>{note.match}</Text> : null}
+      {note.after}
+    </Text>
+  );
+}
+
 const useStyles = createStyles(({ colors, space, radius, type }) => ({
+  note: { ...type.caption, ...rtl.text, color: colors.ink },
+  noteMark: { fontWeight: '800', backgroundColor: colors.amberTint },
   bar: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[3] },
   field: {
     ...rtl.row,

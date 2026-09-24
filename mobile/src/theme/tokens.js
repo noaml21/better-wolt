@@ -101,6 +101,10 @@ export const type = {
   body: { fontSize: 15, lineHeight: 23, fontWeight: '400' },
   caption: { fontSize: 13, lineHeight: 19, fontWeight: '500' },
   micro: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  /* V4: numbers are exact. Prices, totals and times use tabular figures
+     so columns of amounts line up (docs/V4_DESIGN_SPEC.md §4.2). */
+  num: { fontVariant: ['tabular-nums'] },
+  price: { fontSize: 15, lineHeight: 20, fontWeight: '700', fontVariant: ['tabular-nums'] },
 };
 
 export const motion = {

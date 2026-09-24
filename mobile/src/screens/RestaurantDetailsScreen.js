@@ -15,8 +15,10 @@ import {
   IconButton,
   Media,
   MetaItem,
+  Plate,
   Rating,
   Screen,
+  Scrim,
   Skeleton,
   useToast,
 } from '../ui';
@@ -37,6 +39,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   const restaurantId = route.params?.restaurantId;
   const [restaurant, setRestaurant] = useState(null);
   const [status, setStatus] = useState('loading');
+  const [failedImage, setFailedImage] = useState(null);
   const shown = useRef(false);
 
   /* A silent load keeps what is on screen: a failed re-read leaves the
@@ -195,76 +198,78 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   const meta = getRestaurantMeta(restaurant);
   const showCartBar = !isOwner && cart.itemsCount > 0 && cart.restaurantId === String(restaurant.id);
 
+  const hasPhoto = Boolean(restaurant.image) && failedImage !== restaurant.image;
+
   const header = (
     <View>
+      {/* The name is set on the food, over a scrim; without a photo the
+          plate's tint takes the frame and the name sits on it in ink
+          (V4 spec §4.4). */}
       <View style={styles.hero}>
         <Media
           uri={restaurant.image}
           style={styles.heroImage}
-          fallback={<Text style={styles.heroPlaceholder}>{restaurant.name?.trim().charAt(0)}</Text>}
+          onFail={setFailedImage}
+          fallback={<Plate restaurant={restaurant} showWord={false} />}
         />
+        {hasPhoto ? <Scrim id="restaurant-hero" /> : null}
+
+        <Text style={[styles.heroName, !hasPhoto && styles.heroNamePlate]} accessibilityRole="header">
+          {restaurant.name}
+        </Text>
 
         <View style={[styles.heroBack, { top: insets.top + 8 }]}>
           <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />
         </View>
       </View>
 
-      <View style={styles.card}>
-        <View style={styles.headline}>
-          <Text style={styles.name}>{restaurant.name}</Text>
+      <View style={styles.facts}>
+        <View style={styles.factsRow}>
           <Rating value={meta.rating} />
-        </View>
-
-        <View style={styles.facts}>
           <MetaItem icon="clock">{meta.eta} דק׳</MetaItem>
           <MetaItem icon="scooter" tone={meta.isFreeDelivery ? 'herb' : undefined}>
             {meta.deliveryLabel}
           </MetaItem>
         </View>
-
         {restaurant.address ? <MetaItem icon="location">{restaurant.address}</MetaItem> : null}
         {restaurant.phone ? <MetaItem icon="phone">{restaurant.phone}</MetaItem> : null}
-
-        {isOwner ? (
-          <View style={styles.owner}>
-            <View style={styles.ownerLabel}>
-              <Icon name="store" size={16} color={colors.inkMuted} />
-              <Text style={styles.ownerLabelText}>המסעדה שלכם</Text>
-            </View>
-
-            <View style={styles.ownerActions}>
-              <Button
-                size="sm"
-                variant="secondary"
-                icon="edit"
-                onPress={() => navigation.navigate('RestaurantForm', { restaurant })}
-              >
-                עריכת פרטים
-              </Button>
-              <Button size="sm" variant="danger" icon="trash" onPress={removeRestaurant}>
-                סגירה
-              </Button>
-            </View>
-          </View>
-        ) : null}
       </View>
+
+      {isOwner ? (
+        <View style={styles.owner}>
+          <View style={styles.ownerLabel}>
+            <Icon name="store" size={18} color={colors.ink} />
+            <Text style={styles.ownerTitle}>ניהול המסעדה</Text>
+          </View>
+
+          <View style={styles.ownerActions}>
+            <Button
+              size="sm"
+              icon="plus"
+              onPress={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
+            >
+              הוספת מנה
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="edit"
+              onPress={() => navigation.navigate('RestaurantForm', { restaurant })}
+            >
+              עריכת פרטים
+            </Button>
+            <Button size="sm" variant="ghost" icon="trash" onPress={removeRestaurant}>
+              סגירה
+            </Button>
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.menuHeader}>
         <View style={styles.menuText}>
           <Text style={styles.menuTitle}>התפריט</Text>
           {products.length ? <Text style={styles.menuCount}>{dishCount(products.length)}</Text> : null}
         </View>
-
-        {isOwner ? (
-          <Button
-            size="sm"
-            variant="secondary"
-            icon="plus"
-            onPress={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
-          >
-            הוספת מנה
-          </Button>
-        ) : null}
       </View>
     </View>
   );
@@ -288,8 +293,10 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
             onAction={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
           />
         }
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <DishRow
+            first={index === 0}
+            last={index === products.length - 1}
             product={item}
             quantity={cart.restaurantId === String(restaurant.id) ? cart.quantities[item.id] || 0 : 0}
             onAdd={addToCart}
@@ -326,45 +333,43 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
   backRow: { ...rtl.row, paddingHorizontal: space[4] },
 
   hero: {
-    height: 230,
+    height: 250,
     marginHorizontal: -space[4],
     backgroundColor: colors.sunken,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   heroImage: { width: '100%', height: '100%' },
-  heroPlaceholder: {
-    textAlign: 'center',
-    fontSize: 72,
-    fontWeight: '800',
-    color: colors.ink,
-    opacity: 0.14,
+  heroName: {
+    ...type.h1,
+    ...rtl.text,
+    position: 'absolute',
+    right: space[4],
+    left: space[4],
+    bottom: space[4],
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
+  heroNamePlate: { color: colors.ink, fontSize: 36, lineHeight: 42 },
   heroBack: { position: 'absolute', right: space[4] },
 
-  card: {
-    gap: space[3],
-    marginTop: -space[6],
-    padding: space[4],
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    ...shadow.e2,
-  },
-  headline: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between', gap: space[3] },
-  name: { ...type.h1, ...rtl.text, flex: 1, color: colors.ink },
-  facts: { ...rtl.row, gap: space[5] },
+  facts: { gap: space[2], marginTop: space[4], alignItems: 'flex-end' },
+  factsRow: { ...rtl.row, flexWrap: 'wrap', alignItems: 'center', gap: space[4] },
 
   owner: {
     gap: space[3],
-    marginTop: space[1],
-    paddingTop: space[3],
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
+    marginTop: space[5],
+    padding: space[4],
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
   },
   ownerLabel: { ...rtl.row, alignItems: 'center', gap: space[2] },
-  ownerLabelText: { ...type.caption, color: colors.inkMuted, fontWeight: '700' },
-  ownerActions: { ...rtl.row, gap: space[2] },
+  ownerTitle: { ...type.bodyL, fontWeight: '700', color: colors.ink },
+  ownerActions: { ...rtl.row, flexWrap: 'wrap', gap: space[2] },
 
   menuHeader: {
     ...rtl.row,

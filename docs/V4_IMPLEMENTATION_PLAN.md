@@ -52,7 +52,7 @@ from the first unchecked box.
       CTA, honest note and inline problems; tracking with the arrival time and a vertical four-stop timeline; orders
       grouped by day with reorder; "להזמין שוב" on Home; the World Cup list as one surface. Verified on Expo web at
       412×915 (light and dark) and by Android export; not on a device.
-- [ ] **V4.6 — Motion.** Spec §7 on both clients.
+- [x] **V4.6 — Motion.** Spec §7 on both clients.
   - [x] Web: `find-animation-opportunities` sweep (5 kept, 5 rejected: skeleton crossfade, menu-filter results,
         sliding quantity digits, staggered grid, route transitions). Implemented: cart bar rises from its edge
         (260 ms, `--bw-ease-drawer`), count badges bump on change (keyed remount, 200 ms), stepper and dish count pop
@@ -65,8 +65,38 @@ from the first unchecked box.
         reported, by design: instant reduced motion (V3 decision), the 600 ms tracking fill, the hover-only photo zoom.
         No `scale(0)`, `transition: all` or animated layout properties remain (the tracking `width` fill is gone).
   - [ ] `/review-animations` is reserved for explicit user invocation and was not run by the agent.
-- [ ] **V4.7 — QA and evidence.** Responsive sweep, dark, reduced motion, keyboard, long/mixed content, failed images,
-      slow/failed API; second Impeccable pass; screenshots in `docs/screenshots/v4/`; docs and README updated.
+- [x] **V4.7 — QA and evidence.**
+  - Responsive sweep: 14 routes × 6 widths (320–1920) × 2 themes, 168 captures — no overflow, no console errors.
+  - Hostile content through the API (63-character name, unbroken Latin, ₪1,000,000 and ₪0, mixed direction with
+    emoji, dead image, 40 dishes), deleted afterwards: fixed thousands grouping, plaintext bidi, the cart button.
+  - Slow (4 s) and failing (500) API, 200 % text on five routes at 390 and 1440: fixed the desktop skeleton and the
+    delivered stage's word.
+  - Keyboard: add → stepper → add focus hand-off, focus rings on the new controls.
+  - Functional smoke through the UI: signed-out redirect and return, a customer order and a World Cup order to
+    tracking (server-priced ₪124 and ₪30), owner create → add dish → edit price → delete dish → close, a 401 signing
+    out to `/login` with the session-ended notice.
+  - Second Impeccable pass: detector clean on both clients; design review 26/40 → 33/40 (audit §4).
+  - Screenshots: `docs/screenshots/v4/` — 13 web (1440×950 and 390×844) and 9 mobile (Expo web, 412×915 at 2×,
+    scaled to 720 px). README and AGENTS.md point at V4.
+
+**V4 is complete.** What remains open is listed in the audit §4 ("Still open") and under "Needs a device" below.
+
+## Verification at the end of V4
+
+API 144/144 (no backend file changed since `b547763`), web Jest 38/38 (from 25: order-placement problems and price
+corrections, stage arithmetic, day labels, search match notes, price formatting), `eslint --ext .js,.jsx` clean,
+`CI=true npm run build` green (+3.5 kB JS, +2.6 kB CSS gzipped over V3), mobile `expo lint` at its two documented
+findings, Android export green (991 modules), Impeccable detector clean on both clients.
+
+## Needs a device
+
+Everything in V3_IMPLEMENTATION_PLAN "Needs a device" still applies. V4 adds:
+
+- The cart bar's rise and count bump, the tracking halo and the pressed scales run on the native driver; their feel
+  (and that reduce-motion stops them) was checked only on Expo web.
+- The restaurant hero's SVG scrim (react-native-svg) was verified on Expo web; confirm it covers the photo edge to
+  edge on Android.
+- The menu filter's `TextInput` with a real soft keyboard (the list keeps taps with `keyboardShouldPersistTaps`).
 
 ## Verification (before every commit that touches code)
 

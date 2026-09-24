@@ -126,3 +126,62 @@ menus that read like menus, prices that read like prices, one loud action per sc
 3. **[P1] Checkout feedback (A5).** Inline, persistent messages beside the cart and on the tracking page; honest cart note.
 4. **[P2] Phone chrome (A4).** One floating bar at a time.
 5. **[P2] Discovery (B1–B3).** Designed no-photo plates, a lighter path to the first restaurant, matched dishes in search.
+
+## 4. After V4 — second pass
+
+Run on `v4/premium-frontend` after the implementation phases, against the same product in the browser.
+
+**Deterministic scan (Impeccable detector):** `web-server/client/src` exit 0, no findings (the tracking
+`layout-transition` is gone — the rail fills with `transform`); `mobile/src` exit 0, no findings.
+
+**Design review (single-context, as in §3):**
+
+| # | Heuristic | V3 | V4 | What changed |
+|---|---|---|---|---|
+| 1 | Visibility of system status | 3 | 4 | Refused orders stay beside the cart; tracking gives a clock time and each stage's time; skeletons keep the page's shape. |
+| 2 | Match with the real world | 3 | 4 | `₪1,000,000` reads as money; the cart no longer promises a payment step; days read as היום / אתמול / 22 בספטמבר. |
+| 3 | User control and freedom | 3 | 3 | Dismissible checkout messages; still no one-step "clear cart". |
+| 4 | Consistency and standards | 3 | 4 | One list language (menu, cart, orders, campaign) on both clients; one add control; one price role. |
+| 5 | Error prevention | 3 | 3 | Unchanged and sound. |
+| 6 | Recognition rather than recall | 2 | 3 | Search says what matched; orders and tracking lead back to the restaurant; "להזמין שוב" on home. |
+| 7 | Flexibility and efficiency | 2 | 3 | Menu filter above eight dishes; reorder in one tap. |
+| 8 | Aesthetic and minimalist design | 2 | 3 | One loud thing per screen, one night surface on home, no card-per-row; the plate keeps a photo-less grid designed. |
+| 9 | Error recovery | 3 | 4 | The menu-changed path names the removed dish beside the cart; a corrected price is explained on tracking. |
+| 10 | Help and documentation | 2 | 2 | Illustrative ratings and ETAs are still explained only in the footer. |
+| **Total** | | **26/40** | **33/40** | |
+
+### Status of the findings
+
+| # | Status | Where it was addressed |
+|---|---|---|
+| A1 | Fixed | Quiet round add control on both clients; flame fills only for the one primary action. |
+| A2 | Fixed | Every number in Rubik with tabular figures; `formatPrice` groups thousands. |
+| A3 | Fixed | One-surface menu rows; menu filter above eight dishes (both clients). |
+| A4 | Fixed | The order dock steps aside whenever a cart has dishes, at every width (it also covered the desktop cart panel). |
+| A5 | Fixed | Inline, persistent checkout problems; corrected totals explained on tracking; honest cart note. |
+| B1 | Fixed | Id-tinted plates on cards, heroes, thumbnails and the owner's preview. |
+| B2 | Fixed | One night band on home; the campaign is an amber strip; hero photos are links. |
+| B3 | Fixed | Match notes on search results (both clients). |
+| B4 | Fixed | Orders: on the way first, history by day, reorder. |
+| B5 | Fixed | Tracking: arrival clock time, stage times, no repeated heading. |
+| B6 | Fixed | Name on the photo over a scrim; plate when there is no photo. |
+| B7 | Fixed | Auth panel shows food instead of a glow. |
+| B8 | Fixed | Theme follows the system until chosen, applied before first paint. |
+| C1 | Fixed | Owner tools in the side column; row actions beside the dish. |
+| C2 | Fixed | The stepper's − is neutral. |
+| C3 | Open | The footer still shows on auth and tracking pages. |
+| C4 | Fixed | Sticky carts stretch their column (restaurant and World Cup). |
+
+### Found during V4 QA and fixed
+
+Hostile-but-valid content (created through the API and deleted afterwards) found ungrouped large prices, Latin-first
+lines scrambled inside the RTL paragraph (now `unicode-bidi: plaintext`) and a cart button that broke its own label;
+200 % text found the delivered stage's word wider than the stage; a slow API found the desktop restaurant skeleton
+collapsed to a line; the final screenshots found the order dock over the desktop cart panel. Each is fixed and
+recorded in its commit.
+
+### Still open
+
+- C3 (footer on focused pages), heuristic 10 (the illustrative data is explained only in the footer).
+- On Expo web an unbroken Latin dish name overflows its row; react-native-web does not break inside words and Android
+  does. It stays on the device list in V3_IMPLEMENTATION_PLAN.

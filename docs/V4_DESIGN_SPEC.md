@@ -1,6 +1,6 @@
 # Better Wolt V4 — Design Specification
 
-**Status:** in progress on `v4/premium-frontend`, branched from V3 HEAD `b547763`. Never commit to `main`,
+**Status:** built on `v4/premium-frontend`, branched from V3 HEAD `b547763`. Never commit to `main`,
 `v2/extensible-architecture` or `v3/ui-overhaul`.
 **Evidence:** [V4_VISUAL_AUDIT.md](V4_VISUAL_AUDIT.md) (findings A1–A5, B1–B8, C1–C4). **Order of work and progress:**
 [V4_IMPLEMENTATION_PLAN.md](V4_IMPLEMENTATION_PLAN.md).

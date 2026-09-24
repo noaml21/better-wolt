@@ -6,12 +6,15 @@ Project guidance for contributors and coding agents. The documents in `docs/` ar
 [EXTENDING.md](docs/EXTENDING.md) (how to add a feature) ·
 [V2_IMPLEMENTATION_PLAN.md](docs/V2_IMPLEMENTATION_PLAN.md) (what was done, in order, and why) ·
 [V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md) (V3 design direction, tokens, component language) ·
-[V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) (V3 phases and progress).
+[V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) (V3 phases and progress) ·
+[V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md) (V4 design, evolving V3) ·
+[V4_IMPLEMENTATION_PLAN.md](docs/V4_IMPLEMENTATION_PLAN.md) (V4 phases, progress and the resume point).
 
 ## Git
 
-- V3 (the client redesign) happens on `v3/ui-overhaul`, branched from the V2 HEAD `98d2477`. V2 work happened on
-  `v2/extensible-architecture`. Do not commit to or merge into `main`, and do not modify the V2 branch.
+- V4 (the premium frontend pass) happens on `v4/premium-frontend`, branched from the V3 HEAD `b547763`. V3 work
+  happened on `v3/ui-overhaul` and V2 on `v2/extensible-architecture`. Do not commit to or merge into `main`, and do
+  not modify the V2 or V3 branches.
 - Never reset, clean, discard, force-push or rewrite history; recover with `git revert`.
 - One concern per commit, with the verification you actually ran in the message.
 

@@ -24,44 +24,44 @@ This project is not affiliated with or endorsed by Wolt.
 
 ## Screenshots
 
-The V3 interface. Every screen is right-to-left Hebrew; the full set is in
-[docs/screenshots/v3](docs/screenshots/v3), and the V2 interface these replaced is in
-[docs/screenshots/v2](docs/screenshots/v2).
+The V4 interface. Every screen is right-to-left Hebrew; the full set is in
+[docs/screenshots/v4](docs/screenshots/v4), and the V3 and V2 interfaces before it are in
+[docs/screenshots/v3](docs/screenshots/v3) and [docs/screenshots/v2](docs/screenshots/v2).
 
 ### Web
 
 <p align="center">
-  <img src="docs/screenshots/v3/web-home-desktop.jpg" alt="Better Wolt web home page: search band, the World Cup campaign card and the restaurant grid" width="850">
+  <img src="docs/screenshots/v4/web-home-desktop.jpg" alt="Better Wolt web home page: the night search band with photo links to restaurants, the order-again row, the World Cup strip and the restaurant grid" width="850">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/v3/web-restaurant-desktop.jpg" alt="Restaurant page with the menu and the cart panel" width="420">
+  <img src="docs/screenshots/v4/web-restaurant-desktop.jpg" alt="Restaurant page: the name set on the photo, the menu as one list with quiet add controls, and the cart panel with the total in its button" width="420">
   &nbsp;
-  <img src="docs/screenshots/v3/web-tracking.jpg" alt="Order tracking with the countdown and the delivery rail" width="420">
+  <img src="docs/screenshots/v4/web-tracking.jpg" alt="Order tracking: the arrival time, the minutes left and four stages with their times" width="420">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/v3/web-world-cup.jpg" alt="The World Cup campaign page with the flag grid" width="420">
+  <img src="docs/screenshots/v4/web-orders.jpg" alt="Orders: what is on its way first, then history grouped by day with reorder links" width="420">
   &nbsp;
-  <img src="docs/screenshots/v3/web-home-dark.jpg" alt="The home page in the dark theme" width="420">
+  <img src="docs/screenshots/v4/web-home-dark.jpg" alt="The home page in the dark theme" width="420">
 </p>
 
 ### Mobile
 
 <p align="center">
-  <img src="docs/screenshots/v3/mobile-home.jpg" alt="Mobile home screen with search, the campaign card and restaurant cards" width="240">
+  <img src="docs/screenshots/v4/mobile-home.jpg" alt="Mobile home: search, quick searches, the order-again row, the World Cup strip and restaurant cards" width="240">
   &nbsp;
-  <img src="docs/screenshots/v3/mobile-restaurant.jpg" alt="Mobile restaurant screen with the menu and the cart bar" width="240">
+  <img src="docs/screenshots/v4/mobile-restaurant.jpg" alt="Mobile restaurant screen: the name on the photo, the menu as one list and the cart bar" width="240">
   &nbsp;
-  <img src="docs/screenshots/v3/mobile-tracking.jpg" alt="Mobile order tracking with the countdown and the delivery rail" width="240">
+  <img src="docs/screenshots/v4/mobile-tracking.jpg" alt="Mobile order tracking with the arrival time and a vertical stage timeline" width="240">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/v3/mobile-world-cup.jpg" alt="The World Cup campaign on mobile" width="240">
+  <img src="docs/screenshots/v4/mobile-world-cup.jpg" alt="The World Cup campaign on mobile as one list with flags" width="240">
   &nbsp;
-  <img src="docs/screenshots/v3/mobile-cart.jpg" alt="Mobile cart with quantity steppers and the order summary" width="240">
+  <img src="docs/screenshots/v4/mobile-cart.jpg" alt="Mobile cart with steppers, the total and the order button carrying it" width="240">
   &nbsp;
-  <img src="docs/screenshots/v3/mobile-owner-restaurant.jpg" alt="A restaurant owner's view of their own restaurant and menu" width="240">
+  <img src="docs/screenshots/v4/mobile-orders.jpg" alt="Mobile orders: on the way, then history by day" width="240">
 </p>
 
 ## Architecture
@@ -84,6 +84,9 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 - [docs/V2_IMPLEMENTATION_PLAN.md](docs/V2_IMPLEMENTATION_PLAN.md) — the phased plan and what was verified
 - [docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md) — the V3 design: identity, tokens, component language, accessibility
 - [docs/V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) — the V3 phases, what was built and how it was verified
+- [docs/V4_VISUAL_AUDIT.md](docs/V4_VISUAL_AUDIT.md) — the audit of V3 in the browser that V4 answers
+- [docs/V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md) — the V4 design: principles, type, components, motion
+- [docs/V4_IMPLEMENTATION_PLAN.md](docs/V4_IMPLEMENTATION_PLAN.md) — the V4 phases, what was built and how it was verified
 - [AGENTS.md](AGENTS.md) — branch policy, commands and conventions for contributors
 
 ## Tech Stack
@@ -152,7 +155,7 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 web-server/             Node.js/Express API (src/features/...) and the React web client
 web-server/test/        API integration tests (node:test + supertest)
 mobile/                 React Native/Expo mobile client
-docs/                   Architecture, API contract, extension guide, the V2 and V3 specs and plans, screenshots
+docs/                   Architecture, API contract, extension guide, the V2–V4 specs and plans, screenshots
 docker-compose.yml      Backend, MongoDB and the optional Expo dev server
 docker-compose.test.yml Throwaway MongoDB for the test suite
 .github/workflows/      CI: API tests, web tests and build, image build, mobile bundle
@@ -229,12 +232,16 @@ Web client tests: `cd web-server/client && npm test -- --watchAll=false`.
 
 ## Design
 
-The V3 interface is specified in [docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md). In short: warm paper surfaces,
-a deep aubergine ink, one pomegranate action colour and an amber highlight; photography leads every card; the notched
-price tag marks prices and nothing else. Both clients read the same token names, so the dark theme is a real theme
-rather than an inversion, and both stop every transform and animation under the operating system's reduced-motion
-setting. Hebrew is the layout, not a patch: CSS logical properties on the web, a direction-aware layer in the mobile
-theme, and no `I18nManager.forceRTL`.
+The interface is specified in [docs/V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md), which evolves
+[docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md). In short: warm paper surfaces, a deep aubergine ink, one pomegranate
+action colour and an amber highlight. Food is loud and chrome is quiet: photography leads, a restaurant without a
+photo gets a designed plate in its own tint, and a menu reads like a menu — one list, the dish name first, a small
+round add control rather than a button per row. Prices, totals and times are exact: tabular figures, never the
+display face. Problems at checkout are written beside the cart and stay until they are dealt with, and a price the
+server corrected is explained on the tracking page. Motion only answers an action (the cart bar rising, a count
+bumping) or the passing of time (the tracking stages), and stops under the operating system's reduced-motion
+setting. Hebrew is the layout, not a patch: CSS logical properties and plaintext bidi for what people type on the web,
+a direction-aware layer in the mobile theme, and no `I18nManager.forceRTL`.
 
 ## Special World Cup Feature
 

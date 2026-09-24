@@ -240,6 +240,29 @@ html {
   font-weight: 500;
 }
 
+/* Shared motion (V4 spec §7). Every one of these is a response to
+   something the person did; under reduced motion base.css below turns
+   them into instant state changes. */
+@keyframes bw-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes bw-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes bw-bump {
+  50% {
+    transform: scale(1.14);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

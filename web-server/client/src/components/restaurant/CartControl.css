@@ -4,6 +4,11 @@
   display: contents;
 }
 
+/* The stepper takes the add button's place as the dish goes in. */
+.bw-cart-control .bw-stepper {
+  animation: bw-pop-in 160ms var(--bw-ease);
+}
+
 .bw-add {
   position: relative;
   display: inline-flex;

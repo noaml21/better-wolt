@@ -53,6 +53,13 @@
   background-color: rgba(255, 255, 255, 0.28);
 }
 
+.bw-toast--leaving {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 150ms var(--bw-ease-out), transform 150ms var(--bw-ease-out);
+  pointer-events: none;
+}
+
 @keyframes bw-toast-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: none; }

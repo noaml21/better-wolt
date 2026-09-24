@@ -26,6 +26,7 @@
 }
 
 .bw-cart__count {
+  animation: bw-bump 200ms var(--bw-ease);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -85,6 +86,12 @@
   gap: var(--bw-space-3);
   padding-block: var(--bw-space-3);
   border-block-end: 1px solid var(--bw-line);
+}
+
+/* A dish added from the menu arrives in the panel beside it. Not in the
+   sheet, which slides in whole. */
+.bw-cart--panel .bw-cart__line {
+  animation: bw-rise-in var(--bw-base) var(--bw-ease);
 }
 
 .bw-cart__line:first-child {
@@ -149,6 +156,7 @@
 
 /* A refused order stays beside the cart until it is dealt with. */
 .bw-cart__problem {
+  animation: bw-rise-in var(--bw-base) var(--bw-ease);
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: start;
@@ -213,6 +221,7 @@
 
 .bw-cart-bar {
   display: none;
+  animation: bw-cart-bar-in 260ms var(--bw-ease-drawer);
   position: fixed;
   inset-block-end: 0;
   inset-inline: 0;
@@ -245,6 +254,7 @@
 }
 
 .bw-cart-bar__count {
+  animation: bw-bump 200ms var(--bw-ease);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -273,4 +283,12 @@
 
 .bw-cart--sheet .bw-cart__title {
   display: none;
+}
+
+/* The bar comes up from the edge it lives on, the first time a dish goes
+   into the cart. */
+@keyframes bw-cart-bar-in {
+  from {
+    transform: translateY(100%);
+  }
 }

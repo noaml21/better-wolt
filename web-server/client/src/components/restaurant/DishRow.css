@@ -51,6 +51,7 @@
 }
 
 .bw-dish__count {
+  animation: bw-pop-in 160ms var(--bw-ease);
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;

@@ -48,7 +48,14 @@ from the first unchecked box.
       with the quiet add control; its desktop cart now actually sticks (the column was not stretched). 404 checked.
 - [ ] **V4.5 — Mobile.** Same moves idiomatically: dish rows + add control, price type, cart CTA with total, orders
       sections, tracking arrival time, plates, campaign card.
-- [ ] **V4.6 — Motion.** Spec §7 on both clients; review-animations pass.
+- [ ] **V4.6 — Motion.** Spec §7 on both clients.
+  - [x] Web: `find-animation-opportunities` sweep (5 kept, 5 rejected: skeleton crossfade, menu-filter results,
+        sliding quantity digits, staggered grid, route transitions). Implemented: cart bar rises from its edge
+        (260 ms, `--bw-ease-drawer`), count badges bump on change (keyed remount, 200 ms), stepper and dish count pop
+        in (160 ms), toasts leave the way they came (150 ms), desktop cart lines and checkout problems rise in (180 ms).
+        Sampled in Chrome: the bar is settled by ~150 ms; with reduced motion nothing animates.
+  - [ ] Mobile.
+  - [ ] `/review-animations` is reserved for explicit user invocation and was not run by the agent.
 - [ ] **V4.7 — QA and evidence.** Responsive sweep, dark, reduced motion, keyboard, long/mixed content, failed images,
       slow/failed API; second Impeccable pass; screenshots in `docs/screenshots/v4/`; docs and README updated.
 

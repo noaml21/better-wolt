@@ -43,7 +43,13 @@ export default function CartPanel({
       <header className="bw-cart__header">
         <h2 className="bw-cart__title" id="bw-cart-title">
           הסל שלי
-          {itemCount > 0 && <span className="bw-cart__count bw-num">{itemCount}</span>}
+          {/* Keyed by the count: each change remounts it, which replays the
+              bump that confirms the add landed. */}
+          {itemCount > 0 && (
+            <span key={itemCount} className="bw-cart__count bw-num">
+              {itemCount}
+            </span>
+          )}
         </h2>
         {restaurantName && !isEmpty && (
           <p className="bw-cart__from">
@@ -140,7 +146,9 @@ export function CartBar({ itemCount, subtotal, onOpen }) {
   return (
     <div className="bw-cart-bar">
       <button type="button" className="bw-cart-bar__button" onClick={onOpen}>
-        <span className="bw-cart-bar__count">{itemCount}</span>
+        <span key={itemCount} className="bw-cart-bar__count bw-num">
+          {itemCount}
+        </span>
         <span className="bw-cart-bar__label">צפייה בסל</span>
         <span className="bw-cart-bar__total">{formatPrice(subtotal)}</span>
       </button>

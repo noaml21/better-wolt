@@ -9,13 +9,19 @@ import './Toast.css';
 
 const ToastContext = createContext(null);
 const DEFAULT_DURATION = 3200;
+/* A toast leaves the way it came (down, fading) before it is removed.
+   Matches .bw-toast--leaving in Toast.css. */
+const LEAVE_MS = 150;
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const counter = useRef(0);
 
   const dismiss = useCallback((id) => {
-    setToasts((current) => current.filter((toast) => toast.id !== id));
+    setToasts((current) => current.map((toast) => (toast.id === id ? { ...toast, leaving: true } : toast)));
+    window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, LEAVE_MS);
   }, []);
 
   const showToast = useCallback(
@@ -39,7 +45,10 @@ export function ToastProvider({ children }) {
       {createPortal(
         <div className="bw-toasts" role="status" aria-live="polite">
           {toasts.map((toast) => (
-            <div key={toast.id} className={`bw-toast bw-toast--${toast.tone}`}>
+            <div
+              key={toast.id}
+              className={`bw-toast bw-toast--${toast.tone} ${toast.leaving ? 'bw-toast--leaving' : ''}`}
+            >
               <Icon name={toast.tone === 'error' ? 'alert' : 'check'} size={18} />
               <span>{toast.message}</span>
               <button

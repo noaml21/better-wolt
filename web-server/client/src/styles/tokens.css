@@ -91,6 +91,8 @@
   --bw-story: 600ms;
   --bw-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
   --bw-ease-out: cubic-bezier(0.4, 0, 1, 1);
+  /* Sheets and bars that slide in from an edge: fast start, long settle. */
+  --bw-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* --- Layout --- */
   --bw-content-max: 1200px;

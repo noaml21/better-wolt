@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button, Chip, ErrorState, Icon, IconButton, Logo, Screen, SkeletonCard } from '../ui';
 import RestaurantCard from '../components/RestaurantCard';
 import CampaignCard from '../components/CampaignCard';
+import OrderAgain from '../components/OrderAgain';
 
 /* Discovery. The list owns the scroll — the header rides along inside it
    so the whole screen pulls to refresh, which is what a phone expects. */
@@ -17,7 +18,7 @@ const quickSearches = ['פיצה', 'המבורגר', 'סושי', 'חומוס', '
 export default function HomeScreen({ navigation }) {
   const styles = useStyles();
   const { colors } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const [restaurants, setRestaurants] = useState([]);
   const [status, setStatus] = useState('loading');
   const [refreshing, setRefreshing] = useState(false);
@@ -102,6 +103,16 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.chips}
         renderItem={({ item }) => <Chip onPress={() => openSearch(item)}>{item}</Chip>}
       />
+
+      {status === 'ready' ? (
+        <View style={styles.bleed}>
+          <OrderAgain
+            restaurants={restaurants}
+            token={token}
+            onOpen={(restaurant) => navigation.navigate('RestaurantDetails', { restaurantId: restaurant.id })}
+          />
+        </View>
+      ) : null}
 
       {campaign ? (
         <CampaignCard
@@ -205,6 +216,8 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
   searchPressed: { opacity: 0.9 },
   searchText: { ...type.body, color: colors.inkMuted },
   chips: { gap: space[2], paddingVertical: space[1] },
+  /* The row scrolls from screen edge to screen edge. */
+  bleed: { marginHorizontal: -space[4] },
   sectionHeader: { gap: 2, marginTop: space[2] },
   sectionAction: { ...rtl.row, marginTop: space[3] },
   sectionTitle: { ...type.h2, ...rtl.text, color: colors.ink },

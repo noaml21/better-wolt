@@ -46,15 +46,20 @@ from the first unchecked box.
       panel is visible, ≥ 900 px) instead of a radial glow, and the form card loses its shadow. `/world-cup` loses its
       eyebrow, states the flat price once, and lists the 20 dishes as one hairline surface (two columns from 700 px)
       with the quiet add control; its desktop cart now actually sticks (the column was not stretched). 404 checked.
-- [ ] **V4.5 — Mobile.** Same moves idiomatically: dish rows + add control, price type, cart CTA with total, orders
-      sections, tracking arrival time, plates, campaign card.
+- [x] **V4.5 — Mobile.** The same moves, natively: one-surface dish rows with a shared quiet `AddButton` and neutral
+      −; name on the photo over an SVG scrim (react-native-svg, already a dependency) with the plate as fallback;
+      `type.num`/`type.price`; cards with plates; amber campaign strip; search match notes; cart with the total in its
+      CTA, honest note and inline problems; tracking with the arrival time and a vertical four-stop timeline; orders
+      grouped by day with reorder; "להזמין שוב" on Home; the World Cup list as one surface. Verified on Expo web at
+      412×915 (light and dark) and by Android export; not on a device.
 - [ ] **V4.6 — Motion.** Spec §7 on both clients.
   - [x] Web: `find-animation-opportunities` sweep (5 kept, 5 rejected: skeleton crossfade, menu-filter results,
         sliding quantity digits, staggered grid, route transitions). Implemented: cart bar rises from its edge
         (260 ms, `--bw-ease-drawer`), count badges bump on change (keyed remount, 200 ms), stepper and dish count pop
         in (160 ms), toasts leave the way they came (150 ms), desktop cart lines and checkout problems rise in (180 ms).
         Sampled in Chrome: the bar is settled by ~150 ms; with reduced motion nothing animates.
-  - [ ] Mobile.
+  - [x] Mobile: the cart bar rises from its edge and its count bumps (`Animated`, native driver), the current
+        tracking stop breathes, pressed controls scale to 0.94 — all skipped under the OS reduce-motion setting.
   - [ ] `/review-animations` is reserved for explicit user invocation and was not run by the agent.
 - [ ] **V4.7 — QA and evidence.** Responsive sweep, dark, reduced motion, keyboard, long/mixed content, failed images,
       slow/failed API; second Impeccable pass; screenshots in `docs/screenshots/v4/`; docs and README updated.

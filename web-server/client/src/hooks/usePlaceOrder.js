@@ -10,7 +10,9 @@ import { useToast } from '../components/ui';
    (V2_SPEC §3.1). The answer can arrive after the customer has moved on
    — gone to another page, or signed out — and then it must not pull them
    anywhere: a late success confirms with a toast, and only to the account
-   that placed it; a late failure is reported the same way. `from` is where
+   that placed it; a late failure is reported the same way. If the account
+   has changed meanwhile (another tab), the answer is not this page's to
+   act on even when the page is still open. `from` is where
    signing in should return to. */
 
 /* Contract string (ARCHITECTURE §4.3): the cart names a dish the menu no
@@ -46,11 +48,13 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
     try {
       const order = await createOrder({ restaurant: restaurantId, products: cart.toOrderProducts() });
 
-      if (!mounted.current) {
-        if (currentUsername() === placedBy) {
-          showToast('ההזמנה נשלחה. אפשר לעקוב אחריה ב"ההזמנות שלי".');
-        }
+      // Another tab may have switched the account while this was on its way.
+      if (currentUsername() !== placedBy) {
+        return;
+      }
 
+      if (!mounted.current) {
+        showToast('ההזמנה נשלחה. אפשר לעקוב אחריה ב"ההזמנות שלי".');
         return;
       }
 
@@ -58,19 +62,24 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
       onPlaced?.();
       navigate(`/tracking/${order.id}`);
     } catch (error) {
-      if (!mounted.current) {
-        if (currentUsername() === placedBy && error.status !== 401) {
-          showToast(error.message, { tone: 'error' });
+      /* A 401 has already signed the session out (so the account check
+         below would swallow it); the order needs a fresh sign-in, the same
+         path as ordering while signed out. */
+      if (error.status === 401) {
+        if (mounted.current) {
+          showToast('החיבור פג. צריך להתחבר שוב כדי להזמין', { tone: 'error' });
+          navigate('/login', { state: { from } });
         }
 
         return;
       }
 
-      /* A 401 has already signed the session out; the order needs a
-         fresh sign-in, the same path as ordering while signed out. */
-      if (error.status === 401) {
-        showToast('החיבור פג. צריך להתחבר שוב כדי להזמין', { tone: 'error' });
-        navigate('/login', { state: { from } });
+      if (currentUsername() !== placedBy) {
+        return;
+      }
+
+      if (!mounted.current) {
+        showToast(error.message, { tone: 'error' });
         return;
       }
 

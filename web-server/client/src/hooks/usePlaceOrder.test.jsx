@@ -80,3 +80,27 @@ test('an order that lands after the customer left does not pull them back', asyn
   expect(screen.queryByText('tracking page')).not.toBeInTheDocument();
   expect(screen.getByText(/ההזמנה נשלחה/)).toBeInTheDocument();
 });
+
+test('an order that lands after another tab switched account is not acted on', async () => {
+  let answer;
+  createOrder.mockReturnValue(new Promise((resolve) => { answer = resolve; }));
+  renderApp();
+
+  fireEvent.click(screen.getByText('order'));
+
+  // Another tab signs in as someone else: storage changes, this tab hears it.
+  const exp = Math.floor(Date.now() / 1000) + 3600;
+  localStorage.setItem('token', `${base64Url({ alg: 'HS256' })}.${base64Url({ username: 'noa', exp })}.sig`);
+  localStorage.setItem('user', JSON.stringify({ id: '2', username: 'noa' }));
+  act(() => {
+    window.dispatchEvent(new StorageEvent('storage', { key: 'token' }));
+  });
+
+  await act(async () => {
+    answer({ id: 'o1' });
+  });
+
+  expect(screen.getByText('order')).toBeInTheDocument();
+  expect(screen.queryByText('tracking page')).not.toBeInTheDocument();
+  expect(screen.queryByText(/ההזמנה נשלחה/)).not.toBeInTheDocument();
+});

@@ -224,6 +224,10 @@ html {
   scrollbar-color: var(--bw-line) transparent;
 }
 
+.bw-nowrap {
+  white-space: nowrap;
+}
+
 .bw-order-number {
   unicode-bidi: isolate;
   direction: ltr;

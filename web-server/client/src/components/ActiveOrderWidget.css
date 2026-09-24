@@ -12,8 +12,10 @@
   gap: var(--bw-space-3);
   padding: var(--bw-space-2) var(--bw-space-4) var(--bw-space-2) var(--bw-space-3);
   border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-ink);
-  color: var(--bw-on-ink);
+  /* night, not ink: ink inverts in dark mode and turned the pill into
+     a pale slab on a dark page. */
+  background-color: var(--bw-night);
+  color: var(--bw-on-night);
   box-shadow: var(--bw-e3);
   transition: transform var(--bw-base) var(--bw-ease);
 }

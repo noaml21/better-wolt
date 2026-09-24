@@ -1,4 +1,11 @@
-import { DELIVERY_SECONDS, STAGE_STARTS, getSegmentFill, getStageIndex, getStageTimes } from './orderStatus';
+import {
+  DELIVERY_SECONDS,
+  STAGE_STARTS,
+  formatOrderDay,
+  getSegmentFill,
+  getStageIndex,
+  getStageTimes,
+} from './orderStatus';
 
 test('stage starts agree with the stage thresholds', () => {
   STAGE_STARTS.forEach((start, index) => {
@@ -22,4 +29,13 @@ test('stage times are clock times from the order start, and absent without one',
 
   expect(getStageTimes({ startTime: start })).toEqual(['20:00', '20:01', '20:15', '20:30']);
   expect(getStageTimes({})).toEqual([]);
+});
+
+test('an order day reads as today, yesterday, or a date in words', () => {
+  const now = new Date(2026, 8, 24, 21, 0, 0);
+
+  expect(formatOrderDay('2026-09-24', now)).toBe('היום');
+  expect(formatOrderDay('2026-09-23', now)).toBe('אתמול');
+  expect(formatOrderDay('2026-09-01', now)).toMatch(/1 בספטמבר/);
+  expect(formatOrderDay('', now)).toBe('');
 });

@@ -102,3 +102,34 @@ export function summariseItems(order, limit = 3) {
 
   return rest > 0 ? `${names.join(' · ')} ועוד ${rest}` : names.join(' · ');
 }
+
+const dayFormat = new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'long' });
+
+function localDateKey(date) {
+  const pad = (value) => String(value).padStart(2, '0');
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/* An order's day in words: היום, אתמול, or "22 בספטמבר". Orders carry a
+   'YYYY-MM-DD' date written by the server (ARCHITECTURE §4.1). */
+export function formatOrderDay(dateKey, now = new Date()) {
+  if (!dateKey) {
+    return '';
+  }
+
+  const today = localDateKey(now);
+  const yesterday = localDateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
+
+  if (dateKey === today) {
+    return 'היום';
+  }
+
+  if (dateKey === yesterday) {
+    return 'אתמול';
+  }
+
+  const [year, month, day] = dateKey.split('-').map(Number);
+
+  return year && month && day ? dayFormat.format(new Date(year, month - 1, day)) : dateKey;
+}

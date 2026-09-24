@@ -11,7 +11,9 @@ import './ActiveOrderWidget.css';
    polling harder would only repeat the same answer (ARCHITECTURE §6). */
 
 const REFRESH_MS = 60000;
-const HIDDEN_PATHS = ['/tracking', '/login', '/register'];
+/* Hidden where it would repeat the page: tracking is the order itself,
+   and the orders page lists what is on its way at the top. */
+const HIDDEN_PATHS = ['/tracking', '/orders', '/login', '/register'];
 
 export default function ActiveOrderWidget() {
   const { isAuthenticated, user } = useAuth();

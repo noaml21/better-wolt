@@ -33,7 +33,10 @@ from the first unchecked box.
       its own through `transform` (detector clean again); the current stop's halo is decorative and stops under
       reduced motion; the receipt is one surface; "להזמין שוב" leads back to the restaurant. Stages checked by
       intercepting `GET /orders/:id` at 5, 21 and 32 minutes, light and dark, 1440 and 390.
-- [ ] **V4.4e — Web orders.** Active/past sections, rows in one surface, dates in words, reorder.
+- [x] **V4.4e — Web orders.** "בדרך אליכם" on a night row with the arrival time; history grouped by day
+      (היום / אתמול / "22 בספטמבר"), each day one hairline list; every past order has "פרטים" (its receipt on the
+      tracking page) and "להזמין שוב". The dock no longer repeats itself on `/orders`, and it is painted `night`
+      (it turned into a pale pill in dark mode).
 - [ ] **V4.4f — Web discovery.** Plates on cards, hero compaction, campaign strip, "להזמין שוב" row, search shows the
       matched dish.
 - [ ] **V4.4g — Web auth, World Cup, 404.** Brand panel, campaign page on the new rows.

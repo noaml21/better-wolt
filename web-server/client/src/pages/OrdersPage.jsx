@@ -3,23 +3,117 @@ import { Link } from 'react-router-dom';
 import { getUserOrders } from '../services/api';
 import { itemCount, orderCount } from '../services/counts';
 import {
+  DELIVERY_SECONDS,
+  formatClock,
+  formatOrderDay,
   formatOrderNumber,
   getSecondsLeft,
   isActive,
   summariseItems,
 } from '../services/orderStatus';
 import {
-  Card,
   EmptyState,
   ErrorState,
   Icon,
   LinkButton,
   SectionHeader,
   Skeleton,
-  StatusPill,
   formatPrice,
 } from '../components/ui';
 import './OrdersPage.css';
+
+/* Orders on their way first, then history by day, each day one list
+   (V4 spec §6). Every past order leads back somewhere useful: its receipt,
+   or the restaurant to order again. */
+
+function groupByDay(orders) {
+  const groups = [];
+
+  orders.forEach((order) => {
+    const last = groups[groups.length - 1];
+
+    if (last && last.key === order.date) {
+      last.orders.push(order);
+    } else {
+      groups.push({ key: order.date, orders: [order] });
+    }
+  });
+
+  return groups;
+}
+
+function ActiveOrder({ order }) {
+  const start = Number(order.startTime);
+  const arrival = Number.isFinite(start) ? formatClock(start + DELIVERY_SECONDS * 1000) : null;
+  const minutes = Math.ceil(getSecondsLeft(order) / 60);
+
+  return (
+    <li>
+      <Link to={`/tracking/${order.id}`} className="bw-active-order">
+        <span className="bw-active-order__icon" aria-hidden="true">
+          <Icon name="scooter" size={22} />
+        </span>
+        <span className="bw-active-order__text">
+          <span className="bw-active-order__name">{order.restaurantName}</span>
+          <span className="bw-active-order__meta">
+            {arrival && (
+              <>
+                תגיע בסביבות <span className="bw-num">{arrival}</span> ·{' '}
+              </>
+            )}
+            <span className="bw-nowrap">
+              עוד <span className="bw-num">{minutes}</span> דק׳
+            </span>
+          </span>
+        </span>
+        <span className="bw-active-order__cta">
+          למעקב
+          <Icon name="back" size={16} />
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+function PastOrder({ order }) {
+  const start = Number(order.startTime);
+  const items = summariseItems(order);
+
+  return (
+    <li className="bw-past-order">
+      <div className="bw-past-order__text">
+        <h3 className="bw-past-order__name">{order.restaurantName}</h3>
+        {items && <p className="bw-past-order__items">{items}</p>}
+        <p className="bw-past-order__meta">
+          {Number.isFinite(start) && (
+            <>
+              <span className="bw-num">{formatClock(start)}</span>
+              {' · '}
+            </>
+          )}
+          <span className="bw-order-number">{formatOrderNumber(order.id)}</span>
+          {' · '}
+          {itemCount(order.items)}
+        </p>
+      </div>
+
+      <p className="bw-past-order__total bw-num">{formatPrice(order.total)}</p>
+
+      <div className="bw-past-order__actions">
+        <Link to={`/tracking/${order.id}`} className="bw-past-order__link">
+          פרטים
+          <span className="bw-visually-hidden"> של ההזמנה {formatOrderNumber(order.id)}</span>
+        </Link>
+        {order.restaurant && (
+          <Link to={`/restaurant/${order.restaurant}`} className="bw-past-order__link bw-past-order__link--again">
+            להזמין שוב
+            <span className="bw-visually-hidden"> מ{order.restaurantName}</span>
+          </Link>
+        )}
+      </div>
+    </li>
+  );
+}
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -42,27 +136,31 @@ export default function OrdersPage() {
     load();
   }, [load]);
 
+  const active = orders.filter(isActive);
+  const past = orders.filter((order) => !isActive(order));
+
   return (
-    <div className="bw-page bw-page--narrow">
+    <div className="bw-page bw-page--narrow bw-orders-page">
       <SectionHeader
         level={1}
         title="ההזמנות שלי"
-        description={
-          status === 'ready' && orders.length > 0
-            ? `${orderCount(orders.length)} בחשבון שלכם.`
-            : undefined
-        }
+        description={status === 'ready' && orders.length > 0 ? `${orderCount(orders.length)} בחשבון שלכם.` : undefined}
       />
 
       {status === 'loading' && (
-        <div className="bw-orders" aria-busy="true">
-          {Array.from({ length: 3 }, (_, index) => (
-            <Card key={index} className="bw-order">
-              <Skeleton width="40%" height={18} />
-              <Skeleton width="70%" height={12} />
-              <Skeleton width="30%" height={12} />
-            </Card>
-          ))}
+        <div className="bw-order-day" aria-busy="true">
+          <Skeleton width={90} height={14} />
+          <div className="bw-order-list">
+            {Array.from({ length: 3 }, (_, index) => (
+              <div key={index} className="bw-past-order">
+                <div className="bw-past-order__text">
+                  <Skeleton width="40%" height={18} />
+                  <Skeleton width="70%" height={12} />
+                </div>
+                <Skeleton width={56} height={18} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -83,55 +181,35 @@ export default function OrdersPage() {
         />
       )}
 
-      {status === 'ready' && orders.length > 0 && (
-        <ul className="bw-orders">
-          {orders.map((order) => {
-            const active = isActive(order);
-            const items = summariseItems(order);
+      {status === 'ready' && active.length > 0 && (
+        <section className="bw-orders-section" aria-labelledby="bw-orders-active">
+          <h2 className="bw-orders-section__title" id="bw-orders-active">
+            בדרך אליכם
+          </h2>
+          <ul className="bw-active-orders">
+            {active.map((order) => (
+              <ActiveOrder key={order.id} order={order} />
+            ))}
+          </ul>
+        </section>
+      )}
 
-            return (
-              <li key={order.id}>
-                <Card className="bw-order">
-                  <header className="bw-order__header">
-                    <div className="bw-order__identity">
-                      <h2 className="bw-order__restaurant">{order.restaurantName}</h2>
-                      <p className="bw-order__number">
-                        <span className="bw-order-number">{formatOrderNumber(order.id)}</span>
-                        {' · '}
-                        {order.date}
-                      </p>
-                    </div>
-                    <StatusPill tone={active ? 'active' : 'done'}>
-                      {active ? 'בדרך אליכם' : 'הושלמה'}
-                    </StatusPill>
-                  </header>
-
-                  {items && <p className="bw-order__items">{items}</p>}
-
-                  <footer className="bw-order__footer">
-                    <p className="bw-order__total">
-                      <span>{itemCount(order.items)}</span>
-                      <strong>{formatPrice(order.total)}</strong>
-                    </p>
-
-                    {active && (
-                      <Link to={`/tracking/${order.id}`} className="bw-order__track">
-                        מעקב אחרי ההזמנה
-                        <Icon name="back" size={16} />
-                      </Link>
-                    )}
-                  </footer>
-
-                  {active && (
-                    <span className="bw-visually-hidden">
-                      זמן משוער להגעה: {Math.ceil(getSecondsLeft(order) / 60)} דקות
-                    </span>
-                  )}
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
+      {status === 'ready' && past.length > 0 && (
+        <section className="bw-orders-section" aria-labelledby="bw-orders-past">
+          <h2 className="bw-orders-section__title" id="bw-orders-past">
+            הזמנות קודמות
+          </h2>
+          {groupByDay(past).map((group) => (
+            <div key={group.key} className="bw-order-day">
+              <h3 className="bw-order-day__title">{formatOrderDay(group.key)}</h3>
+              <ul className="bw-order-list">
+                {group.orders.map((order) => (
+                  <PastOrder key={order.id} order={order} />
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
       )}
     </div>
   );

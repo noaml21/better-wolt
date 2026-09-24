@@ -14,7 +14,6 @@ import {
   LinkButton,
   Media,
   Skeleton,
-  Tag,
   formatPrice,
   useToast,
 } from '../components/ui';
@@ -168,12 +167,15 @@ export default function WorldCupPage() {
   return (
     <div className="bw-page bw-worldcup">
       <header className="bw-worldcup__hero">
-        <p className="bw-worldcup__eyebrow">קולקציה מיוחדת</p>
         <h1 className="bw-worldcup__title bw-display">{restaurant.name}</h1>
         <p className="bw-worldcup__lead">
           מנה אחת מכל נבחרת
-          {flatPrice !== null ? `, במחיר אחיד של ${formatPrice(flatPrice)}` : ''}. מזמינים כמו מכל
-          מסעדה אחרת.
+          {flatPrice !== null && (
+            <>
+              , כל אחת ב-<span className="bw-num">{formatPrice(flatPrice)}</span>
+            </>
+          )}
+          . מזמינים כמו מכל מסעדה אחרת.
         </p>
 
         <div className="bw-worldcup__hero-actions">
@@ -212,7 +214,11 @@ export default function WorldCupPage() {
                   <span className="bw-worldcup-dish__text">
                     {team && <span className="bw-worldcup-dish__team">{team.team}</span>}
                     <h2 className="bw-worldcup-dish__name">{product.name}</h2>
-                    <Tag>{formatPrice(product.price)}</Tag>
+                    {/* One price for the whole campaign is said once, in
+                        the hero; a price per row only when they differ. */}
+                    {flatPrice === null && (
+                      <span className="bw-worldcup-dish__price bw-num">{formatPrice(product.price)}</span>
+                    )}
                   </span>
 
                   <span className="bw-worldcup-dish__action">

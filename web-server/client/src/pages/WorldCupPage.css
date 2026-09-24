@@ -45,13 +45,6 @@
   }
 }
 
-.bw-worldcup__eyebrow {
-  color: var(--bw-amber);
-  font-size: var(--bw-micro);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
 .bw-worldcup__title {
   font-size: var(--bw-display-l);
   margin: 0;
@@ -91,23 +84,47 @@
 
 .bw-worldcup__grid {
   display: grid;
-  /* `min(280px, 100%)` so a narrow screen is never asked for 280px. */
-  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
-  gap: var(--bw-space-4);
+  grid-template-columns: minmax(0, 1fr);
   list-style: none;
   margin: 0;
   padding: 0;
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-surface);
+  overflow: hidden;
 }
 
+/* One list, like a menu (V4 spec §4.3): rows divided by hairlines. */
 .bw-worldcup-dish {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--bw-space-4);
-  padding: var(--bw-space-4);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-md);
-  background-color: var(--bw-surface);
-  box-shadow: var(--bw-e1);
+  padding: var(--bw-space-3) var(--bw-space-5);
+  min-height: 72px;
+}
+
+.bw-worldcup-dish + .bw-worldcup-dish::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: var(--bw-space-5);
+  border-block-start: 1px solid var(--bw-line);
+}
+
+@media (min-width: 700px) {
+  .bw-worldcup__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Two columns: the second row starts the hairlines. */
+  .bw-worldcup-dish:nth-child(2)::before {
+    content: none;
+  }
+
+  .bw-worldcup-dish:nth-child(odd) {
+    border-inline-end: 1px solid var(--bw-line);
+  }
 }
 
 .bw-worldcup-dish__flag {
@@ -144,8 +161,13 @@
   font-weight: 600;
 }
 
+.bw-worldcup-dish__price {
+  font-size: var(--bw-caption);
+  font-weight: 600;
+}
+
 .bw-worldcup-dish__name {
-  font-size: var(--bw-h3);
+  font-size: 1.0625rem;
   font-weight: 600;
   line-height: var(--bw-lh-heading);
   margin: 0;
@@ -172,8 +194,11 @@
     grid-template-columns: minmax(0, 1fr) 340px;
   }
 
+  /* Stretched to the menu's height, or the sticky cart inside it has
+     nowhere to stick and scrolls away under the top bar. */
   .bw-worldcup__cart {
     display: block;
+    align-self: stretch;
   }
 }
 

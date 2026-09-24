@@ -42,7 +42,10 @@ from the first unchecked box.
       links to their restaurants; the campaign is an amber strip with a flag row (no eyebrow label); signed-in
       customers get "להזמין שוב" from their own orders (one extra `GET /orders`, account-guarded, silent on failure);
       search results say which dish, description or address matched, with the text marked.
-- [ ] **V4.4g — Web auth, World Cup, 404.** Brand panel, campaign page on the new rows.
+- [x] **V4.4g — Web auth, World Cup, 404.** The auth panel shows three restaurant photos (fetched only where the
+      panel is visible, ≥ 900 px) instead of a radial glow, and the form card loses its shadow. `/world-cup` loses its
+      eyebrow, states the flat price once, and lists the 20 dishes as one hairline surface (two columns from 700 px)
+      with the quiet add control; its desktop cart now actually sticks (the column was not stretched). 404 checked.
 - [ ] **V4.5 — Mobile.** Same moves idiomatically: dish rows + add control, price type, cart CTA with total, orders
       sections, tracking arrival time, plates, campaign card.
 - [ ] **V4.6 — Motion.** Spec §7 on both clients; review-animations pass.

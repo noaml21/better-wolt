@@ -13,13 +13,3 @@ export default function Skeleton({ width, height = 16, radius = 'sm', className 
     />
   );
 }
-
-export function SkeletonText({ lines = 3, className = '' }) {
-  return (
-    <span className={`bw-skeleton-text ${className}`} aria-hidden="true">
-      {Array.from({ length: lines }, (_, index) => (
-        <Skeleton key={index} height={12} width={index === lines - 1 ? '60%' : '100%'} />
-      ))}
-    </span>
-  );
-}

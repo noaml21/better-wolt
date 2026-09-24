@@ -130,12 +130,3 @@
   color: var(--bw-ink-muted);
   font-weight: 400;
 }
-
-.bw-meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--bw-space-2);
-  color: var(--bw-ink-muted);
-  font-size: var(--bw-caption);
-}

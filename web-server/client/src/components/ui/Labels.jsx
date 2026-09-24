@@ -52,7 +52,3 @@ export function Rating({ value, count, className = '' }) {
     </span>
   );
 }
-
-export function MetaRow({ children, className = '' }) {
-  return <p className={`bw-meta-row ${className}`}>{children}</p>;
-}

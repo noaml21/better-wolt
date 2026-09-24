@@ -11,6 +11,15 @@
   overflow: hidden;
 }
 
+.bw-menu-list--loading {
+  margin-block-start: var(--bw-space-5);
+}
+
+.bw-menu-list--loading .bw-dish__text {
+  flex: 1;
+  gap: var(--bw-space-2);
+}
+
 .bw-dish {
   position: relative;
   display: flex;

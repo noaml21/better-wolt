@@ -55,13 +55,30 @@ export default function RestaurantHero({ restaurant }) {
   );
 }
 
+/* The page's own shapes while it loads: the hero frame at its real size,
+   the facts line, and a few menu rows. */
 export function RestaurantHeroSkeleton() {
   return (
-    <header className="bw-restaurant-hero" aria-busy="true">
-      <Skeleton className="bw-restaurant-hero__media" height="auto" radius="lg" />
-      <div className="bw-restaurant-hero__facts">
-        <Skeleton width="55%" height={14} />
+    <div aria-busy="true">
+      <header className="bw-restaurant-hero">
+        <Skeleton className="bw-restaurant-hero__media" height={null} radius="lg" />
+        <div className="bw-restaurant-hero__facts">
+          <Skeleton width="55%" height={14} />
+        </div>
+      </header>
+      <Skeleton width={120} height={26} />
+      <div className="bw-menu-list bw-menu-list--loading">
+        {[0, 1, 2, 3].map((key) => (
+          <div key={key} className="bw-dish">
+            <div className="bw-dish__text">
+              <Skeleton width={160} height={18} />
+              <Skeleton width="80%" height={12} />
+              <Skeleton width={48} height={14} />
+            </div>
+            <Skeleton width={40} height={40} radius="pill" />
+          </div>
+        ))}
       </div>
-    </header>
+    </div>
   );
 }

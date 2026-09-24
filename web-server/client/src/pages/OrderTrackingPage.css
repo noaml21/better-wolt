@@ -28,6 +28,7 @@
 
 /* The product's one loud surface (V3 spec §3.2), and its showpiece. */
 .bw-tracking__stage {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-5);
@@ -50,7 +51,9 @@
 }
 
 .bw-tracking__big {
-  font-size: clamp(3.25rem, 2.6rem + 3vw, 4.5rem);
+  /* Capped by the stage's own width too: at 200% text a rem-sized word
+     (בתיאבון) would otherwise be wider than the stage. */
+  font-size: min(clamp(3.25rem, 2.6rem + 3vw, 4.5rem), 17cqi);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;

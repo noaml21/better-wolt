@@ -68,18 +68,22 @@ export default function CartScreen({ navigation }) {
 
       /* The server prices the order from the menu as it is now (V2_SPEC
          §3.1). If a price changed after the dish was added, what was
-         charged is not what the cart showed — say so. */
-      if (Number(order.total) !== shownTotal) {
-        showToast(`המחירים בתפריט השתנו בינתיים. ההזמנה חויבה לפי המחיר העדכני: ${formatPrice(order.total)}.`, {
+         charged is not what the cart showed; the tracking screen explains
+         it beside the receipt (V4 spec §3.5). If the customer has left
+         this tab, the toast is the only place left to say it. */
+      const charged = Number(order.total);
+      const priceCorrection = charged !== shownTotal ? { shown: shownTotal, charged } : undefined;
+
+      if (navigation.isFocused()) {
+        showToast('ההזמנה נשלחה');
+        navigation.navigate('Tracking', { orderId: order.id || order._id, priceCorrection });
+      } else if (priceCorrection) {
+        showToast(`המחירים בתפריט השתנו בינתיים. ההזמנה חויבה לפי המחיר העדכני: ${formatPrice(charged)}.`, {
           tone: 'error',
           duration: 7000,
         });
       } else {
         showToast('ההזמנה נשלחה');
-      }
-
-      if (navigation.isFocused()) {
-        navigation.navigate('Tracking', { orderId: order.id || order._id });
       }
     } catch (requestError) {
       if (!mounted.current) {
@@ -114,16 +118,22 @@ export default function CartScreen({ navigation }) {
       const gone = cart.lines.filter((line) => !onMenu.has(line.id));
 
       gone.forEach((line) => cart.removeLine(line.id));
-      // A toast, not the inline error: if every line is gone the cart
-      // switches to its empty state and the inline message goes with it.
-      showToast(
+
+      const explanation =
         gone.length === 0
           ? 'התפריט השתנה. בדקו את הסל ונסו שוב.'
           : gone.length === 1
             ? `המנה "${gone[0].name}" כבר לא בתפריט והוסרה מהסל. בדקו את הסל ונסו שוב.`
-            : `${gone.length} מנות כבר לא בתפריט והוסרו מהסל. בדקו את הסל ונסו שוב.`,
-        { tone: 'error' }
-      );
+            : `${gone.length} מנות כבר לא בתפריט והוסרו מהסל. בדקו את הסל ונסו שוב.`;
+
+      // Beside the cart while it still has dishes (V4 spec §3.5). If every
+      // line is gone the cart switches to its empty state, which would
+      // take an inline message with it — then a toast is the only place.
+      if (gone.length < cart.lines.length) {
+        setError(explanation);
+      } else {
+        showToast(explanation, { tone: 'error' });
+      }
     } catch {
       setError(requestError.message);
     }
@@ -168,11 +178,16 @@ export default function CartScreen({ navigation }) {
         </Pressable>
 
         <View style={styles.lines}>
-          {cart.lines.map((line) => (
-            <View key={line.id} style={styles.line}>
+          {cart.lines.map((line, index) => (
+            <View key={line.id} style={[styles.line, index === cart.lines.length - 1 && styles.lineLast]}>
               <View style={styles.lineText}>
                 <Text style={styles.lineName}>{line.name}</Text>
-                <Text style={styles.linePrice}>{formatPrice(line.price * line.quantity)}</Text>
+                <Text style={styles.linePrice}>
+                  {formatPrice(line.price * line.quantity)}
+                  {line.quantity > 1 ? (
+                    <Text style={styles.lineUnit}>{` · ${formatPrice(line.price)} ליחידה`}</Text>
+                  ) : null}
+                </Text>
               </View>
 
               <QuantityStepper
@@ -185,20 +200,24 @@ export default function CartScreen({ navigation }) {
           ))}
         </View>
 
-        {error ? <InlineMessage>{error}</InlineMessage> : null}
+        {/* Server strings are contract and shown as they come (ARCHITECTURE
+            §4.3); the lead says what they mean. */}
+        {error ? <InlineMessage>{`ההזמנה לא נשלחה. ${error}`}</InlineMessage> : null}
       </ScrollView>
 
       {/* The tab bar below already pays the bottom inset. */}
       <View style={styles.footer}>
         <View style={styles.total}>
-          <Text style={styles.totalLabel}>סך המנות</Text>
+          <Text style={styles.totalLabel}>סך הכול</Text>
           <Text style={styles.totalValue}>{formatPrice(cart.subtotal)}</Text>
         </View>
 
-        <Text style={styles.note}>דמי המשלוח מחושבים בשלב התשלום.</Text>
+        {/* True of every order: the client never sets a price (V2_SPEC
+            §3.1). There is no payment step and no fee. */}
+        <Text style={styles.note}>המחיר הסופי נקבע לפי התפריט ברגע ההזמנה.</Text>
 
         <Button size="lg" fullWidth loading={placing} onPress={placeOrder}>
-          לביצוע ההזמנה
+          {`לביצוע ההזמנה · ${formatPrice(cart.subtotal)}`}
         </Button>
       </View>
     </Screen>
@@ -221,19 +240,27 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
   restaurantName: { ...type.h3, ...rtl.text, flex: 1, color: colors.ink },
   restaurantLink: { ...type.caption, color: colors.flameDeep, fontWeight: '700' },
 
-  lines: { gap: space[3] },
+  lines: {
+    paddingHorizontal: space[4],
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
   line: {
     ...rtl.row,
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: space[4],
-    paddingBottom: space[3],
+    paddingVertical: space[3],
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
   },
+  lineLast: { borderBottomWidth: 0 },
   lineText: { flex: 1, gap: 2 },
   lineName: { ...type.body, ...rtl.text, color: colors.ink, fontWeight: '600' },
-  linePrice: { ...type.caption, ...rtl.text, color: colors.inkMuted },
+  linePrice: { ...type.caption, ...type.num, ...rtl.text, color: colors.ink, fontWeight: '700' },
+  lineUnit: { color: colors.inkMuted, fontWeight: '500' },
 
   footer: {
     gap: space[2],
@@ -244,7 +271,7 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
     ...shadow.e2,
   },
   total: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between' },
-  totalLabel: { ...type.body, color: colors.ink },
-  totalValue: { ...type.h2, color: colors.ink },
+  totalLabel: { ...type.body, color: colors.ink, fontWeight: '600' },
+  totalValue: { ...type.h2, ...type.num, color: colors.ink },
   note: { ...type.caption, ...rtl.text, marginBottom: space[2], color: colors.inkMuted },
 }));

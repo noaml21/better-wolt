@@ -59,6 +59,15 @@ export default function RestaurantFormDialog({ open, onClose, onSaved, restauran
       await onSaved?.();
       onClose();
     } catch (requestError) {
+      /* What this form edits is gone (removed in another tab). Retrying can
+         only fail again: show the page as it is now and say why. */
+      if (requestError.status === 404 && isEdit) {
+        await onSaved?.();
+        onClose();
+        showToast('המסעדה הזו כבר לא קיימת.', { tone: 'error' });
+        return;
+      }
+
       setError(requestError.message);
     } finally {
       setSaving(false);

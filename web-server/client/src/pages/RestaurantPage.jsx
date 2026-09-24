@@ -144,6 +144,13 @@ export default function RestaurantPage() {
       showToast('המסעדה נסגרה');
       navigate('/');
     } catch (error) {
+      // Closed already (another tab, another device): what was asked for.
+      if (error.status === 404) {
+        showToast('המסעדה כבר נסגרה');
+        navigate('/');
+        return;
+      }
+
       showToast(error.message, { tone: 'error' });
       setRemoving(false);
       setConfirm(null);
@@ -158,6 +165,14 @@ export default function RestaurantPage() {
       await refresh();
       showToast(`${product.name} הוסרה מהתפריט`);
     } catch (error) {
+      /* Gone already — removed in another tab or with its restaurant. The
+         menu on screen is what is stale, not the request: re-read it. */
+      if (error.status === 404) {
+        await refresh();
+        showToast(`${product.name} כבר לא בתפריט`);
+        return;
+      }
+
       showToast(error.message, { tone: 'error' });
     } finally {
       setRemoving(false);

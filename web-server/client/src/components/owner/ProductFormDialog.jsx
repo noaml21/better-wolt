@@ -78,6 +78,19 @@ export default function ProductFormDialog({ open, onClose, onSaved, restaurantId
       await onSaved?.();
       onClose();
     } catch (requestError) {
+      /* What this form edits is gone — the dish, or its whole restaurant,
+         removed in another tab. Retrying can only fail again: show the page
+         as it is now and say why. */
+      if (requestError.status === 404) {
+        await onSaved?.();
+        onClose();
+        showToast(
+          requestError.message === 'Restaurant not found' ? 'המסעדה הזו כבר לא קיימת.' : 'המנה הזו כבר לא בתפריט.',
+          { tone: 'error' }
+        );
+        return;
+      }
+
       setError(requestError.message);
     } finally {
       setSaving(false);

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
-import { Icon, IconButton, QuantityStepper, formatPrice } from '../ui';
+import { AddButton, IconButton, QuantityStepper, formatPrice } from '../ui';
 
 /* One dish, read the way a menu is read: name, what is in it, what it
    costs (V4 spec §5). Rows sit together on one surface divided by
@@ -59,22 +59,14 @@ export default function DishRow({
             onIncrease={() => onAdd(product)}
           />
         ) : (
-          <Pressable
-            onPress={() => onAdd(product)}
-            hitSlop={4}
-            accessibilityRole="button"
-            accessibilityLabel={`הוספה: ${product.name}`}
-            style={({ pressed }) => [styles.add, pressed && styles.addPressed]}
-          >
-            <Icon name="plus" size={20} color={styles.addGlyph.color} />
-          </Pressable>
+          <AddButton name={product.name} onPress={() => onAdd(product)} />
         )}
       </View>
     </View>
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type, isDark }) => ({
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
   row: {
     ...rtl.row,
     alignItems: 'center',
@@ -113,14 +105,4 @@ const useStyles = createStyles(({ colors, space, radius, type, isDark }) => ({
   description: { ...type.caption, ...rtl.text, fontWeight: '400', fontSize: 14, lineHeight: 20, color: colors.inkMuted },
   price: { ...type.price, ...rtl.text, marginTop: 2, color: colors.ink },
   action: { ...rtl.row, alignItems: 'center', gap: space[2] },
-  add: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.flameTint,
-  },
-  addPressed: { opacity: 0.85, transform: [{ scale: 0.94 }] },
-  addGlyph: { color: isDark ? colors.flame : colors.flameDeep },
 }));

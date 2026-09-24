@@ -258,7 +258,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
             >
               עריכת פרטים
             </Button>
-            <Button size="sm" variant="ghost" icon="trash" onPress={removeRestaurant}>
+            <Button size="sm" variant="danger" icon="trash" onPress={removeRestaurant}>
               סגירה
             </Button>
           </View>

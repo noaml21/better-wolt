@@ -1,3 +1,4 @@
+export { default as AddButton } from './AddButton';
 export { default as AuthScaffold } from './AuthScaffold';
 export { default as Button } from './Button';
 export { default as Card } from './Card';

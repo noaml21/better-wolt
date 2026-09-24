@@ -9,7 +9,7 @@ import { dishCount } from '../services/presentation';
 import { useCart } from '../context/CartContext';
 import CartBar, { CART_BAR_SPACE } from '../components/CartBar';
 import {
-  Button,
+  AddButton,
   EmptyState,
   ErrorState,
   Icon,
@@ -18,7 +18,6 @@ import {
   QuantityStepper,
   Screen,
   Skeleton,
-  Tag,
   formatPrice,
   useToast,
 } from '../ui';
@@ -173,12 +172,11 @@ export default function WorldCupScreen({ navigation }) {
         </View>
       </View>
 
-      <Text style={styles.eyebrow}>קולקציה מיוחדת</Text>
       <Text style={styles.title}>{restaurant.name}</Text>
       <Text style={styles.lead}>
         מנה אחת מכל נבחרת
-        {flatPrice !== null ? `, במחיר אחיד של ${formatPrice(flatPrice)}` : ''}. מזמינים כמו מכל
-        מסעדה אחרת.
+        {flatPrice !== null ? `, כל אחת ב-${formatPrice(flatPrice)}` : ''}. מזמינים כמו מכל מסעדה
+        אחרת.
       </Text>
       <Text style={styles.count}>{dishCount(products.length)}</Text>
     </View>
@@ -195,18 +193,23 @@ export default function WorldCupScreen({ navigation }) {
           { paddingBottom: (showCartBar ? CART_BAR_SPACE : space[4]) + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => {
+        renderItem={({ item, index }) => {
           const team = teamByDish.get(item.name);
           const quantity = isCampaignCart ? cart.quantities[item.id] || 0 : 0;
+          const first = index === 0;
+          const last = index === products.length - 1;
 
+          /* One list like a menu (V4 spec §4.3). The campaign's one price
+             is said in the hero; a price per row only if they differ. */
           return (
-            <View style={styles.dish}>
+            <View style={[styles.dish, first && styles.dishFirst, last && styles.dishLast]}>
+              {!first ? <View style={styles.hairline} /> : null}
               <Flag team={team} />
 
               <View style={styles.dishText}>
                 {team ? <Text style={styles.team}>{team.team}</Text> : null}
                 <Text style={styles.dishName}>{item.name}</Text>
-                <Tag style={styles.price}>{formatPrice(item.price)}</Tag>
+                {flatPrice === null ? <Text style={styles.price}>{formatPrice(item.price)}</Text> : null}
               </View>
 
               <View style={styles.dishAction}>
@@ -218,14 +221,7 @@ export default function WorldCupScreen({ navigation }) {
                     onIncrease={() => addToCart(item)}
                   />
                 ) : (
-                  <Button
-                    size="sm"
-                    icon="plus"
-                    onPress={() => addToCart(item)}
-                    accessibilityLabel={`הוספה: ${item.name}`}
-                  >
-                    הוספה
-                  </Button>
+                  <AddButton name={item.name} onPress={() => addToCart(item)} />
                 )}
               </View>
             </View>
@@ -244,7 +240,7 @@ export default function WorldCupScreen({ navigation }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
   skeleton: { gap: space[4], padding: space[4] },
   backRow: { ...rtl.row, paddingHorizontal: space[4] },
   list: { paddingHorizontal: space[4] },
@@ -268,8 +264,7 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
     justifyContent: 'center',
     backgroundColor: colors.amber,
   },
-  eyebrow: { ...type.micro, ...rtl.text, marginTop: space[3], color: colors.amber, letterSpacing: 0.4 },
-  title: { ...type.h1, ...rtl.text, color: colors.onNight },
+  title: { ...type.h1, ...rtl.text, marginTop: space[3], fontWeight: '900', color: colors.onNight },
   lead: { ...type.body, ...rtl.text, color: colors.onNight, opacity: 0.78 },
   count: { ...type.caption, ...rtl.text, color: colors.onNight, opacity: 0.6 },
 
@@ -277,14 +272,17 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
     ...rtl.row,
     alignItems: 'center',
     gap: space[3],
-    padding: space[4],
-    marginBottom: space[3],
-    borderRadius: radius.md,
-    borderWidth: 1,
+    paddingHorizontal: space[4],
+    paddingVertical: space[3],
+    minHeight: 72,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.surface,
-    ...shadow.e1,
   },
+  dishFirst: { borderTopWidth: 1, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
+  dishLast: { borderBottomWidth: 1, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
+  hairline: { position: 'absolute', top: 0, left: space[4], right: space[4], height: 1, backgroundColor: colors.line },
   /* A flag keeps its own 3:2 proportion; cropping it to a square
      mangles the ones with vertical bands. */
   flag: {
@@ -299,8 +297,8 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
   flagImage: { width: '100%', height: '100%' },
   dishText: { flex: 1, gap: 2, alignItems: 'flex-end' },
   team: { ...type.micro, ...rtl.text, color: colors.inkMuted },
-  dishName: { ...type.h3, ...rtl.text, color: colors.ink },
-  price: { marginTop: space[1] },
+  dishName: { ...type.h3, ...rtl.text, fontSize: 17, fontWeight: '600', color: colors.ink },
+  price: { ...type.price, ...rtl.text, color: colors.ink },
   dishAction: {},
 
 }));

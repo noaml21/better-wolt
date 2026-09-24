@@ -106,6 +106,13 @@ button {
   border-radius: var(--bw-radius-xs);
 }
 
+/* Except on <main> itself: it is not a control but the place focus is
+   put after the skip link, a route change or a removed element, and a
+   ring around the whole page says nothing. */
+.bw-app > main:focus-visible {
+  outline: none;
+}
+
 /* Utilities ---------------------------------------------------------- */
 
 .bw-visually-hidden {

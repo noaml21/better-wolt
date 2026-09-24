@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui';
@@ -17,6 +18,28 @@ import WorldCupPage from './pages/WorldCupPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import NotFoundPage from './pages/NotFoundPage';
 
+/* A route change swaps the page under the element that had focus, which
+   leaves the keyboard on <body> and tells a screen reader nothing. Focus
+   moves to <main> instead, from where Tab starts at the new page's top.
+   Rendered before the page, so a page that places focus itself (the login
+   form's first field) still has the last word. Not on first load, and not
+   when only the query changes (typing a new search). */
+function RouteFocus() {
+  const { pathname } = useLocation();
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+
+    document.getElementById('main')?.focus({ preventScroll: true });
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -24,6 +47,7 @@ export default function App() {
         <ToastProvider>
           <BrowserRouter>
             <div className="bw-app">
+              <RouteFocus />
               <a className="bw-skip-link" href="#main">
                 דילוג לתוכן הראשי
               </a>

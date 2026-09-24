@@ -114,6 +114,13 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
               showToast('המסעדה נסגרה');
               navigation.navigate('Tabs', { screen: 'Home' }, { pop: true });
             } catch (error) {
+              // Closed already, on another device: what was asked for.
+              if (error.status === 404) {
+                showToast('המסעדה כבר נסגרה');
+                navigation.navigate('Tabs', { screen: 'Home' }, { pop: true });
+                return;
+              }
+
               showToast(error.message, { tone: 'error' });
             }
           },
@@ -134,6 +141,13 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
             await load({ silent: true });
             showToast(`${product.name} הוסרה מהתפריט`);
           } catch (error) {
+            // Gone already: the menu on screen is what is stale.
+            if (error.status === 404) {
+              await load({ silent: true });
+              showToast(`${product.name} כבר לא בתפריט`);
+              return;
+            }
+
             showToast(error.message, { tone: 'error' });
           }
         },

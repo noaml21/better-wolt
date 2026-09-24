@@ -77,7 +77,10 @@ export default function RestaurantPage() {
         }
 
         if (refresh && error.status !== 404) {
-          showToast(failureMessage, { tone: 'error' });
+          if (failureMessage) {
+            showToast(failureMessage, { tone: 'error' });
+          }
+
           return;
         }
 
@@ -107,7 +110,12 @@ export default function RestaurantPage() {
     }
   }, [isOwner]);
 
-  const { placing, placeOrder: handlePlaceOrder } = usePlaceOrder({
+  const {
+    placing,
+    placeOrder: handlePlaceOrder,
+    problem: orderProblem,
+    dismissProblem,
+  } = usePlaceOrder({
     restaurantId: restaurant?.id,
     cart,
     from: `/restaurant/${id}`,
@@ -115,29 +123,25 @@ export default function RestaurantPage() {
     /* The order named a dish that is gone, or the restaurant is. Nothing
        was ordered; show the menu as it is now (a closed restaurant turns
        the page into its "not found" state), take the missing dishes out
-       of the cart and say which, so the next attempt can succeed. */
+       of the cart and say which, so the next attempt can succeed. The
+       explanation is returned, and the cart shows it beside itself. */
     onMenuChanged: async () => {
-      const fresh = await load({
-        refresh: true,
-        failureMessage: 'התפריט השתנה ולא הצלחנו לטעון אותו מחדש. רעננו את העמוד ונסו שוב.',
-      });
+      const fresh = await load({ refresh: true, failureMessage: null });
 
       if (!fresh) {
-        return;
+        return 'התפריט השתנה ולא הצלחנו לטעון אותו מחדש. רעננו את העמוד ונסו שוב.';
       }
 
       const onMenu = new Set((fresh.products || []).map((product) => product.id));
       const gone = cart.lines.filter((line) => !onMenu.has(line.id));
 
       cart.keepOnly(onMenu);
-      showToast(
-        gone.length === 0
-          ? 'התפריט השתנה. בדקו את הסל ונסו שוב.'
-          : gone.length === 1
-            ? `המנה "${gone[0].name}" כבר לא בתפריט והוסרה מהסל. בדקו את הסל ונסו שוב.`
-            : `${gone.length} מנות כבר לא בתפריט והוסרו מהסל. בדקו את הסל ונסו שוב.`,
-        { tone: 'error' }
-      );
+
+      return gone.length === 0
+        ? 'התפריט השתנה. בדקו את הסל ונסו שוב.'
+        : gone.length === 1
+          ? `המנה "${gone[0].name}" כבר לא בתפריט והוסרה מהסל. בדקו את הסל ונסו שוב.`
+          : `${gone.length} מנות כבר לא בתפריט והוסרו מהסל. בדקו את הסל ונסו שוב.`;
     },
   });
 
@@ -318,6 +322,9 @@ export default function RestaurantPage() {
               onRemove={cart.removeItem}
               onPlaceOrder={handlePlaceOrder}
               placing={placing}
+              restaurantName={restaurant.name}
+              problem={orderProblem}
+              onDismissProblem={dismissProblem}
             />
           </aside>
         )}
@@ -337,6 +344,9 @@ export default function RestaurantPage() {
               onRemove={cart.removeItem}
               onPlaceOrder={handlePlaceOrder}
               placing={placing}
+              restaurantName={restaurant.name}
+              problem={orderProblem}
+              onDismissProblem={dismissProblem}
             />
           </Dialog>
         </>

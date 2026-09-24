@@ -120,7 +120,12 @@ export default function WorldCupPage() {
       );
   };
 
-  const { placing, placeOrder: handlePlaceOrder } = usePlaceOrder({
+  const {
+    placing,
+    placeOrder: handlePlaceOrder,
+    problem: orderProblem,
+    dismissProblem,
+  } = usePlaceOrder({
     restaurantId: restaurant?.id,
     cart,
     from: '/world-cup',
@@ -234,6 +239,9 @@ export default function WorldCupPage() {
             onRemove={cart.removeItem}
             onPlaceOrder={handlePlaceOrder}
             placing={placing}
+            restaurantName={restaurant.name}
+            problem={orderProblem}
+            onDismissProblem={dismissProblem}
           />
         </aside>
       </div>
@@ -250,6 +258,9 @@ export default function WorldCupPage() {
           onRemove={cart.removeItem}
           onPlaceOrder={handlePlaceOrder}
           placing={placing}
+          restaurantName={restaurant.name}
+          problem={orderProblem}
+          onDismissProblem={dismissProblem}
         />
       </Dialog>
     </div>

@@ -23,8 +23,11 @@ from the first unchecked box.
       neutral −/tinted + stepper, in-cart count on the dish name, a menu filter above 8 dishes, and the owner's tools
       in the side column (a toolbar above the menu below 1100 px). Focus hand-off add ↔ stepper re-verified by
       keyboard.
-- [ ] **V4.4c — Web cart and checkout.** Cart with restaurant name, honest note, total in the CTA, inline checkout
-      messages, price corrections explained on tracking, dock steps aside for the cart bar.
+- [x] **V4.4c — Web cart and checkout.** Cart names its restaurant, says the price is set when the order is placed
+      (no more "fee at the payment step"), carries the total in its CTA, and keeps a refused order's reason beside
+      itself (`usePlaceOrder().problem`, dismissible, cleared on retry or account change). A total the server
+      corrected is handed to tracking in navigation state and explained there. The order dock hides while the cart
+      bar is up. Verified with the order endpoint intercepted (500, menu-changed 404, corrected total). Web Jest 29.
 - [ ] **V4.4d — Web tracking.** Arrival clock time, stage times, rail on `scaleX` (detector finding), receipt list.
 - [ ] **V4.4e — Web orders.** Active/past sections, rows in one surface, dates in words, reorder.
 - [ ] **V4.4f — Web discovery.** Plates on cards, hero compaction, campaign strip, "להזמין שוב" row, search shows the

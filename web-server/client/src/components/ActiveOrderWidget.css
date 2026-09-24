@@ -56,3 +56,12 @@
 body.bw-has-cart-bar .bw-dock {
   inset-block-end: calc(var(--bw-space-5) + 76px + env(safe-area-inset-bottom));
 }
+
+/* One floating bar at a time (V4 audit A4): while the cart bar is up, the
+   customer is building the next order, and the pill would sit on top of
+   it and of the menu. The order is still one tap away in "ההזמנות שלי". */
+@media (max-width: 1099px) {
+  body.bw-has-cart-bar .bw-dock {
+    display: none;
+  }
+}

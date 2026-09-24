@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createOrder } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { formatPrice, useToast } from '../components/ui';
+import { useToast } from '../components/ui';
 
 /* Placing an order from a menu page (the restaurant page, /world-cup).
 
@@ -13,7 +13,12 @@ import { formatPrice, useToast } from '../components/ui';
    that placed it; a late failure is reported the same way. If the account
    has changed meanwhile (another tab), the answer is not this page's to
    act on even when the page is still open. `from` is where
-   signing in should return to. */
+   signing in should return to.
+
+   A refused order is written next to the cart (`problem`), not in a toast
+   (V4 spec §3.5): it stays until the next attempt or until it is
+   dismissed, so it cannot vanish while the customer is reading the cart.
+   Toasts remain for answers that land after the page is gone. */
 
 /* Contract strings (ARCHITECTURE §4.3): the cart names a dish the menu no
    longer has, or the restaurant itself is gone — changed by the owner
@@ -25,7 +30,15 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
   const { isAuthenticated, user, currentUsername } = useAuth();
   const { showToast } = useToast();
   const [placing, setPlacing] = useState(false);
+  const [problem, setProblem] = useState(null);
   const mounted = useRef(true);
+  const account = user?.username ?? null;
+
+  // A problem belongs to the cart it was about, and that cart belongs to
+  // the account (useMenuCart empties it when the account changes).
+  useEffect(() => {
+    setProblem(null);
+  }, [account]);
 
   useEffect(() => {
     mounted.current = true;
@@ -45,6 +58,7 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
     const placedBy = user?.username;
     const shownTotal = Math.round(cart.subtotal * 100) / 100;
 
+    setProblem(null);
     setPlacing(true);
 
     try {
@@ -62,17 +76,16 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
 
       cart.clear();
       onPlaced?.();
-      navigate(`/tracking/${order.id}`);
 
       /* The server prices the order from the menu as it is now (V2_SPEC
          §3.1). If the owner changed a price after it was added, what was
-         charged is not what the cart showed — say so, don't let it pass. */
-      if (Number(order.total) !== shownTotal) {
-        showToast(`המחירים בתפריט השתנו בינתיים. ההזמנה חויבה לפי המחיר העדכני: ${formatPrice(order.total)}.`, {
-          tone: 'error',
-          duration: 7000,
-        });
-      }
+         charged is not what the cart showed — the tracking page says so
+         beside the receipt, where the customer checks the total. */
+      const charged = Number(order.total);
+
+      navigate(`/tracking/${order.id}`, {
+        state: charged !== shownTotal ? { priceCorrection: { shown: shownTotal, charged } } : undefined,
+      });
     } catch (error) {
       /* A 401 has already signed the session out (so the account check
          below would swallow it); the order needs a fresh sign-in, the same
@@ -96,11 +109,16 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
       }
 
       if (error.status === 404 && MENU_GONE.includes(error.message) && onMenuChanged) {
-        await onMenuChanged();
+        const explanation = await onMenuChanged();
+
+        if (mounted.current && explanation) {
+          setProblem(explanation);
+        }
+
         return;
       }
 
-      showToast(error.message, { tone: 'error' });
+      setProblem(error.message);
     } finally {
       if (mounted.current) {
         setPlacing(false);
@@ -108,5 +126,7 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
     }
   }, [isAuthenticated, user, currentUsername, restaurantId, cart, from, onPlaced, onMenuChanged, navigate, showToast]);
 
-  return { placing, placeOrder };
+  const dismissProblem = useCallback(() => setProblem(null), []);
+
+  return { placing, placeOrder, problem, dismissProblem };
 }

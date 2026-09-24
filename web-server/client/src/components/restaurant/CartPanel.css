@@ -4,27 +4,24 @@
   gap: var(--bw-space-4);
 }
 
+.bw-cart:focus {
+  outline: none;
+}
+
 .bw-cart--panel {
   position: sticky;
   inset-block-start: calc(var(--bw-topbar-height) + var(--bw-space-5));
-  padding: var(--bw-space-5);
+  padding: var(--bw-space-6);
   border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-md);
+  border-radius: var(--bw-radius-lg);
   background-color: var(--bw-surface);
-  box-shadow: var(--bw-e1);
-}
-
-.bw-cart__header {
-  display: flex;
-  align-items: center;
-  gap: var(--bw-space-3);
 }
 
 .bw-cart__title {
   display: flex;
   align-items: center;
   gap: var(--bw-space-2);
-  font-size: var(--bw-h3);
+  font-size: 1.25rem;
   font-weight: 700;
 }
 
@@ -32,9 +29,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
-  height: 26px;
-  padding-inline: var(--bw-space-2);
+  min-width: 24px;
+  height: 24px;
+  padding-inline: 7px;
   border-radius: var(--bw-radius-pill);
   background-color: var(--bw-flame);
   color: var(--bw-on-flame);
@@ -42,17 +39,43 @@
   font-weight: 700;
 }
 
-.bw-cart__empty {
+.bw-cart__from {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 2px;
   color: var(--bw-ink-muted);
   font-size: var(--bw-caption);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.bw-cart__empty {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+}
+
+.bw-cart__empty-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-sunken);
+  color: var(--bw-ink-muted);
 }
 
 .bw-cart__lines {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-space-3);
   max-height: 44vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .bw-cart__line {
@@ -60,8 +83,12 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--bw-space-3);
-  padding-block-end: var(--bw-space-3);
+  padding-block: var(--bw-space-3);
   border-block-end: 1px solid var(--bw-line);
+}
+
+.bw-cart__line:first-child {
+  padding-block-start: 0;
 }
 
 .bw-cart__line:last-child {
@@ -81,11 +108,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  unicode-bidi: isolate;
 }
 
 .bw-cart__line-price {
-  color: var(--bw-ink-muted);
+  color: var(--bw-ink);
   font-size: var(--bw-caption);
+  font-weight: 600;
+}
+
+.bw-cart__line-unit {
+  color: var(--bw-ink-muted);
+  font-weight: 500;
 }
 
 .bw-cart__summary {
@@ -100,19 +134,79 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  font-size: var(--bw-body-l);
+  font-weight: 600;
 }
 
 .bw-cart__total strong {
-  font-family: var(--bw-font-ui);
+  font-size: 1.5rem;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--bw-h2);
 }
 
 .bw-cart__note {
   color: var(--bw-ink-muted);
-  font-size: var(--bw-micro);
+  font-size: var(--bw-caption);
+}
+
+/* A refused order stays beside the cart until it is dealt with. */
+.bw-cart__problem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-3);
+  border-radius: var(--bw-radius-sm);
+  background-color: var(--bw-danger-tint);
+  color: var(--bw-danger);
+  font-size: var(--bw-caption);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.bw-cart__problem > svg {
+  margin-block-start: 1px;
+}
+
+.bw-cart__problem p {
+  overflow-wrap: anywhere;
+}
+
+.bw-cart__problem strong {
+  font-weight: 700;
+}
+
+.bw-cart__problem-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px;
+  border: 0;
+  border-radius: var(--bw-radius-pill);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.bw-cart__problem-close:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* The primary action carries the amount it commits to. */
+.bw-cart__cta .bw-button__content {
+  width: 100%;
+}
+
+.bw-cart__cta .bw-button__label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+}
+
+.bw-cart__cta-total {
+  font-weight: 700;
 }
 
 /* Compact widths: a docked bar that opens the cart as a sheet. */
@@ -177,6 +271,6 @@
   gap: var(--bw-space-4);
 }
 
-.bw-cart--sheet .bw-cart__header {
+.bw-cart--sheet .bw-cart__title {
   display: none;
 }

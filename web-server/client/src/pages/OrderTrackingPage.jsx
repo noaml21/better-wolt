@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { getOrderById } from '../services/api';
 import {
   formatCountdown,
@@ -14,6 +14,7 @@ import {
   EmptyState,
   ErrorState,
   Icon,
+  InlineMessage,
   LinkButton,
   Skeleton,
   formatPrice,
@@ -27,6 +28,9 @@ import './OrderTrackingPage.css';
 
 export default function OrderTrackingPage() {
   const { orderId } = useParams();
+  /* Set by usePlaceOrder when the server charged a different total from
+     the one the cart showed (a price changed after the dish was added). */
+  const priceCorrection = useLocation().state?.priceCorrection;
   const [order, setOrder] = useState(null);
   const [status, setStatus] = useState('loading');
   const [secondsLeft, setSecondsLeft] = useState(null);
@@ -159,6 +163,14 @@ export default function OrderTrackingPage() {
           <span>סך הכול</span>
           <strong>{formatPrice(order.total)}</strong>
         </p>
+
+        {priceCorrection && (
+          <InlineMessage tone="info" className="bw-tracking__correction">
+            מחיר של מנה השתנה בתפריט אחרי שהוספתם אותה. הסל הראה{' '}
+            <span className="bw-num">{formatPrice(priceCorrection.shown)}</span>, וההזמנה חויבה לפי המחיר
+            העדכני: <span className="bw-num">{formatPrice(priceCorrection.charged)}</span>.
+          </InlineMessage>
+        )}
       </Card>
 
       <div className="bw-actions">

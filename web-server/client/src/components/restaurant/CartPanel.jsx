@@ -14,6 +14,9 @@ export default function CartPanel({
   onRemove,
   onPlaceOrder,
   placing,
+  restaurantName,
+  problem,
+  onDismissProblem,
   variant = 'panel',
 }) {
   const isEmpty = lines.length === 0;
@@ -36,29 +39,41 @@ export default function CartPanel({
       tabIndex={-1}
       className={`bw-cart bw-cart--${variant}`}
       aria-labelledby="bw-cart-title"
-      aria-live="polite"
     >
       <header className="bw-cart__header">
         <h2 className="bw-cart__title" id="bw-cart-title">
-          <Icon name="cart" size={20} />
           הסל שלי
+          {itemCount > 0 && <span className="bw-cart__count bw-num">{itemCount}</span>}
         </h2>
-        {itemCount > 0 && <span className="bw-cart__count">{itemCount}</span>}
+        {restaurantName && !isEmpty && (
+          <p className="bw-cart__from">
+            <Icon name="store" size={14} />
+            <span>{restaurantName}</span>
+          </p>
+        )}
       </header>
 
       {isEmpty ? (
-        <p className="bw-cart__empty">
-          הסל ריק. הוסיפו מנות מהתפריט והן יופיעו כאן.
-        </p>
+        <div className="bw-cart__empty">
+          <span className="bw-cart__empty-icon" aria-hidden="true">
+            <Icon name="cart" size={22} />
+          </span>
+          <p>הסל ריק. מנות שתוסיפו מהתפריט יופיעו כאן.</p>
+        </div>
       ) : (
         <>
-          <ul className="bw-cart__lines">
+          {/* The lines are the live part: a quantity changing is announced,
+              the whole panel is not re-read. */}
+          <ul className="bw-cart__lines" aria-live="polite">
             {lines.map((line) => (
               <li key={line.id} className="bw-cart__line">
                 <div className="bw-cart__line-text">
                   <span className="bw-cart__line-name">{line.name}</span>
-                  <span className="bw-cart__line-price">
+                  <span className="bw-cart__line-price bw-num">
                     {formatPrice(Number(line.price) * line.quantity)}
+                    {line.quantity > 1 && (
+                      <span className="bw-cart__line-unit"> · {formatPrice(line.price)} ליחידה</span>
+                    )}
                   </span>
                 </div>
                 <QuantityStepper
@@ -77,12 +92,32 @@ export default function CartPanel({
 
           <div className="bw-cart__summary">
             <div className="bw-cart__total">
-              <span>סך המנות</span>
-              <strong>{formatPrice(subtotal)}</strong>
+              <span>סך הכול</span>
+              <strong className="bw-num">{formatPrice(subtotal)}</strong>
             </div>
-            <p className="bw-cart__note">דמי המשלוח מחושבים בשלב התשלום.</p>
-            <Button fullWidth size="lg" loading={placing} onClick={onPlaceOrder}>
-              לביצוע ההזמנה
+            {/* True of every order: the client never sets a price
+                (V2_SPEC §3.1). There is no payment step and no fee. */}
+            <p className="bw-cart__note">המחיר הסופי נקבע לפי התפריט ברגע ההזמנה.</p>
+
+            {problem && (
+              <div className="bw-cart__problem" role="alert">
+                <Icon name="alert" size={18} />
+                {/* Server strings are contract and shown as they come
+                    (ARCHITECTURE §4.3); the lead says what they mean. */}
+                <p>
+                  <strong>ההזמנה לא נשלחה.</strong> {problem}
+                </p>
+                {onDismissProblem && (
+                  <button type="button" className="bw-cart__problem-close" aria-label="סגירת ההודעה" onClick={onDismissProblem}>
+                    <Icon name="close" size={16} />
+                  </button>
+                )}
+              </div>
+            )}
+
+            <Button fullWidth size="lg" loading={placing} onClick={onPlaceOrder} className="bw-cart__cta">
+              <span>לביצוע ההזמנה</span>
+              <span className="bw-cart__cta-total bw-num">{formatPrice(subtotal)}</span>
             </Button>
           </div>
         </>

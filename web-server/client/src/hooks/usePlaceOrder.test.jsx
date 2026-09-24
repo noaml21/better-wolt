@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { Link, MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Link, MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { ToastProvider } from '../components/ui';
 import { createOrder } from '../services/api';
@@ -17,14 +17,22 @@ function base64Url(value) {
 const cart = { toOrderProducts: () => [{ id: 'p1', quantity: 1 }], clear: jest.fn(), subtotal: 20 };
 
 function Menu() {
-  const { placeOrder } = usePlaceOrder({ restaurantId: 'r1', cart, from: '/menu' });
+  const { placeOrder, problem, dismissProblem } = usePlaceOrder({ restaurantId: 'r1', cart, from: '/menu' });
 
   return (
     <>
       <button type="button" onClick={placeOrder}>order</button>
       <Link to="/elsewhere">leave</Link>
+      {problem && <p data-testid="problem">{problem}</p>}
+      <button type="button" onClick={dismissProblem}>dismiss</button>
     </>
   );
+}
+
+function Tracking() {
+  const correction = useLocation().state?.priceCorrection;
+
+  return <div>tracking page{correction ? ` ${correction.shown}→${correction.charged}` : ''}</div>;
 }
 
 function renderApp() {
@@ -35,7 +43,7 @@ function renderApp() {
           <Routes>
             <Route path="/menu" element={<Menu />} />
             <Route path="/elsewhere" element={<div>somewhere else</div>} />
-            <Route path="/tracking/:id" element={<div>tracking page</div>} />
+            <Route path="/tracking/:id" element={<Tracking />} />
           </Routes>
         </MemoryRouter>
       </ToastProvider>
@@ -103,4 +111,48 @@ test('an order that lands after another tab switched account is not acted on', a
   expect(screen.getByText('order')).toBeInTheDocument();
   expect(screen.queryByText('tracking page')).not.toBeInTheDocument();
   expect(screen.queryByText(/ההזמנה נשלחה/)).not.toBeInTheDocument();
+});
+
+test('a refused order is written beside the cart and stays until the next attempt', async () => {
+  createOrder.mockRejectedValueOnce(Object.assign(new Error('Error processing request'), { status: 500 }));
+  renderApp();
+
+  fireEvent.click(screen.getByText('order'));
+
+  expect(await screen.findByTestId('problem')).toHaveTextContent('Error processing request');
+  expect(screen.queryByText('tracking page')).not.toBeInTheDocument();
+
+  createOrder.mockResolvedValueOnce({ id: 'o1', total: 20 });
+  fireEvent.click(screen.getByText('order'));
+
+  expect(await screen.findByText('tracking page')).toBeInTheDocument();
+});
+
+test('a refused order can be dismissed', async () => {
+  createOrder.mockRejectedValueOnce(Object.assign(new Error('Error processing request'), { status: 500 }));
+  renderApp();
+
+  fireEvent.click(screen.getByText('order'));
+  await screen.findByTestId('problem');
+  fireEvent.click(screen.getByText('dismiss'));
+
+  expect(screen.queryByTestId('problem')).not.toBeInTheDocument();
+});
+
+test('a total the server corrected is handed to the tracking page', async () => {
+  createOrder.mockResolvedValue({ id: 'o1', total: 27 });
+  renderApp();
+
+  fireEvent.click(screen.getByText('order'));
+
+  expect(await screen.findByText('tracking page 20→27')).toBeInTheDocument();
+});
+
+test('an unchanged total hands nothing to the tracking page', async () => {
+  createOrder.mockResolvedValue({ id: 'o1', total: 20 });
+  renderApp();
+
+  fireEvent.click(screen.getByText('order'));
+
+  expect(await screen.findByText('tracking page')).toHaveTextContent(/^tracking page$/);
 });

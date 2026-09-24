@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button, Field, Icon, InlineMessage, useToast } from '../components/ui';
 import AuthLayout from '../components/auth/AuthLayout';
@@ -11,7 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const usernameRef = useRef(null);
-  const { login, sessionEnded } = useAuth();
+  const { login, sessionEnded, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,6 +51,13 @@ export default function LoginPage() {
       setSubmitting(false);
     }
   };
+
+  /* Already signed in — opened directly, or signed in from another tab
+     while this one waited here after a sign-out. Go where the visit was
+     headed. A submit from this page navigates by itself. */
+  if (isAuthenticated && !submitting) {
+    return <Navigate to={location.state?.from || '/'} replace />;
+  }
 
   return (
     <AuthLayout

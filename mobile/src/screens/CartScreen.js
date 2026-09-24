@@ -49,6 +49,8 @@ export default function CartScreen({ navigation }) {
   }, []);
 
   const placeOrder = async () => {
+    const shownTotal = Math.round(cart.subtotal * 100) / 100;
+
     setPlacing(true);
     setError('');
 
@@ -63,7 +65,18 @@ export default function CartScreen({ navigation }) {
       }
 
       cart.clear();
-      showToast('ההזמנה נשלחה');
+
+      /* The server prices the order from the menu as it is now (V2_SPEC
+         §3.1). If a price changed after the dish was added, what was
+         charged is not what the cart showed — say so. */
+      if (Number(order.total) !== shownTotal) {
+        showToast(`המחירים בתפריט השתנו בינתיים. ההזמנה חויבה לפי המחיר העדכני: ${formatPrice(order.total)}.`, {
+          tone: 'error',
+          duration: 7000,
+        });
+      } else {
+        showToast('ההזמנה נשלחה');
+      }
 
       if (navigation.isFocused()) {
         navigation.navigate('Tracking', { orderId: order.id || order._id });

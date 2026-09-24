@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createOrder } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../components/ui';
+import { formatPrice, useToast } from '../components/ui';
 
 /* Placing an order from a menu page (the restaurant page, /world-cup).
 
@@ -43,6 +43,7 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
     }
 
     const placedBy = user?.username;
+    const shownTotal = Math.round(cart.subtotal * 100) / 100;
 
     setPlacing(true);
 
@@ -62,6 +63,16 @@ export default function usePlaceOrder({ restaurantId, cart, from, onPlaced, onMe
       cart.clear();
       onPlaced?.();
       navigate(`/tracking/${order.id}`);
+
+      /* The server prices the order from the menu as it is now (V2_SPEC
+         §3.1). If the owner changed a price after it was added, what was
+         charged is not what the cart showed — say so, don't let it pass. */
+      if (Number(order.total) !== shownTotal) {
+        showToast(`המחירים בתפריט השתנו בינתיים. ההזמנה חויבה לפי המחיר העדכני: ${formatPrice(order.total)}.`, {
+          tone: 'error',
+          duration: 7000,
+        });
+      }
     } catch (error) {
       /* A 401 has already signed the session out (so the account check
          below would swallow it); the order needs a fresh sign-in, the same

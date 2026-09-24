@@ -14,7 +14,7 @@ function base64Url(value) {
   return btoa(JSON.stringify(value)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
 
-const cart = { toOrderProducts: () => [{ id: 'p1', quantity: 1 }], clear: jest.fn() };
+const cart = { toOrderProducts: () => [{ id: 'p1', quantity: 1 }], clear: jest.fn(), subtotal: 20 };
 
 function Menu() {
   const { placeOrder } = usePlaceOrder({ restaurantId: 'r1', cart, from: '/menu' });
@@ -55,7 +55,7 @@ afterEach(() => {
 });
 
 test('an order goes to tracking when the menu page is still open', async () => {
-  createOrder.mockResolvedValue({ id: 'o1' });
+  createOrder.mockResolvedValue({ id: 'o1', total: 20 });
   renderApp();
 
   fireEvent.click(screen.getByText('order'));

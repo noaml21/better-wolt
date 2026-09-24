@@ -56,7 +56,9 @@
 .bw-toast--leaving {
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 150ms var(--bw-ease-out), transform 150ms var(--bw-ease-out);
+  /* Out on the strong ease-out: it moves at once, the moment you see it
+     go. (--bw-ease-out is a V3 name for an ease-in curve.) */
+  transition: opacity 150ms var(--bw-ease), transform 150ms var(--bw-ease);
   pointer-events: none;
 }
 

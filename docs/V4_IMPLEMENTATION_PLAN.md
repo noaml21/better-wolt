@@ -60,6 +60,10 @@ from the first unchecked box.
         Sampled in Chrome: the bar is settled by ~150 ms; with reduced motion nothing animates.
   - [x] Mobile: the cart bar rises from its edge and its count bumps (`Animated`, native driver), the current
         tracking stop breathes, pressed controls scale to 0.94 — all skipped under the OS reduce-motion setting.
+  - [x] `improve-animations` audit (quick effort, inline): the toast exit was on `--bw-ease-out`, which is an ease-in
+        curve in V3's tokens → moved to `--bw-ease`; phone sheets now slide on `--bw-ease-drawer` at 300 ms. Not
+        reported, by design: instant reduced motion (V3 decision), the 600 ms tracking fill, the hover-only photo zoom.
+        No `scale(0)`, `transition: all` or animated layout properties remain (the tracking `width` fill is gone).
   - [ ] `/review-animations` is reserved for explicit user invocation and was not run by the agent.
 - [ ] **V4.7 — QA and evidence.** Responsive sweep, dark, reduced motion, keyboard, long/mixed content, failed images,
       slow/failed API; second Impeccable pass; screenshots in `docs/screenshots/v4/`; docs and README updated.

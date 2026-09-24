@@ -92,7 +92,7 @@
     max-height: 92vh;
     border-end-start-radius: 0;
     border-end-end-radius: 0;
-    animation: bw-sheet-in var(--bw-slow) var(--bw-ease);
+    animation: bw-sheet-in 300ms var(--bw-ease-drawer);
   }
 
   .bw-dialog__footer {

@@ -48,15 +48,19 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
 
-    if (!result.canceled && result.assets?.length) {
-      setImage(result.assets[0].uri);
+      if (!result.canceled && result.assets?.length) {
+        setImage(result.assets[0].uri);
+      }
+    } catch {
+      showToast('לא הצלחנו לפתוח את הגלריה. אפשר להמשיך בלי תמונה.', { tone: 'error' });
     }
   };
 

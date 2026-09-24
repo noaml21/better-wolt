@@ -212,7 +212,10 @@ token even when a client sends another username.
 
 Inspected through Expo's web target, so these are the parts a real Android device or emulator still has to confirm:
 
-- `KeyboardAvoidingView` behaviour with a real soft keyboard (login, registration, both owner forms).
+- `KeyboardAvoidingView` behaviour with a real soft keyboard (login, registration, both owner forms). On Android the
+  forms pass `behavior={undefined}` and rely on the window resizing for the keyboard; `app.json` sets no
+  `softwareKeyboardLayoutMode`, and Android edge-to-edge changes how that resizing works. If the keyboard covers the
+  submit button on a device, `behavior="padding"` on Android is the first thing to try.
 - Safe-area insets on a notched device and a gesture-bar device: on the web target every inset is `0`, so the padding is
   present in the code but was never exercised. `Screen` pays the top inset, and the tab bar, the cart bar and the toast
   pay the bottom one.

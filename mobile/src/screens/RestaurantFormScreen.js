@@ -57,20 +57,30 @@ export default function RestaurantFormScreen({ navigation, route }) {
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.4,
-    });
+    let base64;
 
-    if (result.canceled || !result.assets?.length) {
+    // The gallery and the file read are native calls that can fail; say so
+    // rather than leave an unhandled rejection and a button that did nothing.
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.4,
+      });
+
+      if (result.canceled || !result.assets?.length) {
+        return;
+      }
+
+      base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    } catch {
+      setError('לא הצלחנו לפתוח את התמונה. אפשר לנסות תמונה אחרת, או להדביק קישור.');
+
       return;
     }
-
-    const base64 = await FileSystem.readAsStringAsync(result.assets[0].uri, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
 
     if (base64.length > MAX_INLINE_IMAGE) {
       setError('התמונה הזו כבדה מדי לשמירה. בחרו תמונה קטנה יותר, או הדביקו קישור.');

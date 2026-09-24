@@ -169,7 +169,7 @@ Run on `v4/premium-frontend` after the implementation phases, against the same p
 | B8 | Fixed | Theme follows the system until chosen, applied before first paint. |
 | C1 | Fixed | Owner tools in the side column; row actions beside the dish. |
 | C2 | Fixed | The stepper's − is neutral. |
-| C3 | Open | The footer still shows on auth and tracking pages. |
+| C3 | Fixed | No footer on sign-in and registration; tracking keeps it (it leads on to the menu and orders). |
 | C4 | Fixed | Sticky carts stretch their column (restaurant and World Cup). |
 
 ### Found during V4 QA and fixed
@@ -182,6 +182,7 @@ recorded in its commit.
 
 ### Still open
 
-- C3 (footer on focused pages), heuristic 10 (the illustrative data is explained only in the footer).
+- Heuristic 10: the illustrative ratings, delivery times and fees are named in the footer note (it used to name only
+  the photos), but nowhere next to the numbers themselves.
 - On Expo web an unbroken Latin dish name overflows its row; react-native-web does not break inside words and Android
   does. It stays on the device list in V3_IMPLEMENTATION_PLAN.

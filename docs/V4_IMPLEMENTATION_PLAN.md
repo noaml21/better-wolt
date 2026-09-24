@@ -15,13 +15,14 @@ from the first unchecked box.
 - [x] **V4.1 — Research.** Taste on Wolt (discovery + venue); principles in the audit §2, tokens not committed.
 - [x] **V4.2 — Impeccable critique.** Detector + design review (degraded, see audit §3).
 - [x] **V4.3 — Spec.** This plan, the design spec, the audit.
-- [ ] **V4.4a — Web foundations.** Numeric type role and `formatPrice` output in Rubik; price tag restyled; theme
-      follows the system; tracking fill on `transform`; `.playwright-mcp/` ignored.
+- [x] **V4.4a — Web foundations.** `.bw-num` role; every price, total and tag in Rubik with tabular figures (the
+      tracking countdown moves with V4.4d); themed selection, caret, accent and scrollbar; the theme follows the system
+      until chosen, applied before first paint; `.playwright-mcp/` ignored.
 - [ ] **V4.4b — Web restaurant.** Hero with name on photo, plates, flat dish list, quiet add control, menu filter,
       owner toolbar and row actions.
 - [ ] **V4.4c — Web cart and checkout.** Cart with restaurant name, honest note, total in the CTA, inline checkout
       messages, price corrections explained on tracking, dock steps aside for the cart bar.
-- [ ] **V4.4d — Web tracking.** Arrival clock time, stage times, rail on `scaleX`, receipt list.
+- [ ] **V4.4d — Web tracking.** Arrival clock time, stage times, rail on `scaleX` (detector finding), receipt list.
 - [ ] **V4.4e — Web orders.** Active/past sections, rows in one surface, dates in words, reorder.
 - [ ] **V4.4f — Web discovery.** Plates on cards, hero compaction, campaign strip, "להזמין שוב" row, search shows the
       matched dish.

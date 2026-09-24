@@ -203,6 +203,27 @@ body.bw-has-dock .bw-page {
   letter-spacing: -0.01em;
 }
 
+/* Numbers are exact (V4 spec §4.2): prices, totals, times and counts are
+   set in the reading face with tabular figures. The display face draws
+   `₪` as a letter pair and uses old-style figures, so it never sets one. */
+.bw-num {
+  font-family: var(--bw-font-ui);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* The parts of the page the browser draws still belong to the design. */
+::selection {
+  background-color: var(--bw-amber);
+  color: var(--bw-on-amber);
+}
+
+html {
+  accent-color: var(--bw-flame);
+  caret-color: var(--bw-flame-deep);
+  scrollbar-color: var(--bw-line) transparent;
+}
+
 .bw-order-number {
   unicode-bidi: isolate;
   direction: ltr;

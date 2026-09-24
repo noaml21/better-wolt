@@ -54,7 +54,9 @@
 }
 
 .bw-order__total strong {
-  font-family: var(--bw-font-display);
+  font-family: var(--bw-font-ui);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   font-size: var(--bw-h3);
   color: var(--bw-ink);
 }

@@ -8,8 +8,10 @@
   padding-block: 3px;
   padding-inline: 18px 10px;
   border-radius: var(--bw-radius-xs);
-  font-family: var(--bw-font-display);
+  font-family: var(--bw-font-ui);
   font-size: var(--bw-caption);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   line-height: 1.5;
   white-space: nowrap;
   clip-path: polygon(100% 50%, calc(100% - 11px) 0, 0 0, 0 100%, calc(100% - 11px) 100%);

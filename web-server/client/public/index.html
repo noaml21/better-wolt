@@ -22,6 +22,16 @@
     <title>Better Wolt — משלוחי אוכל</title>
   </head>
   <body class="light">
+    <script>
+      /* Pick the theme before the first paint, the same way ThemeContext
+         does after it: the stored choice, else the system's. Without this a
+         dark-mode visitor sees a white page until React mounts. */
+      try {
+        var stored = localStorage.getItem('theme');
+        var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) document.body.className = 'dark';
+      } catch (e) {}
+    </script>
     <noscript>כדי להשתמש ב-Better Wolt צריך להפעיל JavaScript בדפדפן.</noscript>
     <div id="root"></div>
   </body>

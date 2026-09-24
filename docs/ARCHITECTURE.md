@@ -187,6 +187,8 @@ Behavior changed in V2 (BF-1…BF-9) is listed in [V2_SPEC.md §5](V2_SPEC.md#5-
   must follow §4 (error body `{error}`; `204`/empty body → `null`; send `Authorization: Bearer <token>` on protected routes).
   Contract changes update §4 first, then both clients in the same phase.
 - **Token storage** — web `localStorage` (`token`, `user`), mobile `AsyncStorage`. Web restores a session only if the JWT is unexpired.
+  Both clients sign out when the token runs out and when an authenticated request answers `401`; the web client also follows
+  sign-in and sign-out in other tabs (`storage` events), since every tab sends the one stored token.
 - **Order tracking** — the web tracking page derives progress from `startTime`; the server never advances `status` in V1/V2.
 - **World Cup** — the server seeds the restaurant (`seed/worldCup.js`). **Contract:** the restaurant's name is exactly
   `חגיגת מונדיאל`, and its product names equal the `dishName` values in the clients' presentation lists (web
@@ -220,8 +222,10 @@ Docker Compose reads the repo-root `.env`; running the API outside Docker reads 
 - `web-server/test/*.test.js`, `node:test` + `supertest`, against real MongoDB 7 (`npm run test:db:up && npm test`).
 - Black-box over HTTP, one database per test file (`bw_test_*`); helpers in `test/helpers/`.
 - Every endpoint: happy path, auth failure, validation failure, and ownership/cross-user failure where applicable.
-- Web: Jest via `react-scripts test` (API client, `ProtectedRoute` and session expiry, Hebrew counts). Mobile:
-  bundle-compile check in CI, and `npm run lint` (`expo lint`) locally.
+- Web: Jest via `react-scripts test` (API client and its 401/network handling, `ProtectedRoute` with session expiry and
+  cross-tab sign-out, order placement that lands late or after an account change, the busy-button guard, sign-out
+  destination, Hebrew counts). Lint the web client with `npx eslint --ext .js,.jsx src` — plain `eslint src` skips
+  `.jsx`. Mobile: bundle-compile check in CI, and `npm run lint` (`expo lint`) locally.
 - CI: `.github/workflows/ci.yml` (`api`, `web`, `docker`, `mobile`).
 
 ## 9. Known limitations (intentional, documented)

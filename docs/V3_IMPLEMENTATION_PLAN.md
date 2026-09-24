@@ -208,6 +208,24 @@ survives a direct load and a reload signed in and out, with invalid ids reaching
 loops on mobile never showed the wrong dish or stacked a screen; the server takes a restaurant's owner from the
 token even when a client sends another username.
 
+A third pass (2026-09-24) went after concurrent sessions, stale server data and release readiness:
+
+- Two tabs: owner dialogs stayed open and usable after the other tab changed account (403 on save); an order
+  answered after the other tab switched account navigated the new account to the old one's order; a tab left on
+  `/login` stayed there after the other tab signed in. Signing out on a protected page handed that page to the next
+  sign-in as its return destination (React Router applies navigation as a transition; the sign-out now shares it).
+- Data changed under the page: deleting, editing or closing something already removed failed forever in English; a
+  closed restaurant, or a price changed after a dish was added, went unexplained at checkout. Each now re-reads and
+  says what happened; prices are still only the server's.
+- Keyboard: every route change left focus on `<body>`; it now moves to `<main>` (a page that places focus itself wins).
+- Dead code: two unused `ui` components removed. The production build serves every route, has a complete manifest,
+  and logs no script errors.
+
+Verification at the end of this pass: API 144/144, web Jest 25/25, `eslint --ext .js,.jsx` clean, `CI=true npm run
+build` green, mobile lint at its two documented findings, Android export green; a Playwright smoke on the production
+build (signed-out redirect and return, customer order, World Cup order, owner create → add → edit → delete → close,
+401 → login notice) and on Expo web (sign in → order → tracking). All test data created through the API was deleted.
+
 ## Needs a device
 
 Inspected through Expo's web target, so these are the parts a real Android device or emulator still has to confirm:

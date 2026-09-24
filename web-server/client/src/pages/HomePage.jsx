@@ -41,6 +41,13 @@ export default function HomePage() {
   const canCreateRestaurant = isAuthenticated && user?.role === 'restaurant';
   const isEmpty = status === 'ready' && everyday.length === 0;
 
+  // Only an owner account may have this dialog open (see RestaurantPage).
+  useEffect(() => {
+    if (!canCreateRestaurant) {
+      setCreateOpen(false);
+    }
+  }, [canCreateRestaurant]);
+
   return (
     <>
       <HeroBand images={heroImages} />

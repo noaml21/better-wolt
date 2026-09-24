@@ -92,6 +92,17 @@ export default function RestaurantPage() {
 
   const isOwner = isAuthenticated && user?.username === restaurant?.username;
 
+  /* Owner dialogs belong to the owner. If the account changes while one is
+     open (signing out, or in, from another tab), it closes: left open it
+     would send the next account's token with the owner's edit. */
+  useEffect(() => {
+    if (!isOwner) {
+      setEditingRestaurant(false);
+      setProductDialog((current) => (current.open ? { open: false, product: null } : current));
+      setConfirm(null);
+    }
+  }, [isOwner]);
+
   const { placing, placeOrder: handlePlaceOrder } = usePlaceOrder({
     restaurantId: restaurant?.id,
     cart,

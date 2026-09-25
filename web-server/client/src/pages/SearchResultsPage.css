@@ -1,0 +1,70 @@
+/* Search (V5 spec §6): the query as the title, the field to refine it,
+   quick searches, then board rows that say which dish matched. */
+
+.bw-search__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bw-space-3);
+  margin-block-end: var(--bw-space-5);
+}
+
+.bw-search__title {
+  font-size: var(--bw-page-title);
+  overflow-wrap: anywhere;
+}
+
+.bw-search__count {
+  min-height: 1.5em;
+  color: var(--bw-ink-muted);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-search__form {
+  display: flex;
+  max-width: 720px;
+  min-height: 56px;
+  border: var(--bw-rule-heavy);
+  background-color: var(--bw-panel);
+}
+
+.bw-search__form:focus-within {
+  box-shadow: 0 0 0 3px var(--bw-ground), 0 0 0 6px var(--bw-ink);
+}
+
+.bw-search__form input {
+  flex: 1;
+  min-width: 0;
+  padding-inline: var(--bw-space-4);
+  border: 0;
+  background: none;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-search__form input:focus {
+  outline: none;
+}
+
+.bw-search__form input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.bw-search__form button {
+  padding-inline: var(--bw-space-6);
+  border: 0;
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-search__form button:focus-visible {
+  outline-color: var(--bw-on-ink);
+  outline-offset: -6px;
+}
+
+.bw-search .bw-filter-row {
+  margin-block-end: var(--bw-space-6);
+}

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getQuery } from '../services/api';
-import { Chip, EmptyState, ErrorState, SectionHeader } from '../components/ui';
+import { Chip, EmptyState, ErrorState, LinkButton } from '../components/ui';
 import { restaurantCount } from '../services/counts';
 import BoardRow, { BoardRowSkeleton } from '../components/discovery/BoardRow';
+import './SearchResultsPage.css';
 
 /* Results come from GET /search/:query, which matches the query literally
    against restaurant names, addresses and dish names (V2_SPEC BF-5). */
@@ -106,22 +107,49 @@ export default function SearchResultsPage() {
   const resultLabel =
     results.length === 1 ? 'מסעדה אחת מתאימה' : `${restaurantCount(results.length)} מתאימות`;
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const next = new FormData(event.currentTarget).get('q')?.toString().trim();
+
+    if (next) {
+      navigate(`/search?q=${encodeURIComponent(next)}`);
+    }
+  };
+
   return (
-    <div className="bw-page">
-      <SectionHeader
-        level={1}
-        title={query ? `תוצאות עבור "${query}"` : 'חיפוש'}
-        description={
-          /* Same rule as the listing: "מחפשים…" only while a search is
-             actually running, and no "0 מסעדות" above the empty state that
-             already says nothing matched. */
-          status === 'loading' && query
+    <div className="bw-page bw-search">
+      {/* The query is the page's title, at signage scale (V5 spec §6);
+          the words around it are for screen readers. */}
+      <header className="bw-search__head">
+        <h1 className="bw-search__title bw-display">
+          {query ? (
+            <>
+              <span className="bw-visually-hidden">תוצאות עבור </span>
+              <bdi>{query}</bdi>
+            </>
+          ) : (
+            'חיפוש'
+          )}
+        </h1>
+        <p className="bw-search__count" aria-live="polite">
+          {/* Same rule as the listing: "מחפשים…" only while a search is
+              actually running, and no "0 מסעדות" above the empty state that
+              already says nothing matched. */}
+          {status === 'loading' && query
             ? 'מחפשים…'
             : status === 'ready' && query && results.length > 0
               ? resultLabel
-              : undefined
-        }
-      />
+              : ''}
+        </p>
+
+        <form className="bw-search__form" role="search" onSubmit={handleSubmit} key={query}>
+          <label className="bw-visually-hidden" htmlFor="bw-search-again">
+            חיפוש מסעדה, מנה או כתובת
+          </label>
+          <input id="bw-search-again" name="q" type="search" defaultValue={query} placeholder="בא לי…" autoComplete="off" />
+          <button type="submit">חיפוש</button>
+        </form>
+      </header>
 
       <div className="bw-filter-row" aria-label="חיפושים מהירים">
         {suggestions.map((term) => (
@@ -154,8 +182,9 @@ export default function SearchResultsPage() {
       {status === 'ready' && query && results.length === 0 && (
         <EmptyState
           icon="search"
-          title={`לא מצאנו כלום עבור "${query}"`}
+          title="אף מסעדה לא מגישה את זה"
           description="אפשר לנסות שם של מנה, של מסעדה או של רחוב. גם חיפוש קצר יותר בדרך כלל עוזר."
+          action={<LinkButton to="/restaurants" variant="secondary">לכל המסעדות</LinkButton>}
         />
       )}
 

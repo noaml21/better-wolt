@@ -244,6 +244,11 @@
     -webkit-line-clamp: 1;
   }
 
+  /* A match note names where the query was found; it must show it. */
+  .bw-board-row__stops--note {
+    -webkit-line-clamp: 3;
+  }
+
   .bw-board-row__time {
     grid-column: 3;
     grid-row: 1;

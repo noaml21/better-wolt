@@ -6,6 +6,7 @@ export { default as Chip } from './Chip';
 export { default as Field } from './Field';
 export { default as Icon } from './Icon';
 export { default as IconButton } from './IconButton';
+export { default as LineBadge } from './LineBadge';
 export { default as Logo } from './Logo';
 export { default as Media } from './Media';
 export { default as Plate } from './Plate';

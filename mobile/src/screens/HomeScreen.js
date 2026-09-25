@@ -22,6 +22,10 @@ export default function HomeScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
   const [status, setStatus] = useState('loading');
   const [refreshing, setRefreshing] = useState(false);
+  const [orderedFrom, setOrderedFrom] = useState(() => new Set());
+  const rememberOrders = useCallback((orders) => {
+    setOrderedFrom(new Set(orders.map((order) => String(order.restaurant))));
+  }, []);
   const shown = useRef(false);
 
   /* A silent load keeps what is on screen: a failed re-read leaves the
@@ -72,14 +76,9 @@ export default function HomeScreen({ navigation }) {
         <IconButton icon="logout" label="התנתקות" variant="outline" onPress={logout} />
       </View>
 
-      <View style={styles.greeting}>
-        {/* The account the app knows about. The login response carries no
-            address (ARCHITECTURE §4.3), so none is promised here. */}
-        <Text style={styles.hello} numberOfLines={1}>
-          שלום {user?.displayName || user?.username}
-        </Text>
-        <Text style={styles.title}>מה אוכלים הערב?</Text>
-      </View>
+      <Text style={styles.title} accessibilityRole="header">
+        מה אוכלים הערב?
+      </Text>
 
       <Pressable
         onPress={() => openSearch()}
@@ -87,8 +86,8 @@ export default function HomeScreen({ navigation }) {
         accessibilityLabel="חיפוש מסעדה, מנה או מטבח"
         style={({ pressed }) => [styles.search, pressed && styles.searchPressed]}
       >
-        <Icon name="search" size={20} color={colors.inkMuted} />
-        <Text style={styles.searchText}>מסעדה, מנה או מטבח</Text>
+        <Icon name="search" size={20} color={colors.ink} />
+        <Text style={styles.searchText}>בא לי… פיצה, סושי, חומוס</Text>
       </Pressable>
 
       {/* `inverted` starts the row at the right edge and lays the chips
@@ -109,6 +108,7 @@ export default function HomeScreen({ navigation }) {
           <OrderAgain
             restaurants={restaurants}
             token={token}
+            onOrders={rememberOrders}
             onOpen={(restaurant) => navigation.navigate('RestaurantDetails', { restaurantId: restaurant.id })}
           />
         </View>
@@ -123,7 +123,9 @@ export default function HomeScreen({ navigation }) {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>כל המסעדות</Text>
-        <Text style={styles.sectionDescription}>נבחרת המסעדות שמשלוחות אליכם עכשיו.</Text>
+        <Text style={styles.sectionDescription}>
+          {everyday.length ? `${everyday.length} מסעדות משלוחות אליכם עכשיו.` : ' '}
+        </Text>
 
         {/* The owner's action gets its own row: at phone width it has
             nowhere to sit beside the heading without squeezing it. */}
@@ -182,47 +184,45 @@ export default function HomeScreen({ navigation }) {
         renderItem={({ item }) => (
           <RestaurantCard
             restaurant={item}
+            ordered={orderedFrom.has(String(item.id))}
             onPress={() => navigation.navigate('RestaurantDetails', { restaurantId: item.id })}
           />
         )}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.flame} />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} />
         }
       />
     </Screen>
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+const useStyles = createStyles(({ colors, space, type, font }) => ({
   list: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[7] },
-  header: { gap: space[4], paddingBottom: space[5] },
+  header: { gap: space[4], paddingBottom: space[3] },
   identity: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between', gap: space[3] },
-  greeting: { gap: 2 },
-  hello: { ...type.caption, ...rtl.text, color: colors.inkMuted },
-  title: { ...type.h1, ...rtl.text, color: colors.ink },
+  title: { fontFamily: font.display, fontSize: 72, lineHeight: 64, paddingTop: 10, color: colors.ink, ...rtl.text },
   search: {
     ...rtl.row,
     alignItems: 'center',
     gap: space[3],
-    minHeight: 52,
+    minHeight: 56,
     paddingHorizontal: space[4],
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderWidth: 3,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  searchPressed: { opacity: 0.9 },
-  searchText: { ...type.body, color: colors.inkMuted },
+  searchPressed: { backgroundColor: colors.ground },
+  searchText: { ...type.bodyL, fontWeight: '700', color: colors.inkMuted },
   chips: { gap: space[2], paddingVertical: space[1] },
   /* The row scrolls from screen edge to screen edge. */
   bleed: { marginHorizontal: -space[4] },
-  sectionHeader: { gap: 2, marginTop: space[2] },
+  sectionHeader: { gap: 2, marginTop: space[3], paddingBottom: space[2], borderBottomWidth: 3, borderBottomColor: colors.ink },
   sectionAction: { ...rtl.row, marginTop: space[3] },
-  sectionTitle: { ...type.h2, ...rtl.text, color: colors.ink },
-  sectionDescription: { ...type.caption, ...rtl.text, color: colors.inkMuted },
+  sectionTitle: { fontFamily: font.display, fontSize: 48, lineHeight: 46, paddingTop: 6, color: colors.ink, ...rtl.text },
+  sectionDescription: { ...type.caption, ...rtl.text, fontWeight: '700', color: colors.inkMuted },
   empty: { gap: space[2], paddingVertical: space[8] },
-  emptyTitle: { ...type.h3, textAlign: 'center', color: colors.ink },
+  emptyTitle: { fontFamily: font.display, fontSize: 36, lineHeight: 36, textAlign: 'center', color: colors.ink },
   emptyText: { ...type.body, textAlign: 'center', color: colors.inkMuted },
 }));

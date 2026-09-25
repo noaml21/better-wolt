@@ -1,5 +1,15 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import { Karantina_700Bold } from '@expo-google-fonts/karantina';
+import {
+  NotoSansHebrew_400Regular,
+  NotoSansHebrew_500Medium,
+  NotoSansHebrew_600SemiBold,
+  NotoSansHebrew_700Bold,
+  NotoSansHebrew_800ExtraBold,
+  NotoSansHebrew_900Black,
+} from '@expo-google-fonts/noto-sans-hebrew';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/theme';
@@ -29,6 +39,24 @@ function Shell() {
 }
 
 export default function App() {
+  /* The Line faces (V5 spec §11). The first frame waits for them — a few
+     hundred milliseconds behind the splash — rather than drawing every
+     screen in the platform font and then jumping. If loading fails the
+     app still starts, in the platform font. */
+  const [fontsLoaded, fontError] = useFonts({
+    Karantina_700Bold,
+    NotoSansHebrew_400Regular,
+    NotoSansHebrew_500Medium,
+    NotoSansHebrew_600SemiBold,
+    NotoSansHebrew_700Bold,
+    NotoSansHebrew_800ExtraBold,
+    NotoSansHebrew_900Black,
+  });
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>

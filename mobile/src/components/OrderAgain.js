@@ -4,7 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { createStyles, rtl } from '../theme';
 import { getUserOrders } from '../services/api';
 import { formatOrderDay } from '../services/presentation';
-import { Media, Plate } from '../ui';
+import { LineBadge } from '../ui';
 
 /* The restaurants this account ordered from most recently, still open —
    the web client's row of the same name (docs/V4_DESIGN_SPEC.md §6).
@@ -16,7 +16,7 @@ import { Media, Plate } from '../ui';
 
 const LIMIT = 4;
 
-export default function OrderAgain({ restaurants, token, onOpen }) {
+export default function OrderAgain({ restaurants, token, onOpen, onOrders }) {
   const styles = useStyles();
   const [orders, setOrders] = useState([]);
 
@@ -29,6 +29,7 @@ export default function OrderAgain({ restaurants, token, onOpen }) {
           .then((data) => {
             if (current && Array.isArray(data)) {
               setOrders(data);
+              onOrders?.(data);
             }
           })
           .catch(() => {});
@@ -37,7 +38,7 @@ export default function OrderAgain({ restaurants, token, onOpen }) {
       return () => {
         current = false;
       };
-    }, [token])
+    }, [token, onOrders])
   );
 
   const byId = new Map(restaurants.map((restaurant) => [String(restaurant.id), restaurant]));
@@ -74,16 +75,14 @@ export default function OrderAgain({ restaurants, token, onOpen }) {
             accessibilityLabel={`${restaurant.name}, הזמנתם ${day}`}
             style={({ pressed }) => [styles.item, pressed && styles.pressed]}
           >
-            <View style={styles.thumb}>
-              <Media uri={restaurant.image} style={styles.image} fallback={<Plate restaurant={restaurant} size={12} style={styles.plate} />} />
-            </View>
+            <LineBadge restaurant={restaurant} size={52} style={styles.badge} />
             <View style={styles.text}>
               <Text style={styles.name} numberOfLines={1}>
                 {restaurant.name}
               </Text>
               {day ? (
                 <Text style={styles.day}>
-                  {day === 'היום' || day === 'אתמול' ? `הזמנתם ${day}` : `הזמנתם ב-${day}`}
+                  {day === 'היום' || day === 'אתמול' ? `הזמנתם ${day}` : `הזמנתם ב־${day}`}
                 </Text>
               ) : null}
             </View>
@@ -94,26 +93,21 @@ export default function OrderAgain({ restaurants, token, onOpen }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
-  section: { gap: space[3] },
-  title: { ...type.h3, ...rtl.text, fontSize: 20, paddingHorizontal: space[4], color: colors.ink },
-  row: { gap: space[3], paddingHorizontal: space[4] },
+const useStyles = createStyles(({ colors, space, type }) => ({
+  section: { gap: space[2] },
+  title: { ...type.body, ...rtl.text, fontWeight: '800', paddingHorizontal: space[4], color: colors.ink },
+  row: { gap: space[2], paddingHorizontal: space[4] },
   item: {
     ...rtl.row,
-    alignItems: 'center',
-    gap: space[3],
-    width: 250,
-    padding: space[2],
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    alignItems: 'stretch',
+    minHeight: 56,
+    borderWidth: 2,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-  thumb: { width: 56, height: 56, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: colors.sunken },
-  image: { width: '100%', height: '100%' },
-  plate: { padding: 4 },
-  text: { flex: 1, gap: 2 },
-  name: { ...type.body, ...rtl.text, fontWeight: '700', color: colors.ink },
-  day: { ...type.caption, ...rtl.text, fontWeight: '400', color: colors.inkMuted },
+  pressed: { backgroundColor: colors.ink },
+  badge: { borderWidth: 0, height: 52 },
+  text: { justifyContent: 'center', paddingHorizontal: space[3], gap: 0 },
+  name: { ...type.body, ...rtl.text, fontWeight: '800', color: colors.ink },
+  day: { ...type.caption, ...rtl.text, color: colors.ink },
 }));

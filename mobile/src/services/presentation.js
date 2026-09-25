@@ -1,7 +1,7 @@
 /* Presentation helpers, mirroring the web client's restaurantMeta.js and
    orderStatus.js. The two clients stay separate on purpose (V2_SPEC §2),
-   so this logic is duplicated deliberately and the rules are documented
-   in one place: docs/V3_DESIGN_SPEC.md. */
+   so this logic is duplicated deliberately; the rules are documented in
+   docs/V3_DESIGN_SPEC.md and, for lines, docs/v5/V5_DESIGN_SPEC.md. */
 
 function hashId(id) {
   const text = String(id || '');
@@ -36,12 +36,38 @@ export function getRestaurantMeta(restaurant) {
   };
 }
 
-/* The tint a restaurant's plate uses when it has no photo (V4 spec §4.1);
-   the web client derives the same tone from the same id. */
-const PLATE_TONES = ['amber', 'flame', 'herb', 'ink'];
+/* The restaurant's line (V5 spec §4.1): one of ten colours and a
+   two-digit number, derived from the id exactly as the web client does
+   (restaurantMeta.getLine: the same hash, bit mix and salt), so a
+   restaurant has the same line on both clients. Presentation only. */
+export const LINE_COLOURS = 10;
+const LINE_SALT = 28;
 
-export function getPlateTone(restaurant) {
-  return PLATE_TONES[(hashId(restaurant?.id) >>> 5) % PLATE_TONES.length];
+function mix(hash) {
+  let value = hash;
+
+  value ^= value >>> 16;
+  value = Math.imul(value, 0x85ebca6b);
+  value ^= value >>> 13;
+  value = Math.imul(value, 0xc2b2ae35);
+  value ^= value >>> 16;
+
+  return value >>> 0;
+}
+
+export function getLine(restaurant) {
+  if (restaurant?.name === WORLD_CUP_RESTAURANT_NAME) {
+    return { colour: 'cup', number: 26 };
+  }
+
+  const hash = mix((hashId(restaurant?.id) + LINE_SALT) >>> 0);
+
+  return { colour: hash % LINE_COLOURS, number: 10 + ((hash >>> 8) % 90) };
+}
+
+/* The fill and text colours of a line, from the theme's palette. */
+export function lineColours(line, theme) {
+  return line.colour === 'cup' ? theme.cup : theme.lines[line.colour];
 }
 
 export function getMenuHighlights(restaurant, limit = 3) {

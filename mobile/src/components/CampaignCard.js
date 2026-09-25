@@ -7,9 +7,9 @@ import { worldCupTeams } from '../services/worldCup';
 
 /* The seeded World Cup restaurant, presented as what it is: a campaign.
    Its name comes from the server (ARCHITECTURE §6), never from here.
-   V4: an amber strip with the flags as its picture, the same card the
-   web client shows (docs/V4_DESIGN_SPEC.md §6); a flag that fails to load
-   drops out of the row. */
+   V5: the board's special line — a black band, the name in amber
+   signage, the teams as stations on an amber line (V5 spec §6); a flag
+   that fails to load drops out of the line. */
 
 const STRIP_FLAGS = 6;
 
@@ -44,7 +44,7 @@ export default function CampaignCard({ restaurant, onPress }) {
           <Text style={styles.title}>{restaurant.name}</Text>
           <Text style={styles.description}>
             {dishCount(products.length)} מכל העולם
-            {flatPrice !== null ? `, כל אחת ב-${formatPrice(flatPrice)}` : ''}.
+            {flatPrice !== null ? `, כל אחת ב־${formatPrice(flatPrice)}` : ''}.
           </Text>
         </View>
         <View style={styles.cta}>
@@ -54,9 +54,12 @@ export default function CampaignCard({ restaurant, onPress }) {
       </View>
 
       {flags.length ? (
-        <View style={styles.flags}>
+        <View style={styles.line}>
+          <View style={styles.track} />
           {flags.map((dish) => (
-            <Media key={dish.dishName} uri={dish.flag} style={styles.flag} onFail={markBroken} />
+            <View key={dish.dishName} style={styles.station}>
+              <Media uri={dish.flag} style={styles.flag} onFail={markBroken} />
+            </View>
           ))}
         </View>
       ) : null}
@@ -64,30 +67,33 @@ export default function CampaignCard({ restaurant, onPress }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
-  card: {
-    gap: space[4],
-    padding: space[4],
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.amberTint,
-  },
-  pressed: { opacity: 0.92, transform: [{ scale: 0.99 }] },
-  top: { ...rtl.row, alignItems: 'center', gap: space[3] },
-  text: { flex: 1, gap: 2 },
-  title: { ...type.h2, ...rtl.text, fontWeight: '900', color: colors.ink },
-  description: { ...type.caption, ...rtl.text, fontWeight: '400', color: colors.inkMuted },
+const useStyles = createStyles(({ colors, space, radius, type, font }) => ({
+  card: { gap: space[5], padding: space[5], marginHorizontal: -space[4], backgroundColor: colors.board },
+  pressed: { opacity: 0.94 },
+  top: { ...rtl.row, alignItems: 'flex-end', gap: space[3] },
+  text: { flex: 1, gap: 4 },
+  title: { fontFamily: font.display, fontSize: 52, lineHeight: 50, paddingTop: 6, color: colors.led, ...rtl.text },
+  description: { ...type.body, ...rtl.text, fontWeight: '700', color: colors.onBoard },
   cta: {
     ...rtl.row,
     alignItems: 'center',
-    gap: 4,
+    gap: space[1],
     minHeight: 44,
-    paddingHorizontal: space[4],
-    borderRadius: radius.pill,
-    backgroundColor: colors.ink,
+    paddingHorizontal: space[3],
+    borderWidth: 2,
+    borderColor: colors.onBoard,
   },
-  ctaText: { ...type.caption, fontWeight: '800', color: colors.paper },
-  flags: { ...rtl.row, gap: space[2] },
-  flag: { width: 40, height: 27, borderRadius: 4 },
+  ctaText: { ...type.body, fontWeight: '800', color: colors.onBoard },
+  line: { ...rtl.row, justifyContent: 'space-between', alignItems: 'center' },
+  track: { position: 'absolute', left: 0, right: 0, top: 17, height: 6, backgroundColor: colors.led },
+  station: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.circle,
+    borderWidth: 4,
+    borderColor: colors.led,
+    overflow: 'hidden',
+    backgroundColor: colors.board,
+  },
+  flag: { width: '100%', height: '100%' },
 }));

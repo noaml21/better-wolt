@@ -21,6 +21,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "backgroundColor": "#FBF7F3"
+    "backgroundColor": "#E4E6E1",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

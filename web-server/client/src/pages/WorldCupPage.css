@@ -1,143 +1,140 @@
-/* The campaign's own surface: the night band from the brand's ink, with
-   amber as the trophy colour. It is the one place in the product that
-   gets a dark hero, which is what makes it read as a campaign. */
+/* The World Cup (V5 spec §6): the board's special line — a black band
+   with the server's name in amber, the teams as stations, then the twenty
+   dishes as ruled cells beside the ticket. */
 
 .bw-worldcup__hero {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-3);
-  padding: var(--bw-space-8) var(--bw-space-6);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-night);
-  color: var(--bw-on-night);
-  overflow: hidden;
-}
-
-/* The flag mosaic fills the band on wide screens, where the text alone
-   leaves it empty. Below `md` it is hidden rather than shrunk: the
-   dishes carry the same flags a scroll away. */
-.bw-worldcup__flags {
-  display: none;
-}
-
-@media (min-width: 900px) {
-  .bw-worldcup__hero {
-    padding-inline-end: 42%;
-  }
-
-  .bw-worldcup__flags {
-    position: absolute;
-    inset-block: var(--bw-space-6);
-    inset-inline-end: var(--bw-space-6);
-    display: grid;
-    grid-template-columns: repeat(4, 52px);
-    align-content: center;
-    gap: var(--bw-space-3);
-  }
-
-  .bw-worldcup__flags img {
-    width: 52px;
-    height: 35px;
-    border-radius: var(--bw-radius-xs);
-    object-fit: cover;
-    box-shadow: var(--bw-e2);
-  }
+  display: grid;
+  gap: var(--bw-space-5);
+  margin-block-end: var(--bw-space-8);
+  padding: var(--bw-space-8) var(--bw-space-7);
+  background-color: var(--bw-board);
+  color: var(--bw-on-board);
 }
 
 .bw-worldcup__title {
-  font-size: var(--bw-display-l);
-  margin: 0;
+  color: var(--bw-led);
+  font-size: clamp(4rem, 10vw, 9rem);
 }
 
 .bw-worldcup__lead {
   max-width: 48ch;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: var(--bw-body-l);
-  line-height: var(--bw-lh-body);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-worldcup__hero-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-4);
-  flex-wrap: wrap;
-  margin-block-start: var(--bw-space-2);
+}
+
+.bw-worldcup__hero-actions .bw-button--secondary {
+  border-color: var(--bw-on-board);
+  color: var(--bw-on-board);
+}
+
+.bw-worldcup__hero-actions .bw-button--secondary:hover:not(:disabled) {
+  background-color: var(--bw-on-board);
+  color: var(--bw-board);
+}
+
+.bw-worldcup__hero .bw-button:focus-visible {
+  outline-color: var(--bw-led);
 }
 
 .bw-worldcup__count {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: var(--bw-caption);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-worldcup__flags {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--bw-space-2);
+  margin-block-start: var(--bw-space-3);
+}
+
+.bw-worldcup__flags::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  height: 6px;
+  background-color: var(--bw-led);
+  transform: translateY(-50%);
+}
+
+.bw-worldcup__station {
+  position: relative;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border: 5px solid var(--bw-led);
+  border-radius: 50%;
+  background-color: var(--bw-board);
+}
+
+.bw-worldcup__station img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .bw-worldcup__layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--bw-space-7);
+  gap: var(--bw-space-8);
   align-items: start;
-  margin-block-start: var(--bw-space-7);
 }
 
 .bw-worldcup__cart {
   display: none;
 }
 
+@media (min-width: 1100px) {
+  .bw-worldcup__layout {
+    grid-template-columns: minmax(0, 1fr) 380px;
+  }
+
+  .bw-worldcup__cart {
+    display: block;
+    align-self: stretch;
+  }
+}
+
+/* The dishes: a grid of ruled cells, borders collapsed. */
 .bw-worldcup__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-surface);
-  overflow: hidden;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  border-block-start: var(--bw-rule-strong);
+  border-inline-start: var(--bw-rule-strong);
 }
 
-/* One list, like a menu (V4 spec §4.3): rows divided by hairlines. */
 .bw-worldcup-dish {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--bw-space-4);
-  padding: var(--bw-space-3) var(--bw-space-5);
-  min-height: 72px;
-}
-
-.bw-worldcup-dish + .bw-worldcup-dish::before {
-  content: '';
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: var(--bw-space-5);
-  border-block-start: 1px solid var(--bw-line);
-}
-
-@media (min-width: 700px) {
-  .bw-worldcup__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  /* Two columns: the second row starts the hairlines. */
-  .bw-worldcup-dish:nth-child(2)::before {
-    content: none;
-  }
-
-  .bw-worldcup-dish:nth-child(odd) {
-    border-inline-end: 1px solid var(--bw-line);
-  }
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: var(--bw-space-3);
+  align-items: start;
+  padding: var(--bw-space-4);
+  border-block-end: var(--bw-rule-strong);
+  border-inline-end: var(--bw-rule-strong);
+  background-color: var(--bw-panel);
 }
 
 .bw-worldcup-dish__flag {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 52px;
-  height: 35px;
-  border-radius: var(--bw-radius-xs);
-  background-color: var(--bw-sunken);
-  color: var(--bw-ink-muted);
+  width: 56px;
+  height: 40px;
   overflow: hidden;
+  border: 2px solid var(--bw-ink);
+  background-color: var(--bw-ground);
 }
 
 .bw-worldcup-dish__flag img {
@@ -149,61 +146,63 @@
 .bw-worldcup-dish__text {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--bw-space-1);
-  flex: 1;
+  gap: 2px;
   min-width: 0;
 }
 
 .bw-worldcup-dish__team {
   color: var(--bw-ink-muted);
-  font-size: var(--bw-micro);
-  font-weight: 600;
-}
-
-.bw-worldcup-dish__price {
   font-size: var(--bw-caption);
-  font-weight: 600;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-worldcup-dish__name {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  line-height: var(--bw-lh-heading);
-  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.bw-worldcup-dish__price {
+  font-weight: 800;
 }
 
 .bw-worldcup-dish__action {
-  flex-shrink: 0;
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-start;
 }
 
-@media (max-width: 599px) {
+@media (max-width: 699px) {
   .bw-worldcup__hero {
-    padding: var(--bw-space-6) var(--bw-space-5);
+    margin-inline: calc(-1 * var(--bw-gutter));
+    margin-block-start: calc(-1 * var(--bw-space-7));
+    padding: var(--bw-space-6) var(--bw-gutter);
   }
 
-  .bw-worldcup__title {
-    font-size: var(--bw-h1);
-  }
-}
-
-/* The cart becomes a panel only when there is room beside the grid —
-   the same rule the restaurant page uses. */
-@media (min-width: 1100px) {
-  .bw-worldcup__layout {
-    grid-template-columns: minmax(0, 1fr) 340px;
+  .bw-worldcup__station {
+    width: 36px;
+    height: 36px;
+    border-width: 4px;
   }
 
-  /* Stretched to the menu's height, or the sticky cart inside it has
-     nowhere to stick and scrolls away under the top bar. */
-  .bw-worldcup__cart {
-    display: block;
-    align-self: stretch;
+  .bw-worldcup__station:nth-child(n + 7) {
+    display: none;
   }
-}
 
-@media (max-width: 1099px) {
-  .bw-worldcup {
-    padding-block-end: var(--bw-space-11);
+  .bw-worldcup__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bw-worldcup-dish {
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    align-items: center;
+  }
+
+  .bw-worldcup-dish__action {
+    grid-column: 3;
   }
 }

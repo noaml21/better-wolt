@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getRestaurants } from '../services/api';
-import { findWorldCupRestaurant } from '../services/restaurantMeta';
+import { findWorldCupRestaurant, getLine } from '../services/restaurantMeta';
 import { worldCupDishes } from '../services/worldCup';
 import { dishCount } from '../services/counts';
 import useMenuCart from '../hooks/useMenuCart';
@@ -164,8 +164,10 @@ export default function WorldCupPage() {
     );
   }
 
+  const line = getLine(restaurant);
+
   return (
-    <div className="bw-page bw-worldcup">
+    <div className={`bw-page bw-worldcup ${line.className}`}>
       <header className="bw-worldcup__hero">
         <h1 className="bw-worldcup__title bw-display">{restaurant.name}</h1>
         <p className="bw-worldcup__lead">
@@ -194,7 +196,9 @@ export default function WorldCupPage() {
             .filter(({ team }) => team)
             .slice(0, 12)
             .map(({ team }) => (
-              <Flag key={team.key} team={team} />
+              <span key={team.key} className="bw-worldcup__station">
+                <Flag team={team} />
+              </span>
             ))}
         </div>
       </header>
@@ -248,11 +252,12 @@ export default function WorldCupPage() {
             restaurantName={restaurant.name}
             problem={orderProblem}
             onDismissProblem={dismissProblem}
+            line={line}
           />
         </aside>
       </div>
 
-      <CartBar itemCount={cart.itemCount} subtotal={cart.subtotal} onOpen={() => setCartOpen(true)} />
+      <CartBar itemCount={cart.itemCount} subtotal={cart.subtotal} onOpen={() => setCartOpen(true)} line={line} />
 
       <Dialog open={cartOpen} onClose={() => setCartOpen(false)} title="הסל שלי">
         <CartPanel
@@ -267,6 +272,7 @@ export default function WorldCupPage() {
           restaurantName={restaurant.name}
           problem={orderProblem}
           onDismissProblem={dismissProblem}
+          line={line}
         />
       </Dialog>
     </div>

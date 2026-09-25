@@ -332,10 +332,13 @@
   }
 }
 
-@media (max-width: 379px) {
-  .bw-logo__word {
+@media (max-width: 479px) {
+  .bw-topbar .bw-logo__word {
     display: none;
   }
+}
+
+@media (max-width: 379px) {
 
   .bw-topbar__inner {
     gap: var(--bw-space-2);

@@ -1,0 +1,46 @@
+/* 404 (V5 spec §6): the LED board with the one thing it has to say. */
+
+.bw-not-found {
+  max-width: 1000px;
+}
+
+.bw-not-found__board {
+  display: grid;
+  gap: var(--bw-space-4);
+  padding: var(--bw-space-8) var(--bw-space-7);
+  background-color: var(--bw-board);
+  color: var(--bw-on-board);
+}
+
+.bw-not-found__code {
+  color: var(--bw-led);
+  font-size: clamp(5rem, 14vw, 10rem);
+  font-weight: 900;
+  font-stretch: var(--bw-wdth-big);
+  line-height: 0.8;
+}
+
+.bw-not-found__title {
+  color: var(--bw-led);
+  font-size: var(--bw-page-title);
+}
+
+.bw-not-found__text {
+  max-width: 52ch;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.bw-not-found__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-3);
+  margin-block-start: var(--bw-space-6);
+}
+
+@media (max-width: 599px) {
+  .bw-not-found__board {
+    margin-inline: calc(-1 * var(--bw-gutter));
+    padding: var(--bw-space-7) var(--bw-gutter);
+  }
+}

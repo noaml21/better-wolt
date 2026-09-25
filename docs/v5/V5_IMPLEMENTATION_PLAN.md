@@ -18,21 +18,21 @@ unchecked box. Never merge into `main` or touch the V2–V4 branches.
 - [x] **V5.3 — Three concepts.** `docs/v5/concepts/` (A Screening, B Line, C White City), captured at five widths.
 - [x] **V5.4 — Critique and choice.** Dual-agent Impeccable critique; **B Line** chosen (V5_CONCEPTS.md).
 - [x] **V5.5 — Spec.** V5_DESIGN_SPEC.md, this plan, V5_VISUAL_AUDIT.md.
-- [ ] **V5.6 — Web foundations.** `tokens.css` rewritten for the Line system (both themes, line palette with checked
+- [x] **V5.6 — Web foundations.** `tokens.css` rewritten for the Line system (both themes, line palette with checked
       pairs), `base.css` (focus, selection, scrollbar, `.bw-num`, range isolation), fonts in `public/index.html`,
       `services/lines.js` (line colour + number from the id), UI primitives restyled: Button, IconButton, Field,
       Dialog, Toast, Feedback, Skeleton, QuantityStepper, Labels, Plate → line plate, Media.
-- [ ] **V5.7 — Shell.** TopBar (wordmark, nav blocks, search), the LED strip replacing `ActiveOrderWidget`'s floating
+- [x] **V5.7 — Shell.** TopBar (wordmark, nav blocks, search), the LED strip replacing `ActiveOrderWidget`'s floating
       dock, footer.
-- [ ] **V5.8 — Home and discovery.** Title + search, order-again line chips, the departures board (`BoardRow`), the
+- [x] **V5.8 — Home and discovery.** Title + search, order-again line chips, the departures board (`BoardRow`), the
       World Cup special line, sponsored slot, all-restaurants page, loading/empty/error.
-- [ ] **V5.9 — Restaurant.** Header (photo panel + line block, owner-neutral mode), route menu (`StopRow`), menu
+- [x] **V5.9 — Restaurant.** Header (photo panel + line block, owner-neutral mode), route menu (`StopRow`), menu
       filter, ticket (desktop column, phone bar + sheet with close), owner toolbar and stop actions.
-- [ ] **V5.10 — Checkout states.** Inline problems on the ticket, price corrections on tracking, cross-restaurant cart,
+- [x] **V5.10 — Checkout states.** Inline problems on the ticket, price corrections on tracking, cross-restaurant cart,
       account switch — re-verified with intercepted responses.
-- [ ] **V5.11 — Search.** Title, field, board results with the matched dish, no-result state.
-- [ ] **V5.12 — Orders and tracking.** Order rows by day; the LED board, line map and receipt ticket.
-- [ ] **V5.13 — Auth, World Cup, 404.** Auth split with the board side; World Cup stations; 404 board.
+- [x] **V5.11 — Search.** Title, field, board results with the matched dish, no-result state.
+- [x] **V5.12 — Orders and tracking.** Order rows by day; the LED board, line map and receipt ticket.
+- [x] **V5.13 — Auth, World Cup, 404.** Auth split with the board side; World Cup stations; 404 board.
 - [ ] **V5.14 — Motion.** Spec §7 with Emil / design-engineering guidance; reduced motion complete.
 - [ ] **V5.15 — Web QA.** Every route × 1440/1024/768/390/320 × light/dark; hostile content; slow and failing API;
       failed images; keyboard and focus; 200 % text; functional smoke (order, World Cup order, owner CRUD, tracking,

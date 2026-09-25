@@ -1,27 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../brand/Logo';
-import { Media } from '../ui';
 import { getRestaurants } from '../../services/api';
+import { WORLD_CUP_RESTAURANT_NAME, getLine, getRestaurantMeta } from '../../services/restaurantMeta';
 import './AuthLayout.css';
 
-/* Two panels: the form, and one reason to be here. The brand panel is
-   decorative and hidden from assistive tech; below 900px it is not shown
-   at all and the form side carries the logo.
-
-   The panel shows the food (V4 spec §6) rather than a decorative glow: a
-   few photographs from the public restaurant list, fetched only where
-   the panel is visible. If the list fails or has too few photos, the
-   panel is the headline on its own. */
+/* Two panels (V5 spec §6): the form as a ticket-machine panel, and the
+   board — tonight's lines, from the public restaurant list, fetched only
+   where the board is visible (900px and up). The board is decorative and
+   hidden from assistive tech; below 900px it is not shown at all and the
+   form side carries the logo. If the list fails, the board keeps its
+   headline and loses its rows. */
 
 const WIDE = '(min-width: 900px)';
+const ROWS = 6;
 
-function useFoodPhotos() {
-  const [photos, setPhotos] = useState([]);
-  const [broken, setBroken] = useState(() => new Set());
-  const markBroken = useCallback((src) => {
-    setBroken((current) => (current.has(src) ? current : new Set(current).add(src)));
-  }, []);
+function useBoardLines() {
+  const [restaurants, setRestaurants] = useState([]);
 
   useEffect(() => {
     if (!window.matchMedia?.(WIDE).matches) {
@@ -31,9 +26,9 @@ function useFoodPhotos() {
     let current = true;
 
     getRestaurants()
-      .then((restaurants) => {
-        if (current && Array.isArray(restaurants)) {
-          setPhotos(restaurants.map((restaurant) => restaurant.image).filter(Boolean));
+      .then((list) => {
+        if (current && Array.isArray(list)) {
+          setRestaurants(list.filter((restaurant) => restaurant.name !== WORLD_CUP_RESTAURANT_NAME).slice(0, ROWS));
         }
       })
       .catch(() => {});
@@ -43,11 +38,11 @@ function useFoodPhotos() {
     };
   }, []);
 
-  return { photos: photos.filter((src) => !broken.has(src)).slice(0, 3), markBroken };
+  return restaurants;
 }
 
 export default function AuthLayout({ title, subtitle, children, footer, aside }) {
-  const { photos, markBroken } = useFoodPhotos();
+  const lines = useBoardLines();
 
   return (
     <div className="bw-auth">
@@ -62,7 +57,7 @@ export default function AuthLayout({ title, subtitle, children, footer, aside })
             {subtitle && <p>{subtitle}</p>}
           </header>
 
-          {children}
+          <div className="bw-auth__form-body">{children}</div>
         </div>
 
         {footer && <p className="bw-auth__footer">{footer}</p>}
@@ -71,12 +66,22 @@ export default function AuthLayout({ title, subtitle, children, footer, aside })
       <aside className="bw-auth__aside" aria-hidden="true">
         <div className="bw-auth__aside-text">{aside}</div>
 
-        {photos.length === 3 && (
-          <div className="bw-auth__photos">
-            {photos.map((src) => (
-              <Media key={src} src={src} className="bw-auth__photo" onFail={markBroken} />
-            ))}
-          </div>
+        {lines.length > 0 && (
+          <ol className="bw-auth__lines">
+            {lines.map((restaurant) => {
+              const line = getLine(restaurant);
+
+              return (
+                <li key={restaurant.id} className={`bw-auth__line ${line.className}`}>
+                  <span className="bw-auth__line-badge">{line.number}</span>
+                  <span className="bw-auth__line-name">{restaurant.name}</span>
+                  <span className="bw-auth__line-eta bw-num bw-range">
+                    {getRestaurantMeta(restaurant).eta.replace('-', '–')}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
         )}
       </aside>
     </div>

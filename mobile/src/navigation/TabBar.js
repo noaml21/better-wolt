@@ -5,8 +5,10 @@ import { createStyles, rtl, TOUCH_TARGET } from '../theme';
 import Icon from '../ui/Icon';
 import { useCart } from '../context/CartContext';
 
-/* The product's navigation model. A custom bar rather than the default
-   one so the tabs read right-to-left and the cart can carry a badge. */
+/* The product's navigation model: the line bar (V5 spec §11) — board
+   black under the screen, the current tab an inverted cell like the web's
+   current page, the cart's count in a square. A custom bar so the tabs
+   read right-to-left. */
 
 const icons = { Home: 'home', Search: 'search', Orders: 'bag', Cart: 'cart' };
 
@@ -38,19 +40,19 @@ export default function TabBar({ state, descriptors, navigation }) {
             accessibilityRole="tab"
             accessibilityState={{ selected: focused }}
             accessibilityLabel={label}
-            style={styles.item}
+            style={[styles.item, focused && styles.itemActive]}
           >
             <View>
               <Icon
                 name={icons[route.name]}
                 size={23}
                 color={focused ? styles.active.color : styles.inactive.color}
-                strokeWidth={focused ? 2.1 : 1.75}
+                strokeWidth={2.2}
               />
 
               {badge > 0 ? (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{badge > 9 ? '9+' : badge}</Text>
+                <View style={[styles.badge, focused && styles.badgeActive]}>
+                  <Text style={[styles.badgeText, focused && styles.badgeTextActive]}>{badge > 9 ? '9+' : badge}</Text>
                 </View>
               ) : null}
             </View>
@@ -63,35 +65,37 @@ export default function TabBar({ state, descriptors, navigation }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+const useStyles = createStyles(({ colors, space, type }) => ({
   bar: {
     ...rtl.row,
+    gap: 2,
     paddingTop: space[2],
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-    backgroundColor: colors.surface,
+    paddingHorizontal: space[2],
+    backgroundColor: colors.board,
   },
   item: {
     flex: 1,
-    minHeight: TOUCH_TARGET,
+    minHeight: TOUCH_TARGET + 8,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
+    gap: 2,
   },
-  label: { ...type.micro },
-  active: { color: colors.flameDeep },
-  inactive: { color: colors.inkMuted },
+  itemActive: { backgroundColor: colors.onBoard },
+  label: { ...type.caption, fontWeight: '800' },
+  active: { color: colors.board },
+  inactive: { color: colors.boardMuted },
   badge: {
     position: 'absolute',
     top: -6,
-    left: -10,
-    minWidth: 18,
-    height: 18,
+    left: -12,
+    minWidth: 20,
+    height: 20,
     paddingHorizontal: 4,
-    borderRadius: radius.pill,
-    backgroundColor: colors.flame,
+    backgroundColor: colors.onBoard,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeText: { ...type.micro, fontSize: 11, color: colors.onFlame },
+  badgeActive: { backgroundColor: colors.board },
+  badgeText: { ...type.caption, ...type.num, fontSize: 12, lineHeight: 16, fontWeight: '900', color: colors.board },
+  badgeTextActive: { color: colors.onBoard },
 }));

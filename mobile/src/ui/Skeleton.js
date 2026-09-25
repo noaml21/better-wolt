@@ -50,6 +50,6 @@ export function SkeletonCard() {
 }
 
 const useStyles = createStyles(({ colors, space }) => ({
-  block: { backgroundColor: colors.sunken },
+  block: { backgroundColor: colors.hairline },
   card: { gap: space[3], marginBottom: space[5] },
 }));

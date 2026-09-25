@@ -71,29 +71,27 @@ const Field = forwardRef(function Field(
 
 export default Field;
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+const useStyles = createStyles(({ colors, space, type }) => ({
   container: { gap: space[2] },
-  label: { ...type.caption, ...rtl.text, color: colors.ink, fontWeight: '700' },
-  required: { color: colors.danger },
+  label: { ...type.body, ...rtl.text, color: colors.ink, fontWeight: '800' },
+  required: { color: colors.error },
   input: {
-    ...type.body,
+    ...type.bodyL,
     ...rtl.text,
     minHeight: 48,
     paddingHorizontal: space[4],
     paddingVertical: space[3],
-    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderColor: colors.rule,
+    backgroundColor: colors.panel,
     color: colors.ink,
   },
   multiline: { minHeight: 104, textAlignVertical: 'top' },
   /* A URL is not Hebrew: right-aligning one hides its start. */
   inputLtr: { textAlign: 'left', writingDirection: 'ltr' },
-  /* The focus ring the web client draws with `outline`
-     (V3_DESIGN_SPEC §4.4). */
-  inputFocused: { borderColor: colors.flameDeep, borderWidth: 2, paddingHorizontal: space[4] - 1 },
-  inputError: { borderColor: colors.danger, borderWidth: 2 },
+  /* The border is the focus ring (V5 spec §5): 3pt of ink. */
+  inputFocused: { borderColor: colors.ink, borderWidth: 3, paddingHorizontal: space[4] - 2 },
+  inputError: { borderColor: colors.error, borderWidth: 2 },
   hint: { ...type.caption, ...rtl.text, color: colors.inkMuted },
-  error: { ...type.caption, ...rtl.text, color: colors.danger, fontWeight: '600' },
+  error: { ...type.caption, ...rtl.text, color: colors.error, fontWeight: '700' },
 }));

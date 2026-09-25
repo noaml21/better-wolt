@@ -59,14 +59,13 @@ function variantTextColor(variant, styles) {
   return styles[`label_${variant}`].color;
 }
 
-const SM_HEIGHT = 36;
+const SM_HEIGHT = 40;
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+const useStyles = createStyles(({ colors, space, type }) => ({
   base: {
-    minHeight: TOUCH_TARGET,
-    paddingHorizontal: space[5],
-    borderRadius: radius.sm,
-    borderWidth: 1,
+    minHeight: 48,
+    paddingHorizontal: space[6],
+    borderWidth: 2,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
@@ -74,22 +73,24 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
   content: { flexDirection: 'row-reverse', alignItems: 'center', gap: space[2] },
   size_sm: { minHeight: SM_HEIGHT, paddingHorizontal: space[4] },
   size_md: {},
-  size_lg: { minHeight: 52, paddingHorizontal: space[7] },
+  size_lg: { minHeight: 56, paddingHorizontal: space[7] },
   fullWidth: { alignSelf: 'stretch' },
-  pressed: { opacity: 0.9, transform: [{ scale: 0.985 }] },
-  disabled: { opacity: 0.45 },
+  pressed: { transform: [{ scale: 0.97 }] },
+  disabled: { borderStyle: 'dashed', borderColor: colors.rule, backgroundColor: 'transparent' },
 
-  primary: { backgroundColor: colors.flame },
-  secondary: { backgroundColor: colors.surface, borderColor: colors.line },
-  ghost: { backgroundColor: 'transparent' },
-  danger: { backgroundColor: 'transparent', borderColor: colors.danger },
+  /* V5 spec §5: one filled primary per screen; secondary is an ink
+     outline; ghost is underlined text; danger is the error fill. */
+  primary: { backgroundColor: colors.ink, borderColor: colors.ink },
+  secondary: { backgroundColor: 'transparent', borderColor: colors.ink },
+  ghost: { backgroundColor: 'transparent', paddingHorizontal: space[3] },
+  danger: { backgroundColor: colors.error, borderColor: colors.error },
 
-  label: { ...type.body, fontWeight: '700' },
-  labelSize_sm: { fontSize: type.caption.fontSize },
+  label: { ...type.bodyL, fontWeight: '800' },
+  labelSize_sm: { fontSize: type.body.fontSize },
   labelSize_md: {},
-  labelSize_lg: { fontSize: type.bodyL.fontSize },
-  label_primary: { color: colors.onFlame },
+  labelSize_lg: { fontSize: 18 },
+  label_primary: { color: colors.onInk },
   label_secondary: { color: colors.ink },
-  label_ghost: { color: colors.ink },
-  label_danger: { color: colors.danger },
+  label_ghost: { color: colors.ink, textDecorationLine: 'underline' },
+  label_danger: { color: colors.onError },
 }));

@@ -62,49 +62,50 @@ export function MetaItem({ icon, children, tone }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+const useStyles = createStyles(({ colors, space, type }) => ({
   tag: {
     /* The layout is right-to-left, so the tag's own edge is the right
-       one — the web client puts the price under the start of the dish
-       name, and this is the same alignment (V3_DESIGN_SPEC §3.2). The
-       status pill below keeps `flex-start` because its parent is a row,
-       where `alignSelf` is vertical. */
+       one. The status label below keeps `flex-start` because its parent
+       is a row, where `alignSelf` is vertical. */
     alignSelf: 'flex-end',
-    paddingHorizontal: space[3],
-    paddingVertical: 4,
-    borderRadius: radius.xs,
+    paddingHorizontal: space[2],
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  tag_price: { backgroundColor: colors.amberTint },
-  tag_promo: { backgroundColor: colors.herbTint },
-  tag_hot: { backgroundColor: colors.flame },
-  tagText: { ...type.caption, fontWeight: '800' },
+  tag_price: {},
+  tag_promo: { borderColor: colors.ok },
+  tag_hot: { backgroundColor: colors.ink },
+  tagText: { ...type.caption, ...type.num, fontWeight: '800' },
   tagText_price: { color: colors.ink },
-  tagText_promo: { color: colors.herb },
-  tagText_hot: { color: colors.onFlame },
+  tagText_promo: { color: colors.ok },
+  tagText_hot: { color: colors.onInk },
 
   pill: {
     ...rtl.row,
     alignItems: 'center',
     gap: space[2],
     alignSelf: 'flex-start',
-    paddingHorizontal: space[3],
-    paddingVertical: 5,
-    borderRadius: radius.pill,
+    paddingHorizontal: space[2],
+    paddingVertical: 3,
+    borderWidth: 1,
   },
-  pill_active: { backgroundColor: colors.flameTint },
-  pill_done: { backgroundColor: colors.herbTint },
-  pill_neutral: { backgroundColor: colors.inkTint },
-  pillText: { ...type.micro },
-  pillText_active: { color: colors.flameDeep },
-  pillText_done: { color: colors.herb },
+  /* On its way is the LED; done is the ok colour; the rest is muted. */
+  pill_active: { backgroundColor: colors.board, borderColor: colors.board },
+  pill_done: { borderColor: colors.ok },
+  pill_neutral: { borderColor: colors.inkMuted },
+  pillText: { ...type.caption, fontWeight: '800' },
+  pillText_active: { color: colors.led },
+  pillText_done: { color: colors.ok },
   pillText_neutral: { color: colors.inkMuted },
-  dot: { width: 7, height: 7, borderRadius: radius.pill },
+  dot: { width: 8, height: 8 },
 
   rating: { ...rtl.row, alignItems: 'center', gap: 4 },
-  ratingText: { ...type.caption, color: colors.ink, fontWeight: '700' },
-  star: { color: colors.amber },
+  ratingText: { ...type.caption, ...type.num, color: colors.ink, fontWeight: '800' },
+  star: { color: colors.ink },
 
   metaItem: { ...rtl.row, alignItems: 'center', gap: space[1] },
-  meta: { ...type.caption, color: colors.inkMuted },
-  metaHerb: { color: colors.herb },
+  meta: { ...type.caption, color: colors.ink, fontWeight: '600' },
+  metaHerb: { color: colors.ink },
 }));

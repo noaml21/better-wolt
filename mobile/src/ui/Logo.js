@@ -9,9 +9,10 @@ import { createStyles, useTheme } from '../theme';
 export default function Logo({ size = 36, tone = 'ink', word = true }) {
   const styles = useStyles();
   const { colors } = useTheme();
-  const onDark = tone === 'onInk';
-  const fg = onDark ? colors.onInk : colors.ink;
-  const bg = onDark ? colors.ink : colors.onInk;
+  /* 'onBoard' is for the black board (same in both themes); 'onInk' for
+     an ink surface, which flips with the theme. */
+  const fg = tone === 'onBoard' ? colors.onBoard : tone === 'onInk' ? colors.onInk : colors.ink;
+  const bg = tone === 'onBoard' ? colors.board : tone === 'onInk' ? colors.ink : colors.onInk;
 
   return (
     <View style={styles.logo} accessibilityRole="image" accessibilityLabel="Better Wolt">

@@ -4,7 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createStyles, rtl, space, useTheme } from '../theme';
 import { deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
-import { dishCount, getRestaurantMeta } from '../services/presentation';
+import { dishCount, getLine, getRestaurantMeta, lineColours } from '../services/presentation';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import {
@@ -13,24 +13,24 @@ import {
   ErrorState,
   Icon,
   IconButton,
+  LineBadge,
   Media,
-  MetaItem,
-  Plate,
-  Rating,
   Screen,
-  Scrim,
   Skeleton,
+  formatPrice,
   useToast,
 } from '../ui';
 import CartBar, { CART_BAR_SPACE } from '../components/CartBar';
 import DishRow from '../components/DishRow';
 
-/* One restaurant: the photo, the facts, the menu, and — for the owner —
-   the same menu with edit controls, so it is managed where it is read. */
+/* One restaurant as a line (V5 spec §6, §11): the food, the line block
+   with its facts, the menu as a route, and — for the owner — the same
+   route with edit controls, so it is managed where it is read. */
 
 export default function RestaurantDetailsScreen({ navigation, route }) {
   const styles = useStyles();
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const { colors } = theme;
   const insets = useSafeAreaInsets();
   const { user, token } = useAuth();
   const { showToast } = useToast();
@@ -210,47 +210,62 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
       ? products.filter((product) => `${product.name} ${product.description || ''}`.toLowerCase().includes(term))
       : products;
 
+  const [lineFill, lineText] = lineColours(getLine(restaurant), theme);
+  const eta = `\u2066${meta.eta.replace('-', '–')}\u2069`;
+  const blockFill = isOwner ? colors.panel : lineFill;
+  const blockText = isOwner ? colors.ink : lineText;
+
   const header = (
     <View>
-      {/* The name is set on the food, over a scrim; without a photo the
-          plate's tint takes the frame and the name sits on it in ink
-          (V4 spec §4.4). */}
-      <View style={styles.hero}>
-        <Media
-          uri={restaurant.image}
-          style={styles.heroImage}
-          onFail={setFailedImage}
-          fallback={<Plate restaurant={restaurant} showWord={false} />}
-        />
-        {hasPhoto ? <Scrim id="restaurant-hero" /> : null}
-
-        <Text style={[styles.heroName, !hasPhoto && styles.heroNamePlate]} accessibilityRole="header">
-          {restaurant.name}
-        </Text>
-
-        <View style={[styles.heroBack, { top: insets.top + 8 }]}>
-          <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />
+      {/* The food leads, full-bleed; the name never sits on it (V5 spec
+          §6). Without a photo the line block is the whole header. */}
+      {hasPhoto ? (
+        <View style={styles.hero}>
+          <Media uri={restaurant.image} style={styles.heroImage} onFail={setFailedImage} />
         </View>
+      ) : null}
+      <View style={[styles.heroBack, { top: insets.top + 8 }]}>
+        <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} style={styles.heroBackButton} />
       </View>
 
-      <View style={styles.facts}>
-        <View style={styles.factsRow}>
-          <Rating value={meta.rating} />
-          <MetaItem icon="clock">{meta.eta} דק׳</MetaItem>
-          <MetaItem icon="scooter" tone={meta.isFreeDelivery ? 'herb' : undefined}>
-            {meta.deliveryLabel}
-          </MetaItem>
+      <View style={[styles.block, { backgroundColor: blockFill }, !hasPhoto && { paddingTop: insets.top + 64 }]}>
+        <LineBadge restaurant={restaurant} size={56} outline={isOwner ? colors.ink : lineText} />
+        <Text style={[styles.name, { color: blockText }]} accessibilityRole="header">
+          {restaurant.name}
+        </Text>
+        <View style={styles.facts}>
+          <View style={styles.fact}>
+            <Text style={[styles.factLabel, { color: blockText }]}>זמן משלוח</Text>
+            <Text style={[styles.factValue, { color: blockText }]}>{eta} דק׳</Text>
+          </View>
+          <View style={styles.fact}>
+            <Text style={[styles.factLabel, { color: blockText }]}>משלוח</Text>
+            <Text style={[styles.factValue, { color: blockText }]}>
+              {meta.isFreeDelivery ? 'חינם' : formatPrice(meta.deliveryFee)}
+            </Text>
+          </View>
+          <View style={styles.fact}>
+            <Text style={[styles.factLabel, { color: blockText }]}>דירוג</Text>
+            <Text style={[styles.factValue, { color: blockText }]}>{meta.rating}</Text>
+          </View>
+          {restaurant.address ? (
+            <View style={styles.fact}>
+              <Text style={[styles.factLabel, { color: blockText }]}>כתובת</Text>
+              <Text style={[styles.factValue, { color: blockText }]}>{`\u2068${restaurant.address}\u2069`}</Text>
+            </View>
+          ) : null}
+          {restaurant.phone ? (
+            <View style={styles.fact}>
+              <Text style={[styles.factLabel, { color: blockText }]}>טלפון</Text>
+              <Text style={[styles.factValue, { color: blockText }]}>{`\u2066${restaurant.phone}\u2069`}</Text>
+            </View>
+          ) : null}
         </View>
-        {restaurant.address ? <MetaItem icon="location">{restaurant.address}</MetaItem> : null}
-        {restaurant.phone ? <MetaItem icon="phone">{restaurant.phone}</MetaItem> : null}
       </View>
 
       {isOwner ? (
         <View style={styles.owner}>
-          <View style={styles.ownerLabel}>
-            <Icon name="store" size={18} color={colors.ink} />
-            <Text style={styles.ownerTitle}>ניהול המסעדה</Text>
-          </View>
+          <Text style={styles.ownerTitle}>ניהול המסעדה</Text>
 
           <View style={styles.ownerActions}>
             <Button
@@ -268,8 +283,8 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
             >
               עריכת פרטים
             </Button>
-            <Button size="sm" variant="danger" icon="trash" onPress={removeRestaurant}>
-              סגירה
+            <Button size="sm" variant="ghost" icon="trash" onPress={removeRestaurant}>
+              סגירת המסעדה
             </Button>
           </View>
         </View>
@@ -284,7 +299,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
 
       {filterable ? (
         <View style={styles.filter}>
-          <Icon name="search" size={18} color={colors.inkMuted} />
+          <Icon name="search" size={18} color={colors.ink} />
           <TextInput
             value={menuQuery}
             onChangeText={setMenuQuery}
@@ -345,6 +360,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
               navigation.navigate('ProductForm', { restaurantId: restaurant.id, product })
             }
             onDelete={removeProduct}
+            line={[lineFill, lineText]}
           />
         )}
         contentContainerStyle={[
@@ -356,6 +372,7 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
 
       {showCartBar ? (
         <CartBar
+          line={[lineFill, lineText]}
           itemsCount={cart.itemsCount}
           subtotal={cart.subtotal}
           onPress={() => navigation.navigate('Tabs', { screen: 'Cart' }, { pop: true })}
@@ -365,49 +382,49 @@ export default function RestaurantDetailsScreen({ navigation, route }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+const useStyles = createStyles(({ colors, space, type, font }) => ({
   list: { paddingHorizontal: space[4] },
   heroSkeleton: { marginBottom: space[5] },
   skeletonBody: { gap: space[4], paddingHorizontal: space[4] },
   backRow: { ...rtl.row, paddingHorizontal: space[4] },
 
   hero: {
-    height: 250,
+    aspectRatio: 16 / 9,
     marginHorizontal: -space[4],
-    backgroundColor: colors.sunken,
-    justifyContent: 'center',
+    backgroundColor: colors.hairline,
+    borderBottomWidth: 3,
+    borderBottomColor: colors.ink,
     overflow: 'hidden',
   },
   heroImage: { width: '100%', height: '100%' },
-  heroName: {
-    ...type.h1,
-    ...rtl.text,
-    position: 'absolute',
-    right: space[4],
-    left: space[4],
-    bottom: space[4],
-    fontSize: 32,
-    lineHeight: 38,
-    fontWeight: '900',
-    color: '#FFFFFF',
-  },
-  heroNamePlate: { color: colors.ink, fontSize: 36, lineHeight: 42 },
-  heroBack: { position: 'absolute', right: space[4] },
+  heroBack: { position: 'absolute', right: 0, zIndex: 2 },
+  heroBackButton: { backgroundColor: colors.panel },
 
-  facts: { gap: space[2], marginTop: space[4], alignItems: 'flex-end' },
-  factsRow: { ...rtl.row, flexWrap: 'wrap', alignItems: 'center', gap: space[4] },
+  block: {
+    gap: space[3],
+    marginHorizontal: -space[4],
+    paddingHorizontal: space[4],
+    paddingTop: space[5],
+    paddingBottom: space[5],
+    alignItems: 'flex-end',
+    borderBottomWidth: 3,
+    borderBottomColor: colors.ink,
+  },
+  name: { fontFamily: font.display, fontSize: 60, lineHeight: 56, paddingTop: 8, ...rtl.text, alignSelf: 'stretch' },
+  facts: { ...rtl.row, flexWrap: 'wrap', gap: space[3], columnGap: space[5] },
+  fact: { alignItems: 'flex-end' },
+  factLabel: { ...type.caption, fontWeight: '700' },
+  factValue: { ...type.bodyL, ...type.num, fontWeight: '800' },
 
   owner: {
     gap: space[3],
     marginTop: space[5],
     padding: space[4],
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderWidth: 3,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  ownerLabel: { ...rtl.row, alignItems: 'center', gap: space[2] },
-  ownerTitle: { ...type.bodyL, fontWeight: '700', color: colors.ink },
+  ownerTitle: { fontFamily: font.display, fontSize: 34, lineHeight: 34, paddingTop: 5, ...rtl.text, color: colors.ink },
   ownerActions: { ...rtl.row, flexWrap: 'wrap', gap: space[2] },
 
   filter: {
@@ -415,24 +432,25 @@ const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
     alignItems: 'center',
     gap: space[2],
     minHeight: 48,
-    marginBottom: space[4],
+    marginBottom: space[2],
     paddingHorizontal: space[4],
-    borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderColor: colors.rule,
+    backgroundColor: colors.panel,
   },
-  filterInput: { ...type.body, ...rtl.text, flex: 1, minHeight: 44, color: colors.ink },
+  filterInput: { ...type.body, ...rtl.text, fontWeight: '600', flex: 1, minHeight: 44, color: colors.ink },
   menuHeader: {
     ...rtl.row,
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     gap: space[3],
-    marginTop: space[7],
-    marginBottom: space[4],
+    marginTop: space[6],
+    marginBottom: space[3],
+    paddingBottom: space[2],
+    borderBottomWidth: 3,
+    borderBottomColor: colors.ink,
   },
   menuText: { flex: 1, gap: 2 },
-  menuTitle: { ...type.h2, ...rtl.text, color: colors.ink },
-  menuCount: { ...type.caption, ...rtl.text, color: colors.inkMuted },
-
+  menuTitle: { fontFamily: font.display, fontSize: 44, lineHeight: 44, paddingTop: 6, ...rtl.text, color: colors.ink },
+  menuCount: { ...type.caption, ...rtl.text, fontWeight: '700', color: colors.inkMuted },
 }));

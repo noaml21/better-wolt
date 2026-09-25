@@ -21,13 +21,12 @@ export default function Card({ children, onPress, style, accessibilityLabel }) {
   );
 }
 
-const useStyles = createStyles(({ colors, radius, shadow }) => ({
+/* A card is rare in the Line system (spec §3.4): a ruled box, no shadow. */
+const useStyles = createStyles(({ colors }) => ({
   card: {
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
-    ...shadow.e1,
+    borderWidth: 2,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  pressed: { opacity: 0.92, transform: [{ scale: 0.995 }] },
+  pressed: { backgroundColor: colors.ground },
 }));

@@ -34,30 +34,38 @@ export default function QuantityStepper({ value, onIncrease, onDecrease, label, 
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+/* Three outlined square cells on one 2pt ink frame (V5 spec §5): the
+   stepper repeats on every chosen dish, so nothing in it is filled. */
+const useStyles = createStyles(({ colors, type }) => ({
   container: {
     ...rtl.row,
-    alignItems: 'center',
-    gap: space[1],
-    padding: 3,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    alignItems: 'stretch',
+    borderWidth: 2,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
   button: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.pill,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.flameTint,
+    backgroundColor: 'transparent',
   },
-  /* "Less" is neutral; only "more", the action being repeated, keeps the
-     add control's tint (V4 spec §5). */
-  less: { backgroundColor: colors.sunken },
+  less: {},
   lessGlyph: { color: colors.ink },
-  pressed: { opacity: 0.8, transform: [{ scale: 0.94 }] },
-  value: { ...type.body, ...type.num, minWidth: 26, textAlign: 'center', fontWeight: '800', color: colors.ink },
-  glyph: { color: colors.flameDeep },
+  pressed: { backgroundColor: colors.hairline, transform: [{ scale: 0.92 }] },
+  value: {
+    ...type.bodyL,
+    ...type.num,
+    minWidth: 36,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    lineHeight: 36,
+    fontWeight: '800',
+    color: colors.ink,
+    borderLeftWidth: 2,
+    borderRightWidth: 2,
+    borderColor: colors.ink,
+  },
+  glyph: { color: colors.ink },
 }));

@@ -29,9 +29,11 @@ export function useTheme() {
 }
 
 /* Text styles name a weight; the face is chosen here (V5 spec §11). A
-   style with a fontSize or fontWeight and no fontFamily gets the Noto Sans
-   Hebrew face of that weight, and the weight itself is dropped, because
-   Android would otherwise synthesise it on top of the chosen face. */
+   style with a fontWeight and no fontFamily gets the Noto Sans Hebrew face
+   of that weight, and the weight itself is dropped, because Android would
+   otherwise synthesise it on top of the chosen face. A style that only
+   sets a size is left alone: it is composed over one that set the face
+   (every type preset names a weight), and giving it one would override. */
 const WEIGHTS = { normal: 400, bold: 700 };
 
 function withFonts(styles) {
@@ -40,7 +42,7 @@ function withFonts(styles) {
   Object.keys(styles).forEach((key) => {
     const style = styles[key];
 
-    if (style && typeof style === 'object' && !style.fontFamily && (style.fontSize || style.fontWeight)) {
+    if (style && typeof style === 'object' && !style.fontFamily && style.fontWeight) {
       const { fontWeight, ...rest } = style;
       const weight = WEIGHTS[fontWeight] || Number(fontWeight) || 400;
       const nearest = [400, 500, 600, 700, 800, 900].reduce((best, w) => (Math.abs(w - weight) < Math.abs(best - weight) ? w : best), 400);

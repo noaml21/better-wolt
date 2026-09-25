@@ -3,12 +3,13 @@ import { Text, View } from 'react-native';
 import { createStyles, rtl } from '../theme';
 import { AddButton, IconButton, QuantityStepper, formatPrice } from '../ui';
 
-/* One dish, read the way a menu is read: name, what is in it, what it
-   costs (V4 spec §5). Rows sit together on one surface divided by
-   hairlines — `first`/`last` round the surface's corners — instead of a
-   card each. The add action repeats on every row, so it is a quiet round
-   control, not a labelled button. The owner edits and deletes in the
-   same row, so the menu is managed where it is read. */
+/* One dish as a stop on the restaurant's route (V5 spec §5, §11): the
+   line runs down the right edge through each stop's ring — every row
+   draws its own segment, so the line starts at the first ring and ends at
+   the last — and a dish in the cart fills its ring with the line colour
+   and its count. The add action repeats on every row, so it is a quiet
+   outlined square. The owner edits and deletes in the same row. `line` is
+   the restaurant's [fill, text] pair. */
 
 export default function DishRow({
   product,
@@ -20,23 +21,30 @@ export default function DishRow({
   onDelete,
   first = false,
   last = false,
+  line,
 }) {
   const styles = useStyles();
   const inCart = quantity > 0;
+  const [fill, onFill] = line || [styles.fallback.color, styles.fallback.backgroundColor];
 
   return (
-    <View style={[styles.row, first && styles.first, last && styles.last]}>
-      {!first ? <View style={styles.hairline} /> : null}
+    <View style={[styles.row, !last && styles.divided]}>
+      <View style={styles.rail} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View
+          style={[
+            styles.segment,
+            { backgroundColor: fill },
+            first && styles.segmentFirst,
+            last && styles.segmentLast,
+          ]}
+        />
+        <View style={[styles.ring, { borderColor: fill }, inCart && { backgroundColor: fill }]}>
+          {inCart ? <Text style={[styles.ringText, { color: onFill }]}>{quantity}</Text> : null}
+        </View>
+      </View>
 
       <View style={styles.text}>
-        <View style={styles.nameRow}>
-          {inCart ? (
-            <View style={styles.count} accessibilityElementsHidden importantForAccessibility="no">
-              <Text style={styles.countText}>{quantity}</Text>
-            </View>
-          ) : null}
-          <Text style={styles.name}>{product.name}</Text>
-        </View>
+        <Text style={styles.name}>{product.name}</Text>
         {product.description ? (
           <Text style={styles.description} numberOfLines={2}>
             {product.description}
@@ -66,43 +74,35 @@ export default function DishRow({
   );
 }
 
+const RING = 34;
+
 const useStyles = createStyles(({ colors, space, radius, type }) => ({
   row: {
     ...rtl.row,
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: space[3],
-    paddingHorizontal: space[4],
     paddingVertical: space[4],
-    backgroundColor: colors.surface,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.line,
   },
-  first: { borderTopWidth: 1, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
-  last: { borderBottomWidth: 1, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
-  hairline: {
-    position: 'absolute',
-    top: 0,
-    left: space[4],
-    right: space[4],
-    height: 1,
-    backgroundColor: colors.line,
-  },
-  text: { flex: 1, gap: 4, alignItems: 'flex-end' },
-  nameRow: { ...rtl.row, alignItems: 'center', gap: space[2], maxWidth: '100%' },
-  count: {
-    minWidth: 22,
-    height: 22,
-    paddingHorizontal: 6,
-    borderRadius: radius.pill,
+  divided: { borderBottomWidth: 1, borderBottomColor: colors.hairline },
+  fallback: { color: colors.ink, backgroundColor: colors.onInk },
+  /* The rail spans the row's full height so segments meet across rows. */
+  rail: { width: RING, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', marginVertical: -space[4] },
+  segment: { position: 'absolute', top: 0, bottom: 0, width: 8 },
+  segmentFirst: { top: '50%' },
+  segmentLast: { bottom: '50%' },
+  ring: {
+    width: RING,
+    height: RING,
+    borderRadius: radius.circle,
+    borderWidth: 5,
+    backgroundColor: colors.ground,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.flame,
   },
-  countText: { ...type.micro, ...type.num, color: colors.onFlame, fontWeight: '800' },
-  name: { ...type.h3, ...rtl.text, flexShrink: 1, fontSize: 17, lineHeight: 23, fontWeight: '600', color: colors.ink },
-  description: { ...type.caption, ...rtl.text, fontWeight: '400', fontSize: 14, lineHeight: 20, color: colors.inkMuted },
+  ringText: { ...type.caption, ...type.num, fontWeight: '900' },
+  text: { flex: 1, gap: 2, alignItems: 'flex-end' },
+  name: { ...type.h3, ...rtl.text, fontSize: 18, lineHeight: 24, fontWeight: '800', color: colors.ink },
+  description: { ...type.body, ...rtl.text, fontSize: 14, lineHeight: 20, color: colors.inkMuted },
   price: { ...type.price, ...rtl.text, marginTop: 2, color: colors.ink },
   action: { ...rtl.row, alignItems: 'center', gap: space[2] },
 }));

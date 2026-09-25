@@ -23,15 +23,17 @@ export default function AddButton({ name, onPress }) {
   );
 }
 
-const useStyles = createStyles(({ colors, radius, isDark }) => ({
+/* A quiet outlined square (V5 spec §5): it repeats on every row. */
+const useStyles = createStyles(({ colors }) => ({
   add: {
     width: 44,
     height: 44,
-    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.flameTint,
+    borderWidth: 2,
+    borderColor: colors.ink,
+    backgroundColor: 'transparent',
   },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.94 }] },
-  glyph: { color: isDark ? colors.flame : colors.flameDeep },
+  pressed: { backgroundColor: colors.hairline, transform: [{ scale: 0.94 }] },
+  glyph: { color: colors.ink },
 }));

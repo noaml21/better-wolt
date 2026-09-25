@@ -27,18 +27,17 @@ export default function Chip({ children, onPress, selected = false, style }) {
 
 const CHIP_HEIGHT = 38;
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+const useStyles = createStyles(({ colors, space, type }) => ({
   chip: {
     minHeight: CHIP_HEIGHT,
     justifyContent: 'center',
     paddingHorizontal: space[4],
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.ink,
+    backgroundColor: 'transparent',
   },
-  selected: { backgroundColor: colors.ink, borderColor: colors.ink },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-  label: { ...type.caption, color: colors.ink, fontWeight: '700' },
+  selected: { backgroundColor: colors.ink },
+  pressed: { backgroundColor: colors.hairline, transform: [{ scale: 0.97 }] },
+  label: { ...type.body, color: colors.ink, fontWeight: '800' },
   labelSelected: { color: colors.onInk },
 }));

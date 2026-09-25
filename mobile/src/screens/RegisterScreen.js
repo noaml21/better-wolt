@@ -250,8 +250,8 @@ export default function RegisterScreen({ navigation }) {
 }
 
 const useStyles = createStyles(({ colors, space, radius, type }) => ({
-  footerText: { ...type.body, color: colors.onInk, opacity: 0.8 },
-  footerLink: { ...type.body, color: colors.amber, fontWeight: '800' },
+  footerText: { ...type.body, fontWeight: '600', color: colors.onBoard },
+  footerLink: { ...type.body, color: colors.onBoard, fontWeight: '800', textDecorationLine: 'underline' },
 
   roles: { gap: space[2] },
   rolesLabel: { ...type.caption, ...rtl.text, color: colors.ink, fontWeight: '700' },

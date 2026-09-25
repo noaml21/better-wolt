@@ -77,23 +77,26 @@ export function useToast() {
   return context;
 }
 
-const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+/* Toasts only confirm (V5 spec §5): a square ink block; errors take the
+   error fill. */
+const useStyles = createStyles(({ colors, space, type, shadow }) => ({
   container: {
     ...rtl.row,
     position: 'absolute',
-    left: space[5],
-    right: space[5],
+    left: space[4],
+    right: space[4],
     alignItems: 'center',
     justifyContent: 'center',
     gap: space[3],
+    minHeight: 52,
     paddingVertical: space[3],
     paddingHorizontal: space[5],
-    borderRadius: radius.pill,
+    borderWidth: 2,
     ...shadow.e3,
   },
-  tone_success: { backgroundColor: colors.herb },
-  tone_error: { backgroundColor: colors.danger },
-  text: { ...type.body, fontWeight: '700', textAlign: 'center' },
-  text_success: { color: colors.onHerb },
-  text_error: { color: colors.onDanger },
+  tone_success: { backgroundColor: colors.ink, borderColor: colors.ink },
+  tone_error: { backgroundColor: colors.error, borderColor: colors.error },
+  text: { ...type.body, fontWeight: '800', textAlign: 'center' },
+  text_success: { color: colors.onInk },
+  text_error: { color: colors.onError },
 }));

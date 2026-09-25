@@ -19,25 +19,25 @@ export default function IconButton({ icon, label, onPress, variant = 'ghost', si
   );
 }
 
-const useStyles = createStyles(({ colors, radius }) => ({
+const useStyles = createStyles(({ colors }) => ({
   base: {
     width: TOUCH_TARGET,
     height: TOUCH_TARGET,
-    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: 'transparent',
   },
   ghost: { backgroundColor: 'transparent' },
-  onNight: { backgroundColor: 'transparent' },
-  outline: { backgroundColor: colors.surface, borderColor: colors.line },
-  solid: { backgroundColor: colors.flame },
-  danger: { backgroundColor: colors.dangerTint },
-  pressed: { opacity: 0.7 },
+  onNight: { backgroundColor: 'transparent', borderColor: colors.onBoard },
+  outline: { backgroundColor: 'transparent', borderColor: colors.ink },
+  solid: { backgroundColor: colors.ink, borderColor: colors.ink },
+  /* Delete repeats on every owner row: neutral at rest (spec §5). */
+  danger: { backgroundColor: 'transparent', borderColor: colors.rule },
+  pressed: { transform: [{ scale: 0.94 }] },
   icon_ghost: { color: colors.ink },
-  icon_onNight: { color: colors.onNight },
+  icon_onNight: { color: colors.onBoard },
   icon_outline: { color: colors.ink },
-  icon_solid: { color: colors.onFlame },
-  icon_danger: { color: colors.danger },
+  icon_solid: { color: colors.onInk },
+  icon_danger: { color: colors.ink },
 }));

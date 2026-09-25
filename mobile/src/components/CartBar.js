@@ -15,7 +15,7 @@ export const CART_BAR_SPACE = 96;
    when it first appears, and its count bumps when a dish is added — on a
    phone that is the one sign the add landed. Both on the native driver,
    both skipped when the OS asks for reduced motion. */
-export default function CartBar({ itemsCount, subtotal, onPress }) {
+export default function CartBar({ itemsCount, subtotal, onPress, line }) {
   const styles = useStyles();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
@@ -65,40 +65,40 @@ export default function CartBar({ itemsCount, subtotal, onPress }) {
         accessibilityLabel={`צפייה בסל, ${dishCount(itemsCount)}, ${formatPrice(subtotal)}`}
         style={({ pressed }) => [styles.bar, pressed && styles.pressed]}
       >
-        <Animated.View style={[styles.count, { transform: [{ scale: bump }] }]}>
-          <Text style={styles.countText}>{itemsCount}</Text>
+        <Animated.View style={[styles.count, line && { backgroundColor: line[0] }, { transform: [{ scale: bump }] }]}>
+          <Text style={[styles.countText, line && { color: line[1] }]}>{itemsCount}</Text>
         </Animated.View>
 
-        <Text style={styles.label}>צפייה בסל</Text>
+        <Text style={styles.label}>לסל</Text>
         <Text style={styles.total}>{formatPrice(subtotal)}</Text>
       </Pressable>
     </Animated.View>
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
-  dock: { position: 'absolute', left: space[4], right: space[4] },
+/* The cart bar (V5 spec §5): an ink bar, the count in a square of the
+   restaurant's line colour, "לסל", and the total. */
+const useStyles = createStyles(({ colors, space, type, shadow }) => ({
+  dock: { position: 'absolute', left: space[3], right: space[3] },
   bar: {
     ...rtl.row,
-    alignItems: 'center',
+    alignItems: 'stretch',
     gap: space[3],
-    minHeight: 56,
-    paddingHorizontal: space[4],
-    borderRadius: radius.sm,
-    backgroundColor: colors.flame,
+    minHeight: 60,
+    paddingLeft: space[4],
+    borderWidth: 3,
+    borderColor: colors.ink,
+    backgroundColor: colors.ink,
     ...shadow.e3,
   },
-  pressed: { opacity: 0.94 },
+  pressed: { transform: [{ scale: 0.98 }] },
   count: {
-    minWidth: 26,
-    height: 26,
-    paddingHorizontal: space[1],
-    borderRadius: radius.pill,
+    minWidth: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+    backgroundColor: colors.onInk,
   },
-  countText: { ...type.caption, ...type.num, color: colors.onFlame, fontWeight: '800' },
-  label: { ...type.body, flex: 1, color: colors.onFlame, fontWeight: '700' },
-  total: { ...type.body, ...type.num, color: colors.onFlame, fontWeight: '800' },
+  countText: { ...type.bodyL, ...type.num, fontSize: 22, lineHeight: 28, color: colors.ink, fontWeight: '900' },
+  label: { ...type.bodyL, flex: 1, alignSelf: 'center', color: colors.onInk, fontWeight: '800', ...rtl.text },
+  total: { ...type.bodyL, ...type.num, alignSelf: 'center', fontSize: 22, lineHeight: 28, color: colors.onInk, fontWeight: '900' },
 }));

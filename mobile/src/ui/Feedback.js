@@ -67,7 +67,7 @@ export function InlineMessage({ children, tone = 'error' }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+const useStyles = createStyles(({ colors, space, type, font }) => ({
   state: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -75,28 +75,28 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     paddingVertical: space[9],
     paddingHorizontal: space[5],
   },
-  icon: { width: 56, height: 56, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
-  iconEmpty: { backgroundColor: colors.inkTint },
-  iconEmptyGlyph: { color: colors.inkMuted },
-  iconError: { backgroundColor: colors.dangerTint },
-  iconErrorGlyph: { color: colors.danger },
-  title: { ...type.h3, color: colors.ink, textAlign: 'center' },
-  description: { ...type.body, color: colors.inkMuted, textAlign: 'center' },
+  icon: { width: 56, height: 56, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  iconEmpty: { borderColor: colors.ink },
+  iconEmptyGlyph: { color: colors.ink },
+  iconError: { borderColor: colors.error, backgroundColor: colors.errorTint },
+  iconErrorGlyph: { color: colors.error },
+  title: { fontFamily: font.display, fontSize: 36, lineHeight: 36, paddingTop: 5, color: colors.ink, textAlign: 'center' },
+  description: { ...type.bodyL, color: colors.inkMuted, textAlign: 'center' },
   action: { marginTop: space[2] },
-  spinner: { color: colors.flame },
+  spinner: { color: colors.ink },
 
   inline: {
     ...rtl.row,
     alignItems: 'center',
     gap: space[2],
     padding: space[3],
-    borderRadius: radius.sm,
+    borderWidth: 1,
   },
-  inline_error: { backgroundColor: colors.dangerTint },
-  inline_info: { backgroundColor: colors.inkTint },
-  inline_success: { backgroundColor: colors.herbTint },
-  inlineText: { ...type.caption, ...rtl.text, flex: 1, fontWeight: '600' },
-  inlineText_error: { color: colors.danger },
+  inline_error: { backgroundColor: colors.errorTint, borderColor: colors.error },
+  inline_info: { backgroundColor: colors.panel, borderColor: colors.ink },
+  inline_success: { backgroundColor: colors.panel, borderColor: colors.ink },
+  inlineText: { ...type.body, ...rtl.text, flex: 1, fontWeight: '600' },
+  inlineText_error: { color: colors.error },
   inlineText_info: { color: colors.ink },
-  inlineText_success: { color: colors.herb },
+  inlineText_success: { color: colors.ink },
 }));

@@ -20,10 +20,12 @@ import {
   Skeleton,
   formatPrice,
 } from '../components/ui';
+import { getLine } from '../services/restaurantMeta';
 import './OrdersPage.css';
 
-/* Orders on their way first, then history by day, each day one list
-   (V4 spec §6). Every past order leads back somewhere useful: its receipt,
+/* Orders on their way first — as LED rows — then history by day, each day
+   one ruled list of order rows with the restaurant's line badge (V5 spec
+   §6). Every past order leads back somewhere useful: its receipt,
    or the restaurant to order again. */
 
 function groupByDay(orders) {
@@ -42,29 +44,32 @@ function groupByDay(orders) {
   return groups;
 }
 
+function lineOf(order) {
+  return getLine({ id: order.restaurant, name: order.restaurantName });
+}
+
 function ActiveOrder({ order }) {
   const start = Number(order.startTime);
   const arrival = Number.isFinite(start) ? formatClock(start + DELIVERY_SECONDS * 1000) : null;
   const minutes = Math.ceil(getSecondsLeft(order) / 60);
+  const line = lineOf(order);
 
   return (
     <li>
-      <Link to={`/tracking/${order.id}`} className="bw-active-order">
-        <span className="bw-active-order__icon" aria-hidden="true">
-          <Icon name="scooter" size={22} />
+      <Link to={`/tracking/${order.id}`} className={`bw-active-order ${line.className}`}>
+        <span className="bw-active-order__badge" aria-hidden="true">
+          {line.number}
         </span>
-        <span className="bw-active-order__text">
-          <span className="bw-active-order__name">{order.restaurantName}</span>
-          <span className="bw-active-order__meta">
-            {arrival && (
-              <>
-                תגיע בסביבות <span className="bw-num">{arrival}</span> ·{' '}
-              </>
-            )}
-            <span className="bw-nowrap">
-              עוד <span className="bw-num">{minutes}</span> דק׳
-            </span>
+        <span className="bw-active-order__name">
+          <bdi>{order.restaurantName}</bdi>
+        </span>
+        {arrival && (
+          <span className="bw-active-order__when">
+            מגיעה ב־<span className="bw-num">{arrival}</span>
           </span>
+        )}
+        <span className="bw-active-order__left">
+          עוד <span className="bw-num">{minutes}</span> דק׳
         </span>
         <span className="bw-active-order__cta">
           למעקב
@@ -78,22 +83,21 @@ function ActiveOrder({ order }) {
 function PastOrder({ order }) {
   const start = Number(order.startTime);
   const items = summariseItems(order);
+  const line = lineOf(order);
 
   return (
-    <li className="bw-past-order">
+    <li className={`bw-past-order ${line.className}`}>
+      <span className="bw-past-order__badge" aria-hidden="true">
+        {line.number}
+      </span>
+
       <div className="bw-past-order__text">
-        <h3 className="bw-past-order__name">{order.restaurantName}</h3>
+        <h4 className="bw-past-order__name">{order.restaurantName}</h4>
         {items && <p className="bw-past-order__items">{items}</p>}
         <p className="bw-past-order__meta">
-          {Number.isFinite(start) && (
-            <>
-              <span className="bw-num">{formatClock(start)}</span>
-              {' · '}
-            </>
-          )}
+          {Number.isFinite(start) && <span className="bw-num">{formatClock(start)}</span>}
           <span className="bw-order-number">{formatOrderNumber(order.id)}</span>
-          {' · '}
-          {itemCount(order.items)}
+          <span>{itemCount(order.items)}</span>
         </p>
       </div>
 
@@ -140,7 +144,7 @@ export default function OrdersPage() {
   const past = orders.filter((order) => !isActive(order));
 
   return (
-    <div className="bw-page bw-page--narrow bw-orders-page">
+    <div className="bw-page bw-orders-page">
       <SectionHeader
         level={1}
         title="ההזמנות שלי"

@@ -1,323 +1,360 @@
+/* Tracking (V5 spec §6): the LED board, the line map, the receipt ticket. */
+
 .bw-tracking {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-6);
+  max-width: 1100px;
+}
+
+/* The board ---------------------------------------------------------- */
+
+.bw-tracking__board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'intro intro'
+    'eta status';
+  align-items: end;
+  gap: var(--bw-space-5) var(--bw-space-7);
+  min-height: 320px;
+  padding: var(--bw-space-6) var(--bw-space-7) var(--bw-space-7);
+  background-color: var(--bw-board);
+  color: var(--bw-on-board);
 }
 
 .bw-tracking__intro {
+  grid-area: intro;
   display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-1);
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--bw-space-2) var(--bw-space-5);
+  padding-block-end: var(--bw-space-4);
+  border-block-end: 1px solid #3a3f44;
 }
 
-.bw-tracking__intro h1 {
-  font-size: clamp(2rem, 1.6rem + 1.6vw, var(--bw-display-l));
+.bw-tracking__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.bw-tracking__meta {
+  display: flex;
+  gap: var(--bw-space-4);
+  color: #a5abb0; /* 8:1 on the board */
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-tracking__restaurant {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--bw-line);
-  text-underline-offset: 3px;
+  color: var(--bw-on-board);
 }
 
-.bw-tracking__restaurant:hover {
-  color: var(--bw-ink);
-  text-decoration-color: currentColor;
-}
-
-/* The product's one loud surface (V3 spec §3.2), and its showpiece. */
-.bw-tracking__stage {
-  container-type: inline-size;
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-5);
-  padding: var(--bw-space-7) var(--bw-space-6);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-night);
-  color: var(--bw-on-night);
-}
-
-.bw-tracking__stage--arrived {
-  background-color: var(--bw-herb);
-  color: var(--bw-on-herb);
+.bw-tracking__board a:focus-visible {
+  outline-color: var(--bw-led);
 }
 
 .bw-tracking__eta {
+  grid-area: eta;
+  display: flex;
+  flex-direction: column;
+  color: var(--bw-led);
+}
+
+.bw-tracking__label {
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-tracking__big {
+  font-size: clamp(6rem, 16vw, 13.5rem);
+  font-weight: 900;
+  font-stretch: var(--bw-wdth-big);
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  padding-block: var(--bw-space-2);
+}
+
+.bw-tracking__left {
+  font-size: clamp(1.375rem, 2.4vw, 2rem);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+/* A new minute arrives from below (spec §7). */
+.bw-tracking__minutes {
+  display: inline-block;
+  animation: bw-digit-in 180ms var(--bw-ease-out);
+}
+
+@keyframes bw-digit-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.bw-tracking__status {
+  grid-area: status;
+  max-width: 22ch;
+  color: var(--bw-on-board);
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+  text-align: left;
+}
+
+.bw-tracking__board--arrived .bw-tracking__eta {
+  color: var(--bw-on-board);
+}
+
+.bw-tracking__board--arrived .bw-tracking__label {
+  font-family: var(--bw-font-display);
+  font-size: clamp(4rem, 10vw, 8rem);
+  line-height: 0.85;
+  color: var(--bw-led);
+}
+
+.bw-tracking__board--arrived .bw-tracking__big {
+  font-size: 2.5rem;
+}
+
+/* The line map -------------------------------------------------------- */
+
+.bw-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: var(--bw-space-8) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bw-track__stop {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--bw-space-1);
 }
 
-.bw-tracking__big {
-  /* Capped by the stage's own width too: at 200% text a rem-sized word
-     (בתיאבון) would otherwise be wider than the stage. */
-  font-size: min(clamp(3.25rem, 2.6rem + 3vw, 4.5rem), 17cqi);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.bw-tracking__big.bw-display {
-  font-weight: 400;
-  letter-spacing: 0;
-}
-
-.bw-tracking__sub {
-  color: var(--bw-amber);
-  font-size: var(--bw-body);
-  font-weight: 600;
-}
-
-.bw-tracking__stage--arrived .bw-tracking__sub {
-  color: inherit;
-  opacity: 0.9;
-}
-
-.bw-tracking__done {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  margin-block-end: var(--bw-space-2);
-  border-radius: var(--bw-radius-pill);
-  background-color: rgba(255, 255, 255, 0.18);
-}
-
-.bw-tracking__status {
-  font-size: var(--bw-body-l);
-  opacity: 0.88;
-}
-
-/* Rail: four stops with the time each begins. Each segment fills on its
-   own (getSegmentFill), drawn with transform so the fill never lays the
-   rail out again (the detector's layout-transition finding). Vertical on
-   phones, horizontal from 600px. */
-
-.bw-track {
-  --dot: 28px;
-  display: flex;
-  flex-direction: column;
-  margin-block-start: var(--bw-space-2);
-}
-
-.bw-track__stop {
-  position: relative;
-  display: grid;
-  grid-template-columns: var(--dot) 1fr auto;
-  align-items: center;
-  column-gap: var(--bw-space-3);
-  min-height: 52px;
-  padding-block-end: var(--bw-space-4);
-}
-
-.bw-track__stop:last-child {
-  min-height: 0;
-  padding-block-end: 0;
-}
-
 .bw-track__dot {
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--dot);
-  height: var(--dot);
-  border: 2px solid rgba(255, 255, 255, 0.28);
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-night);
-  transition: background-color var(--bw-base) var(--bw-ease), border-color var(--bw-base) var(--bw-ease);
+  width: 48px;
+  height: 48px;
+  margin-block-end: var(--bw-space-3);
+  border: 7px solid var(--bw-hairline);
+  border-radius: 50%;
+  background-color: var(--bw-ground);
 }
 
-.bw-track__stop--done .bw-track__dot,
+.bw-track__stop--done .bw-track__dot {
+  border-color: var(--bw-route, var(--bw-ink));
+  background-color: var(--bw-route, var(--bw-ink));
+}
+
 .bw-track__stop--current .bw-track__dot {
-  border-color: var(--bw-amber);
-  background-color: var(--bw-amber);
-  color: var(--bw-on-amber);
+  border-color: var(--bw-route, var(--bw-ink));
+  box-shadow: 0 0 0 5px var(--bw-ground), 0 0 0 9px var(--bw-route, var(--bw-ink));
 }
 
-/* The stop the order is at breathes, slowly. Purely decorative: the
-   stage note says the same thing in text. */
-.bw-track__stop--current .bw-track__dot::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: inherit;
-  box-shadow: 0 0 0 0 rgba(240, 162, 21, 0.55);
-  animation: bw-track-halo 2.4s var(--bw-ease) infinite;
-}
-
-@keyframes bw-track-halo {
-  0% {
-    box-shadow: 0 0 0 0 rgba(240, 162, 21, 0.5);
-  }
-
-  70%,
-  100% {
-    box-shadow: 0 0 0 12px rgba(240, 162, 21, 0);
-  }
-}
-
+/* Each segment runs from this stop's centre to the next one's, and fills
+   at its own pace (orderStatus.getSegmentFill). */
 .bw-track__segment {
   position: absolute;
-  inset-inline-start: calc(var(--dot) / 2 - 1px);
-  inset-block: calc(var(--dot) + 2px) 2px;
-  width: 2px;
-  overflow: hidden;
-  border-radius: var(--bw-radius-pill);
-  background-color: rgba(255, 255, 255, 0.18);
+  inset-block-start: 19px;
+  inset-inline-start: 24px;
+  width: 100%;
+  height: 10px;
+  background-color: var(--bw-hairline);
 }
 
 .bw-track__fill {
   position: absolute;
   inset: 0;
-  background-color: var(--bw-amber);
-  transform: scaleY(var(--fill, 0));
-  transform-origin: top;
-  transition: transform var(--bw-story) var(--bw-ease);
+  background-color: var(--bw-route, var(--bw-ink));
+  transform: scaleX(var(--fill, 0));
+  transform-origin: right;
+  transition: transform var(--bw-story) var(--bw-ease-out);
 }
 
 .bw-track__label {
-  font-size: var(--bw-body);
-  font-weight: 600;
-  opacity: 0.6;
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
 }
 
-.bw-track__stop--done .bw-track__label,
 .bw-track__stop--current .bw-track__label {
-  opacity: 1;
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+  text-decoration-color: var(--bw-route, var(--bw-ink));
 }
 
 .bw-track__time {
-  font-size: var(--bw-caption);
-  font-weight: 500;
-  opacity: 0.7;
+  color: var(--bw-ink-muted);
+  font-size: 1rem;
+  font-weight: 800;
 }
 
-.bw-tracking__stage--arrived .bw-track__dot {
-  background-color: var(--bw-on-herb);
-  border-color: var(--bw-on-herb);
-  color: var(--bw-herb);
+/* Receipt and actions ------------------------------------------------- */
+
+.bw-tracking__bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--bw-space-7);
+  margin-block-start: var(--bw-space-9);
 }
-
-.bw-tracking__stage--arrived .bw-track__segment {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.bw-tracking__stage--arrived .bw-track__fill {
-  background-color: var(--bw-on-herb);
-}
-
-@media (min-width: 600px) {
-  .bw-tracking__stage {
-    padding: var(--bw-space-8);
-  }
-
-  .bw-track {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-  }
-
-  .bw-track__stop {
-    grid-template-columns: auto;
-    grid-template-rows: var(--dot) auto auto;
-    justify-items: start;
-    row-gap: var(--bw-space-1);
-    align-items: start;
-    min-height: 0;
-    padding-block-end: 0;
-  }
-
-  .bw-track__dot {
-    margin-block-end: var(--bw-space-2);
-  }
-
-  .bw-track__segment {
-    inset-inline: calc(var(--dot) + 6px) 6px;
-    inset-block: calc(var(--dot) / 2 - 1px) auto;
-    width: auto;
-    height: 2px;
-  }
-
-  /* RTL-only app: the rail runs from the right. */
-  .bw-track__fill {
-    transform: scaleX(var(--fill, 0));
-    transform-origin: right;
-  }
-
-  .bw-track__label {
-    font-size: var(--bw-caption);
-  }
-}
-
-/* Receipt ------------------------------------------------------------- */
 
 .bw-tracking__receipt {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-4);
-  padding: var(--bw-space-6);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-surface);
+  max-width: 620px;
+  border: var(--bw-rule-heavy);
+  background-color: var(--bw-panel);
 }
 
 .bw-tracking__receipt-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: var(--bw-space-3);
+  padding: var(--bw-space-3) var(--bw-space-4);
+  background-color: var(--bw-route, var(--bw-ink));
+  color: var(--bw-on-route, var(--bw-on-ink));
+  border-block-end: var(--bw-rule-heavy);
+}
+
+.bw-tracking__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 2px solid currentColor;
+  font-family: var(--bw-font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  padding-block-start: 3px;
 }
 
 .bw-tracking__receipt-head h2 {
-  font-size: 1.25rem;
+  font-family: var(--bw-font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 0.9;
+}
+
+.bw-tracking__units {
+  margin-inline-start: auto;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-tracking__items {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-3);
+  padding-inline: var(--bw-space-5);
 }
 
 .bw-tracking__items li {
   display: flex;
-  align-items: baseline;
   justify-content: space-between;
   gap: var(--bw-space-4);
+  padding-block: var(--bw-space-3);
+  border-block-end: 2px dashed var(--bw-hairline);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-tracking__item-name {
   display: flex;
-  align-items: baseline;
   gap: var(--bw-space-2);
   min-width: 0;
 }
 
-.bw-tracking__item-label {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  unicode-bidi: isolate;
-}
-
 .bw-tracking__item-quantity {
-  flex-shrink: 0;
-  color: var(--bw-ink-muted);
-  font-weight: 600;
+  font-weight: 900;
 }
 
 .bw-tracking__total {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding-block-start: var(--bw-space-4);
-  border-block-start: 1px solid var(--bw-line);
-  font-weight: 600;
+  padding: var(--bw-space-4) var(--bw-space-5);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-tracking__total strong {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: var(--bw-total);
+  font-weight: 900;
+  font-stretch: var(--bw-wdth-big);
+  line-height: 1;
+}
+
+.bw-tracking__correction {
+  margin: 0 var(--bw-space-5) var(--bw-space-5);
+}
+
+.bw-tracking__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--bw-space-2);
+}
+
+/* Phones: the map runs down the page ---------------------------------- */
+
+@media (max-width: 699px) {
+  .bw-tracking__board {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'intro'
+      'eta'
+      'status';
+    min-height: 0;
+    margin-inline: calc(-1 * var(--bw-gutter));
+    margin-block-start: calc(-1 * var(--bw-space-7));
+    padding: var(--bw-space-5) var(--bw-gutter) var(--bw-space-6);
+  }
+
+  .bw-tracking__status {
+    text-align: right;
+    max-width: none;
+  }
+
+  .bw-track {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--bw-space-5);
+  }
+
+  .bw-track__stop {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--bw-space-4);
+  }
+
+  .bw-track__dot {
+    margin: 0;
+  }
+
+  .bw-track__segment {
+    inset-block-start: 24px;
+    inset-inline-start: 19px;
+    width: 10px;
+    height: calc(100% + var(--bw-space-5));
+  }
+
+  .bw-track__fill {
+    transform: scaleY(var(--fill, 0));
+    transform-origin: top;
+  }
+
+  .bw-tracking__bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-tracking__minutes {
+    animation: none;
+  }
 }

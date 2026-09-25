@@ -2,13 +2,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserOrders } from '../services/api';
-import { getSecondsLeft, isActive } from '../services/orderStatus';
+import { DELIVERY_SECONDS, formatClock, getSecondsLeft, isActive } from '../services/orderStatus';
 import Icon from './ui/Icon';
 import './ActiveOrderWidget.css';
 
-/* A single dock for orders on their way. It refreshes when the route
-   changes and once a minute — the server never advances a status, so
-   polling harder would only repeat the same answer (ARCHITECTURE §6). */
+/* The LED strip (V5 spec §5): the order on its way, at the top of every
+   page, in the page flow — nothing floats over content. It refreshes when
+   the route changes and once a minute; the server never advances a
+   status, so polling harder would only repeat the same answer
+   (ARCHITECTURE §6). */
 
 const REFRESH_MS = 60000;
 /* Hidden where it would repeat the page: tracking is the order itself,
@@ -62,41 +64,36 @@ export default function ActiveOrderWidget() {
   }, [refresh]);
 
   const hidden = HIDDEN_PATHS.some((path) => location.pathname.startsWith(path));
-  const showing = !hidden && activeOrders.length > 0;
 
-  /* The pill floats over the page, so the page has to end above it
-     rather than under it — the same arrangement the cart bar uses. */
-  useEffect(() => {
-    document.body.classList.toggle('bw-has-dock', showing);
-
-    return () => document.body.classList.remove('bw-has-dock');
-  }, [showing]);
-
-  if (!showing) {
+  if (hidden || activeOrders.length === 0) {
     return null;
   }
 
-  const [order] = activeOrders;
+  /* The soonest arrival leads; a second order is counted, not listed. */
+  const [order] = [...activeOrders].sort((a, b) => getSecondsLeft(a) - getSecondsLeft(b));
   const minutesLeft = Math.ceil(getSecondsLeft(order) / 60);
+  const arrival = formatClock(Number(order.startTime) + DELIVERY_SECONDS * 1000);
+  const others = activeOrders.length - 1;
 
   return (
-    <div className="bw-dock">
-      <Link to={`/tracking/${order.id}`} className="bw-dock__pill">
-        <span className="bw-dock__icon" aria-hidden="true">
-          <Icon name="scooter" size={20} />
+    <Link to={`/tracking/${order.id}`} className="bw-led">
+      <span className="bw-led__inner">
+        <span className="bw-led__live" aria-hidden="true" />
+        <span className="bw-led__what">
+          <bdi>{order.restaurantName}</bdi> בדרך אליכם
+          {others > 0 && <span className="bw-led__more"> ועוד {others === 1 ? 'הזמנה אחת' : `${others} הזמנות`}</span>}
         </span>
-
-        <span className="bw-dock__text">
-          <strong>
-            {activeOrders.length > 1 ? `${activeOrders.length} הזמנות בדרך` : 'ההזמנה בדרך'}
-          </strong>
-          <span>
-            {order.restaurantName} · עוד {minutesLeft} דק׳
-          </span>
+        <span className="bw-led__when">
+          מגיעה ב־<span className="bw-num">{arrival}</span>
         </span>
-
-        <Icon name="back" size={18} />
-      </Link>
-    </div>
+        <span className="bw-led__left">
+          עוד <span className="bw-num">{minutesLeft}</span> דק׳
+        </span>
+        <span className="bw-led__go">
+          למעקב
+          <Icon name="back" size={16} />
+        </span>
+      </span>
+    </Link>
   );
 }

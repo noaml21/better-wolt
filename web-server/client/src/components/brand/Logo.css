@@ -2,42 +2,41 @@
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-2);
+  color: var(--bw-ink);
 }
 
 .bw-logo__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-}
-
-.bw-logo__tag {
-  fill: var(--bw-flame);
-}
-
-.bw-logo__hole {
-  fill: var(--bw-paper);
-}
-
-.bw-logo__letter {
-  fill: var(--bw-on-flame);
+  width: 36px;
+  height: 36px;
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+  font-family: var(--bw-font-display);
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1;
+  /* Karantina's B sits high in its box; this centres the ink. */
+  padding-block-start: 3px;
 }
 
 .bw-logo__word {
   font-family: var(--bw-font-display);
-  font-size: 1.3rem;
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--bw-ink);
+  font-size: 2.125rem;
+  font-weight: 700;
+  line-height: 0.8;
   white-space: nowrap;
-}
-
-.bw-logo__word-accent {
-  color: var(--bw-ink);
+  padding-block-start: 4px;
 }
 
 .bw-logo--sm .bw-logo__mark {
   width: 28px;
   height: 28px;
+  font-size: 1.5rem;
 }
 
 .bw-logo--sm .bw-logo__word {
-  font-size: 1.05rem;
+  font-size: 1.625rem;
 }

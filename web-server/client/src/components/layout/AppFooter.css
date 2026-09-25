@@ -1,21 +1,19 @@
+/* The end of the line (V5 spec §6): the board's black band closes every
+   page — the wordmark large, two links, and the note that says what is
+   illustrative. */
+
 .bw-footer {
   margin-block-start: var(--bw-space-11);
-  padding-block: var(--bw-space-8) var(--bw-space-6);
-  border-block-start: 1px solid var(--bw-line);
-  background-color: var(--bw-surface);
-}
-
-/* The docked order pill is anchored to the bottom of the viewport, so
-   the end of the document has to leave it room — otherwise it sits on
-   the footer's own links. */
-body.bw-has-dock .bw-footer {
-  padding-block-end: var(--bw-space-11);
+  padding-block: var(--bw-space-9) var(--bw-space-7);
+  background-color: var(--bw-board);
+  color: var(--bw-on-board);
+  --bw-footer-muted: #a5abb0; /* 8:1 on the board */
 }
 
 .bw-footer__inner {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--bw-space-6);
   max-width: var(--bw-content-max);
@@ -26,32 +24,68 @@ body.bw-has-dock .bw-footer {
 .bw-footer__brand {
   display: flex;
   flex-direction: column;
-  gap: var(--bw-space-3);
-  max-width: 40ch;
+  gap: var(--bw-space-4);
+  max-width: 44ch;
+}
+
+.bw-footer .bw-logo {
+  color: var(--bw-on-board);
+}
+
+.bw-footer .bw-logo__mark {
+  background-color: var(--bw-on-board);
+  color: var(--bw-board);
+}
+
+.bw-footer .bw-logo--sm .bw-logo__mark {
+  width: 56px;
+  height: 56px;
+  font-size: 2.75rem;
+}
+
+.bw-footer .bw-logo--sm .bw-logo__word {
+  font-size: clamp(3rem, 8vw, 5.5rem);
 }
 
 .bw-footer__brand p {
-  color: var(--bw-ink-muted);
-  font-size: var(--bw-caption);
+  color: var(--bw-footer-muted);
+  font-size: var(--bw-body);
+  font-weight: 600;
 }
 
 .bw-footer__nav {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--bw-space-5);
+  gap: var(--bw-space-2);
 }
 
 .bw-footer__nav a {
-  color: var(--bw-ink);
-  font-size: var(--bw-caption);
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--bw-target);
+  padding-inline: var(--bw-space-4);
+  border: 2px solid var(--bw-on-board);
+  color: var(--bw-on-board);
+  font-size: var(--bw-body);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+  text-decoration: none;
+}
+
+.bw-footer__nav a:hover {
+  background-color: var(--bw-on-board);
+  color: var(--bw-board);
+}
+
+.bw-footer a:focus-visible {
+  outline-color: var(--bw-led);
 }
 
 .bw-footer__note {
   max-width: var(--bw-content-max);
   margin-inline: auto;
-  margin-block-start: var(--bw-space-6);
+  margin-block-start: var(--bw-space-8);
   padding-inline: var(--bw-gutter);
-  color: var(--bw-ink-muted);
-  font-size: var(--bw-micro);
+  color: var(--bw-footer-muted);
+  font-size: var(--bw-caption);
 }

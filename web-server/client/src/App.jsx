@@ -52,6 +52,7 @@ export default function App() {
                 דילוג לתוכן הראשי
               </a>
 
+              <ActiveOrderWidget />
               <TopBar />
 
               <main id="main" tabIndex={-1}>
@@ -84,7 +85,6 @@ export default function App() {
               </main>
 
               <AppFooter />
-              <ActiveOrderWidget />
             </div>
           </BrowserRouter>
         </ToastProvider>

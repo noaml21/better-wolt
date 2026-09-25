@@ -1,5 +1,5 @@
 import { startTransition, useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import Logo from '../brand/Logo';
@@ -7,9 +7,11 @@ import Button, { IconButton } from '../ui/Button';
 import Icon from '../ui/Icon';
 import './TopBar.css';
 
-/* The one piece of chrome on every page. In Hebrew the brand sits at the
-   inline start (right) and the account actions at the inline end. Below
-   900px the search field collapses into a toggle so the bar keeps one row. */
+/* The one piece of chrome on every page (V5 spec §5): a panel bar on a
+   3px ink rule. In Hebrew the brand sits at the inline start (right) and
+   the account actions at the inline end; the page you are on is an ink
+   block. Below 900px the search field collapses into a toggle so the bar
+   keeps one row. */
 
 export default function TopBar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -128,12 +130,15 @@ export default function TopBar() {
             onClick={toggleTheme}
           />
 
+          <NavLink to="/restaurants" className="bw-topbar__link bw-topbar__link--wide">
+            כל המסעדות
+          </NavLink>
+
           {isAuthenticated ? (
             <div className="bw-topbar__account" ref={menuRef}>
-              <Link to="/orders" className="bw-topbar__link">
-                <Icon name="bag" size={18} />
+              <NavLink to="/orders" className="bw-topbar__link">
                 ההזמנות שלי
-              </Link>
+              </NavLink>
 
               {/* A disclosure of links, not an ARIA menu: role="menu" promises
                   arrow-key navigation, and these are reached with Tab. */}
@@ -185,9 +190,9 @@ export default function TopBar() {
             </div>
           ) : (
             <div className="bw-topbar__auth">
-              <Link to="/login" className="bw-topbar__link">
+              <NavLink to="/login" className="bw-topbar__link">
                 התחברות
-              </Link>
+              </NavLink>
               <Button size="sm" onClick={() => navigate('/register')}>
                 הרשמה
               </Button>

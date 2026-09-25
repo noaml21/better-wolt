@@ -78,3 +78,57 @@ a 12-column grid with titles hanging in the first three columns; food is seen th
   rounded corner in the system.
 - **Cart:** the balcony on desktop; a bottom bar + sheet on phones.
 - **Tracking:** the stairwell window filling floor by floor beside the arrival clock and the floor list.
+
+---
+
+## Critique (Impeccable, dual-agent)
+
+Method: Impeccable `critique`, two isolated sub-agents — **A**: design review (PRODUCT.md, critique.md heuristics and
+personas, craft-floor.md, every screenshot, the source); **B**: `impeccable detect --json` on each prototype plus
+`detect.js` injected into the rendered pages (Chrome, 1440 and 390, four routes each, 24 runs), overflow, console and
+contrast. Both were interrupted once by a usage limit and resumed from their transcripts.
+
+| | A Screening | B Line | C White City |
+|---|---|---|---|
+| Nielsen total | 23/40 | **26/40** | 26/40 |
+| Uniqueness / memorability | 4 / 4 | **5 / 5** | 3 / 3 |
+| Beauty | 4 | 3 | 4 |
+| Clarity / usability | 3 / 2 | **4 / 4** | 4 / 4 |
+| Food emphasis | **5** | 2 | 3 |
+| Hebrew/RTL | 4 | 4 | 4 |
+| Mobile | 3 | **4** | 3 |
+| Scales to every feature | 2 | 3 | **5** |
+| Accessibility | 2 | 3 | 3 |
+| Feasibility (React + CSS) | 4 | 4 | 5 |
+| Detector (CLI) | 1 advisory | 1 warning (`pulsing-dot`) | 1 advisory |
+| Detector (rendered) | low-contrast labels, skipped heading | bounce easing, pulsing dot, skipped heading | caption contrast on no-photo panes, skipped heading, an eyebrow |
+| Looks generated / template? | half: dark + serif + zig-zag rows is a portfolio staple | no — the most authored | drifts toward calm "minimal" default |
+| Different from V4 at a glance? | yes | **yes, instantly** | yes, but reads as a new theme |
+
+Findings common to all three (from the shared runtime and markup): an `h1` followed by `h3` on the restaurant and World
+Cup pages; the cart sheets had no visible close control; adding from another restaurant emptied the cart silently; a
+Hebrew prefix glued to a Latin name ("מSmoke…"); long mixed-direction names breaking badly in display faces.
+
+## Decision: B — Line
+
+**Chosen for the strongest balance of distinctiveness, product quality and usability, not for safety.** B is the only
+concept that reads as a different product within three seconds *and* is specific to this product: a Tel Aviv
+wayfinding language for a Tel Aviv delivery service. Its signature devices are interaction, not costume — the LED strip
+is the best order-status pattern of the three (heuristic 1 scored 4), the route menu shows what is in the cart in place,
+and the departures board is the most comparable home (times and fees aligned in tabular columns). Its weaknesses are
+matters of discipline (noise, photo scale, identity allocation, no dark theme); A's are structural (dark-only, a home
+that cannot be scanned, the cart colliding with content) and C's is fundamental (not memorable enough for this brief).
+
+What V5 takes from the other two — disciplines, not their clothes:
+
+- **From A (Screening):** photography at real scale (the restaurant photo leads its header; board rows carry photos on
+  phones too); the credits-roll price discipline (dish · gutter · tabular price); one colour per meaning (amber is live
+  status only, never a button); the Hebrew voice of "בא לי" in search and empty states.
+- **From C (White City):** a quiet ground (1 px rules by default, heavy rules only where the board needs them); a
+  reserved error hue no restaurant can take; light *and* dark from the first commit; empty states with a way back; a
+  text-labelled add for first-timers where space allows; the calm table idiom for owner screens; a visible label on
+  every time ("מגיעה ב־").
+- **From the roll's challengers:** tracking shows trend and value (elapsed and remaining); phases are discrete and
+  labelled; restaurants you ordered from are marked wherever they appear.
+
+A and C stay in `docs/v5/concepts/` with their screenshots for reference. Design system: [V5_DESIGN_SPEC.md](V5_DESIGN_SPEC.md).

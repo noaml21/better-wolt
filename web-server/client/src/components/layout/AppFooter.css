@@ -29,7 +29,14 @@
 }
 
 .bw-footer .bw-logo {
+  flex-wrap: wrap;
   color: var(--bw-on-board);
+}
+
+/* With enlarged text the wordmark may take two lines rather than push
+   the page sideways. */
+.bw-footer .bw-logo__word {
+  white-space: normal;
 }
 
 .bw-footer .bw-logo__mark {

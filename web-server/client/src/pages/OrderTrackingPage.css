@@ -358,3 +358,11 @@
     animation: none;
   }
 }
+
+/* Loading: the board's own black shape, still — a light sweep across
+   black reads as a glitch, not as loading. */
+.bw-skeleton.bw-tracking__board {
+  background-color: var(--bw-board);
+  background-image: none;
+  animation: none;
+}

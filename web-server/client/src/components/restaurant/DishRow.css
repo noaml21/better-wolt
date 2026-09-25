@@ -20,7 +20,9 @@
 .bw-stop {
   position: relative;
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) 8ch auto;
+  /* The price column is at least a tab stop wide and grows for a long
+     price (₪1,000,000) instead of running into the add control. */
+  grid-template-columns: 42px minmax(0, 1fr) minmax(7ch, auto) auto;
   align-items: center;
   column-gap: var(--bw-space-5);
   padding-block: var(--bw-space-5);

@@ -15,6 +15,7 @@
 
 .bw-led__inner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--bw-space-2) var(--bw-space-6);
   max-width: var(--bw-content-max);

@@ -23,7 +23,8 @@
   padding-block: var(--bw-space-4);
   color: var(--bw-ink);
   text-decoration: none;
-  transition: color var(--bw-fast) var(--bw-ease);
+  /* Leaving is quicker than arriving (the flood's own timing below). */
+  transition: color 160ms var(--bw-ease-out);
 }
 
 /* The flood: the line's colour sweeps in from the inline start. */
@@ -34,17 +35,21 @@
   z-index: -1;
   background-color: var(--bw-route);
   clip-path: inset(0 0 0 100%);
-  transition: clip-path var(--bw-sweep) var(--bw-ease-out);
+  transition: clip-path 160ms var(--bw-ease-out);
 }
 
 @media (hover: hover) {
   .bw-board-row__link:hover::before {
     clip-path: inset(0 0 0 0);
+    transition-duration: var(--bw-sweep);
   }
 
+  /* The text turns with the flood, not before it: on the same curve and
+     clock, so white never sits on concrete for long. */
   .bw-board-row__link:hover {
     color: var(--bw-on-route);
     text-decoration: none;
+    transition-duration: var(--bw-sweep);
   }
 }
 

@@ -18,7 +18,7 @@
   line-height: 1.2;
   text-decoration: none;
   transition: background-color var(--bw-fast) var(--bw-ease), border-color var(--bw-fast) var(--bw-ease),
-    color var(--bw-fast) var(--bw-ease), transform var(--bw-fast) var(--bw-ease);
+    color var(--bw-fast) var(--bw-ease), transform 140ms var(--bw-ease-out);
 }
 
 .bw-button:hover {
@@ -32,7 +32,7 @@
 }
 
 .bw-button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: scale(0.97);
 }
 
 .bw-button:disabled {
@@ -139,7 +139,7 @@
   background-color: transparent;
   color: var(--bw-ink);
   transition: background-color var(--bw-fast) var(--bw-ease), border-color var(--bw-fast) var(--bw-ease),
-    color var(--bw-fast) var(--bw-ease);
+    color var(--bw-fast) var(--bw-ease), transform 140ms var(--bw-ease-out);
 }
 
 .bw-icon-button--sm {
@@ -153,7 +153,7 @@
 }
 
 .bw-icon-button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: scale(0.94);
 }
 
 .bw-icon-button:disabled {

@@ -19,7 +19,7 @@
 
 /* The first line prints the ticket: the body unrolls from the band. */
 .bw-cart--panel:not(.bw-cart--empty) .bw-cart__lines {
-  animation: bw-ticket-print 420ms var(--bw-ease-out);
+  animation: bw-ticket-print 320ms var(--bw-ease-out);
 }
 
 @keyframes bw-ticket-print {

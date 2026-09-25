@@ -25,7 +25,8 @@
   font-weight: 800;
   font-stretch: var(--bw-wdth-ui);
   cursor: pointer;
-  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease),
+    transform 140ms var(--bw-ease-out);
 }
 
 @media (hover: hover) {
@@ -36,7 +37,7 @@
 }
 
 .bw-add:active {
-  transform: translateY(1px);
+  transform: scale(0.94);
 }
 
 /* The word only where the row has room (spec §5). */

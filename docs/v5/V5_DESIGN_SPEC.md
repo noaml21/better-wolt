@@ -204,10 +204,11 @@ they never decorate alone.
 
 | Moment | Motion | Duration / easing | Reduced motion |
 |---|---|---|---|
-| Board row hover / focus | line colour floods from inline start (`clip-path`) | 420 ms `cubic-bezier(.16,1,.3,1)` | instant colour |
+| Board row hover / focus | line colour floods from inline start (`clip-path`); text turns on the same clock | 300 ms in, 160 ms out, `cubic-bezier(.16,1,.3,1)` | instant colour |
 | Add → stepper | stepper fades in, scale .96 → 1 | 160 ms ease-out | instant |
 | Stop fills | ring fill + scale 1 → 1.08 | 240 ms ease-out, no overshoot | instant |
-| Ticket's first line | the ticket prints: `clip-path` top → bottom | 420 ms ease-out | instant |
+| Ticket's first line | the ticket prints: `clip-path` top → bottom | 320 ms ease-out | instant |
+| Press | buttons `scale(.97)`, square controls `scale(.94)`, stepper cells `scale(.92)` | 140 ms ease-out | kept (no travel) |
 | Cart bar appears | translateY(100 %) → 0 | 260 ms drawer curve | instant |
 | Sheet / dialog | sheet from bottom 300 ms; dialog fade + scale .98 | drawer curve | fade only |
 | Line map | fill `scaleX`/`scaleY` to elapsed fraction | 800 ms once, then with the clock | instant |

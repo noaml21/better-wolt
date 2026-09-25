@@ -33,7 +33,11 @@ unchecked box. Never merge into `main` or touch the V2–V4 branches.
 - [x] **V5.11 — Search.** Title, field, board results with the matched dish, no-result state.
 - [x] **V5.12 — Orders and tracking.** Order rows by day; the LED board, line map and receipt ticket.
 - [x] **V5.13 — Auth, World Cup, 404.** Auth split with the board side; World Cup stations; 404 board.
-- [ ] **V5.14 — Motion.** Spec §7 with Emil / design-engineering guidance; reduced motion complete.
+- [x] **V5.14 — Motion.** Spec §7 reviewed with the `emil-design-eng` framework (frequency → purpose → easing →
+      duration): the board flood shortened to 300 ms in / 160 ms out with the text turning on the same clock, the
+      ticket print to 320 ms, presses moved from a 1 px drop to `scale()` (0.97 buttons, 0.94 squares, 0.92 stepper
+      cells, 140 ms ease-out). No `transition: all`, no ease-in, nothing from `scale(0)`, no pulsing. Sampled in
+      Chrome: the flood is 53 % across at 40 ms and 96 % at 120 ms; with reduced motion it is instant.
 - [ ] **V5.15 — Web QA.** Every route × 1440/1024/768/390/320 × light/dark; hostile content; slow and failing API;
       failed images; keyboard and focus; 200 % text; functional smoke (order, World Cup order, owner CRUD, tracking,
       reorder, auth redirect/return, 401, account switch).

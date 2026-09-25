@@ -84,7 +84,7 @@
   --bw-fast: 140ms;
   --bw-base: 180ms;
   --bw-slow: 260ms;
-  --bw-sweep: 420ms;
+  --bw-sweep: 300ms;
   --bw-story: 800ms;
   --bw-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
   /* Exponential ease-out: fast start, long settle. Floods and prints. */

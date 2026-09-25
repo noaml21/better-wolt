@@ -20,7 +20,8 @@
   background-color: transparent;
   color: var(--bw-ink);
   cursor: pointer;
-  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease),
+    transform 140ms var(--bw-ease-out);
 }
 
 /* The drawing is 40px; the hit area reaches the 44px target. */
@@ -47,7 +48,7 @@
 }
 
 .bw-stepper__button:active {
-  transform: translateY(1px);
+  transform: scale(0.92);
 }
 
 .bw-stepper__button:focus-visible {

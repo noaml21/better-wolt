@@ -187,7 +187,7 @@ export default function OrdersPage() {
 
       {status === 'ready' && active.length > 0 && (
         <section className="bw-orders-section" aria-labelledby="bw-orders-active">
-          <h2 className="bw-orders-section__title" id="bw-orders-active">
+          <h2 className="bw-visually-hidden" id="bw-orders-active">
             בדרך אליכם
           </h2>
           <ul className="bw-active-orders">
@@ -200,7 +200,7 @@ export default function OrdersPage() {
 
       {status === 'ready' && past.length > 0 && (
         <section className="bw-orders-section" aria-labelledby="bw-orders-past">
-          <h2 className="bw-orders-section__title" id="bw-orders-past">
+          <h2 className="bw-visually-hidden" id="bw-orders-past">
             הזמנות קודמות
           </h2>
           {groupByDay(past).map((group) => (

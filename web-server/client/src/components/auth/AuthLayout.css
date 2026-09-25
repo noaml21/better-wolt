@@ -105,7 +105,7 @@
 }
 
 .bw-auth__aside-quote strong {
-  color: var(--bw-led);
+  color: var(--bw-on-board);
   font-family: var(--bw-font-display);
   font-size: clamp(3.5rem, 5.5vw, 5.5rem);
   font-weight: 700;
@@ -177,7 +177,7 @@
 }
 
 .bw-auth__line-eta {
-  color: var(--bw-led);
+  color: var(--bw-on-board);
   font-size: 1.5rem;
   font-weight: 900;
   font-stretch: var(--bw-wdth-big);

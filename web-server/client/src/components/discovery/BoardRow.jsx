@@ -58,7 +58,7 @@ export default function BoardRow({ restaurant, note, ordered = false }) {
 
         <span className="bw-board-row__fee">
           <span className="bw-board-row__big bw-num">{fee}</span>
-          <span className="bw-board-row__unit">משלוח</span>
+          <span className="bw-visually-hidden">משלוח</span>
         </span>
       </Link>
     </li>

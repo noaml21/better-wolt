@@ -100,6 +100,10 @@
     grid-template-columns: minmax(0, 1fr) 380px;
   }
 
+  .bw-worldcup__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .bw-worldcup__cart {
     display: block;
     align-self: stretch;
@@ -109,7 +113,9 @@
 /* The dishes: a grid of ruled cells, borders collapsed. */
 .bw-worldcup__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  /* Four columns beside the ticket, two on tablets, one on phones: twenty
+     dishes always fill whole rows. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   border-block-start: var(--bw-rule-strong);
   border-inline-start: var(--bw-rule-strong);
 }

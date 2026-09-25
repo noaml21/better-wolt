@@ -72,11 +72,10 @@
   --bw-space-10: 72px;
   --bw-space-11: 96px;
 
-  /* --- Shape: square (spec §4.3). Circles only for stops and stations. --- */
-  --bw-rule-heavy: 3px solid var(--bw-ink);
-  --bw-rule-strong: 2px solid var(--bw-ink);
-  --bw-rule-thin: 1px solid var(--bw-rule);
-  --bw-rule-hair: 1px solid var(--bw-hairline);
+  /* --- Shape: square (spec §4.3). Circles only for stops and stations. ---
+     The rule shorthands and the focus ring are declared on body (below),
+     not here: a custom property that reads var(--bw-ink) is resolved where
+     it is declared, so on :root it would keep the light ink in dark mode. */
   --bw-control: 48px;
   --bw-target: 44px;
 
@@ -97,6 +96,13 @@
   --bw-content-max: 1440px;
   --bw-reading-max: 760px;
   --bw-topbar-height: 64px;
+}
+
+body {
+  --bw-rule-heavy: 3px solid var(--bw-ink);
+  --bw-rule-strong: 2px solid var(--bw-ink);
+  --bw-rule-thin: 1px solid var(--bw-rule);
+  --bw-rule-hair: 1px solid var(--bw-hairline);
   --bw-focus-ring: 3px solid var(--bw-ink);
 }
 
@@ -137,7 +143,7 @@ body.dark {
    0  #0b7a3e / #ffffff   5.43    #4cc38a / #121416    8.34
    1  #1d4ed8 / #ffffff   6.70    #7aa2ff / #121416    7.42
    2  #7b2d9b / #ffffff   7.80    #c48be0 / #121416    7.14
-   3  #e07800 / #101214   6.13    #ffa24c / #121416    9.25
+   3  #4d7c0f / #ffffff   4.99    #a3e635 / #121416   12.25
    4  #00747a / #ffffff   5.56    #3cc2c9 / #121416    8.57
    5  #b0165a / #ffffff   6.76    #f07aa8 / #121416    7.08
    6  #1b2a6b / #ffffff  13.21    #9fb0ff / #121416    8.91
@@ -148,7 +154,7 @@ body.dark {
 .bw-line-0 { --bw-route: #0b7a3e; --bw-on-route: #ffffff; }
 .bw-line-1 { --bw-route: #1d4ed8; --bw-on-route: #ffffff; }
 .bw-line-2 { --bw-route: #7b2d9b; --bw-on-route: #ffffff; }
-.bw-line-3 { --bw-route: #e07800; --bw-on-route: #101214; }
+.bw-line-3 { --bw-route: #4d7c0f; --bw-on-route: #ffffff; }
 .bw-line-4 { --bw-route: #00747a; --bw-on-route: #ffffff; }
 .bw-line-5 { --bw-route: #b0165a; --bw-on-route: #ffffff; }
 .bw-line-6 { --bw-route: #1b2a6b; --bw-on-route: #ffffff; }
@@ -160,7 +166,7 @@ body.dark {
 body.dark .bw-line-0 { --bw-route: #4cc38a; --bw-on-route: #121416; }
 body.dark .bw-line-1 { --bw-route: #7aa2ff; --bw-on-route: #121416; }
 body.dark .bw-line-2 { --bw-route: #c48be0; --bw-on-route: #121416; }
-body.dark .bw-line-3 { --bw-route: #ffa24c; --bw-on-route: #121416; }
+body.dark .bw-line-3 { --bw-route: #a3e635; --bw-on-route: #121416; }
 body.dark .bw-line-4 { --bw-route: #3cc2c9; --bw-on-route: #121416; }
 body.dark .bw-line-5 { --bw-route: #f07aa8; --bw-on-route: #121416; }
 body.dark .bw-line-6 { --bw-route: #9fb0ff; --bw-on-route: #121416; }

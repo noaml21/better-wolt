@@ -14,7 +14,7 @@
 }
 
 .bw-board-head__title {
-  font-size: var(--bw-page-title);
+  font-size: var(--bw-section-title);
 }
 
 .bw-board-head__count {
@@ -31,11 +31,21 @@
   display: grid;
   grid-template-columns: 132px 112px;
   column-gap: var(--bw-space-5);
-  justify-self: end;
+  justify-self: start;
+  /* Over the row's time and fee columns: badge 56 + photo 120 + name
+     560 + three 20px gaps, measured from the inline start. */
+  margin-inline-start: calc(56px + 120px + 560px + 3 * var(--bw-space-5));
   font-size: var(--bw-caption);
   font-weight: 800;
   font-stretch: var(--bw-wdth-ui);
   text-align: left;
+}
+
+@media (max-width: 1139px) {
+  .bw-board-head__cols {
+    justify-self: end;
+    margin-inline-start: 0;
+  }
 }
 
 @media (max-width: 899px) {

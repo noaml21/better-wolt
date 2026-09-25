@@ -337,7 +337,13 @@ export default function RestaurantPage() {
         <>
           <CartBar itemCount={cart.itemCount} subtotal={cart.subtotal} onOpen={() => setCartOpen(true)} line={line} />
 
-          <Dialog open={cartOpen} onClose={() => setCartOpen(false)} title="הסל שלי">
+          <Dialog
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        title="הסל שלי"
+        description={restaurant.name}
+        className={`bw-cart-dialog ${line.className}`}
+      >
             <CartPanel
               variant="sheet"
               lines={cart.lines}

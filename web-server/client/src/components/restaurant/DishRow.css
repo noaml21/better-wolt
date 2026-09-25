@@ -22,7 +22,8 @@
   display: grid;
   /* The price column is at least a tab stop wide and grows for a long
      price (₪1,000,000) instead of running into the add control. */
-  grid-template-columns: 42px minmax(0, 1fr) minmax(7ch, auto) auto;
+  grid-template-columns: 42px minmax(0, 60ch) minmax(7ch, auto) auto;
+  justify-content: start;
   align-items: center;
   column-gap: var(--bw-space-5);
   padding-block: var(--bw-space-5);

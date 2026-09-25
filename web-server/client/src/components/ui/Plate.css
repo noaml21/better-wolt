@@ -41,6 +41,9 @@
 .bw-plate--thumb {
   align-items: center;
   justify-content: center;
+  /* Container units measure the content box: the header plate's padding
+     (from the viewport) would leave a thumbnail's word a sliver. */
+  padding: 4px;
 }
 
 .bw-plate__word {
@@ -48,7 +51,9 @@
   overflow: hidden;
   font-family: var(--bw-font-display);
   font-weight: 700;
-  font-size: clamp(1rem, 26cqmin, 2.5rem);
+  /* Karantina is about half an em wide per letter: the word fits the
+     plate's width in one line, and never grows past the box. */
+  font-size: min(34cqh, calc(180cqw / var(--bw-plate-len, 5)), 2.5rem);
   line-height: 0.9;
   text-align: center;
   display: -webkit-box;

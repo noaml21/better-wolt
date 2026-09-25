@@ -127,6 +127,10 @@ export default function RestaurantsPage() {
       )}
 
       {status !== 'error' && (restaurants.length > 0 || status === 'loading') && (
+        <h2 className="bw-visually-hidden">רשימת המסעדות</h2>
+      )}
+
+      {status !== 'error' && (restaurants.length > 0 || status === 'loading') && (
         <ol className="bw-board" aria-busy={status === 'loading'} aria-label="רשימת המסעדות">
           {status === 'loading'
             ? Array.from({ length: 8 }, (_, index) => <BoardRowSkeleton key={index} />)

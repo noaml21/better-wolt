@@ -60,6 +60,7 @@
   .bw-sponsored__media {
     grid-column: 1 / -1;
     aspect-ratio: 21 / 9;
+    max-height: 140px;
   }
 
   .bw-sponsored__body {

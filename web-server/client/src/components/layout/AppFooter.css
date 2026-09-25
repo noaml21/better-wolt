@@ -3,7 +3,7 @@
    illustrative. */
 
 .bw-footer {
-  margin-block-start: var(--bw-space-11);
+  margin-block-start: var(--bw-space-8);
   padding-block: var(--bw-space-9) var(--bw-space-7);
   background-color: var(--bw-board);
   color: var(--bw-on-board);
@@ -45,13 +45,13 @@
 }
 
 .bw-footer .bw-logo--sm .bw-logo__mark {
-  width: 56px;
-  height: 56px;
-  font-size: 2.75rem;
+  width: 3rem;
+  height: 3rem;
+  font-size: 2.5rem;
 }
 
 .bw-footer .bw-logo--sm .bw-logo__word {
-  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-size: 3.5rem;
 }
 
 .bw-footer__brand p {

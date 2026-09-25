@@ -197,6 +197,10 @@ export default function SearchResultsPage() {
       )}
 
       {status === 'ready' && results.length > 0 && (
+        <h2 className="bw-visually-hidden">המסעדות שנמצאו</h2>
+      )}
+
+      {status === 'ready' && results.length > 0 && (
         <ol className="bw-board" aria-label="תוצאות החיפוש">
           {results.map((restaurant) => (
             <BoardRow key={restaurant.id} restaurant={restaurant} note={matchNote(restaurant, query)} />

@@ -14,7 +14,17 @@
 .bw-cart--panel {
   position: sticky;
   inset-block-start: calc(var(--bw-topbar-height) + var(--bw-space-5));
+  /* A long ticket scrolls its lines; the total and the order button stay
+     on screen. */
+  max-height: calc(100vh - var(--bw-topbar-height) - var(--bw-space-8));
+  max-height: calc(100dvh - var(--bw-topbar-height) - var(--bw-space-8));
   border: var(--bw-rule-heavy);
+}
+
+.bw-cart--panel .bw-cart__lines {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* The first line prints the ticket: the body unrolls from the band. */
@@ -227,13 +237,34 @@
   animation: bw-rise-in var(--bw-base) var(--bw-ease-out);
 }
 
-/* Sheet: the dialog's band already says "הסל שלי". */
+/* Sheet: one band. The dialog's own title band takes the line colour and
+   carries "הסל שלי", the restaurant and the close button; the ticket's
+   band is not drawn a second time. */
 .bw-cart--sheet {
   margin: calc(-1 * var(--bw-space-6));
 }
 
-.bw-cart--sheet .bw-cart__title {
+.bw-cart--sheet .bw-cart__header {
   display: none;
+}
+
+.bw-cart-dialog .bw-dialog__header {
+  background-color: var(--bw-route, var(--bw-ink));
+  color: var(--bw-on-route, var(--bw-on-ink));
+}
+
+.bw-cart-dialog .bw-dialog__description {
+  color: inherit;
+}
+
+.bw-cart-dialog .bw-dialog__header .bw-icon-button {
+  color: inherit;
+  border-color: currentColor;
+}
+
+.bw-cart-dialog .bw-dialog__header .bw-icon-button:hover:not(:disabled) {
+  background-color: var(--bw-on-route, var(--bw-on-ink));
+  color: var(--bw-route, var(--bw-ink));
 }
 
 @media (max-width: 599px) {

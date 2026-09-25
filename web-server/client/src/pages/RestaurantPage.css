@@ -1,6 +1,7 @@
 /* Restaurant (V5 spec §6): the header, then the route beside the ticket
-   on desktop. The owner's tools are a toolbar above the route at every
-   width — they come first in the DOM too, before the menu they act on. */
+   on desktop. The owner's tools take the ticket's column from 1100px (a
+   sticky panel) and are a toolbar above the route below that — first in
+   the DOM either way, before the menu they act on. */
 
 .bw-restaurant-page__layout {
   display: grid;
@@ -18,7 +19,7 @@
 }
 
 @media (min-width: 1100px) {
-  .bw-restaurant-page__layout:not(.bw-restaurant-page__layout--owner) {
+  .bw-restaurant-page__layout {
     grid-template-columns: minmax(0, 1fr) 380px;
     gap: var(--bw-space-9);
   }
@@ -28,8 +29,34 @@
     align-self: stretch;
   }
 
-  .bw-restaurant-page__layout--owner {
-    max-width: 1000px;
+  .bw-restaurant-page__layout--owner .bw-restaurant-page__side {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+  }
+
+  .bw-restaurant-page__layout--owner .bw-restaurant-page__menu {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .bw-restaurant-page__layout--owner .bw-owner-panel {
+    position: sticky;
+    inset-block-start: calc(var(--bw-topbar-height) + var(--bw-space-5));
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .bw-restaurant-page__layout--owner .bw-owner-panel__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* The destructive action sits apart, at the bottom of the panel. */
+  .bw-restaurant-page__layout--owner .bw-owner-panel__close {
+    margin-block-start: var(--bw-space-5);
+    padding-block-start: var(--bw-space-4);
+    border-block-start: var(--bw-rule-hair);
   }
 }
 

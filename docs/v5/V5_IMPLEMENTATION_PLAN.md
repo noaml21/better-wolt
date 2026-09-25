@@ -38,12 +38,13 @@ unchecked box. Never merge into `main` or touch the V2–V4 branches.
       ticket print to 320 ms, presses moved from a 1 px drop to `scale()` (0.97 buttons, 0.94 squares, 0.92 stepper
       cells, 140 ms ease-out). No `transition: all`, no ease-in, nothing from `scale(0)`, no pulsing. Sampled in
       Chrome: the flood is 53 % across at 40 ms and 96 % at 120 ms; with reduced motion it is instant.
-- [ ] **V5.15 — Web QA.** Every route × 1440/1024/768/390/320 × light/dark; hostile content; slow and failing API;
+- [x] **V5.15 — Web QA.** Every route × 1440/1024/768/390/320 × light/dark; hostile content; slow and failing API;
       failed images; keyboard and focus; 200 % text; functional smoke (order, World Cup order, owner CRUD, tracking,
       reorder, auth redirect/return, 401, account switch).
 - [ ] **V5.16 — Mobile (Expo).** Fonts, tokens, line identity, LED strip, board rows, route menu, ticket screen,
       tracking, orders, auth, owner forms, World Cup; Android export; Expo web captures.
-- [ ] **V5.17 — Second Impeccable pass.** Critique + detector on the built product; fix meaningful findings.
+- [x] **V5.17 — Second Impeccable pass (web).** Dual-agent critique + detector on the built product; ten findings
+      fixed (V5_VISUAL_AUDIT §3.3). The mobile app gets its own check at the end of V5.16.
 - [ ] **V5.18 — Evidence and docs.** `docs/screenshots/v5/` final set, README and AGENTS.md pointing at V5, final gate.
 
 ## Implementation rules

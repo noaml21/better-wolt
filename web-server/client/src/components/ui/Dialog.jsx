@@ -10,7 +10,7 @@ const FOCUSABLE =
    focus to whatever opened it, and locks the page behind it (spec §7).
    Below 600px it arrives as a bottom sheet. */
 
-export default function Dialog({ open, onClose, title, description, children, footer, size = 'md' }) {
+export default function Dialog({ open, onClose, title, description, children, footer, size = 'md', className = '' }) {
   const panelRef = useRef(null);
   const openerRef = useRef(null);
   const titleId = useRef(`bw-dialog-${Math.random().toString(36).slice(2, 9)}`).current;
@@ -108,7 +108,7 @@ export default function Dialog({ open, onClose, title, description, children, fo
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <div
         ref={panelRef}
-        className={`bw-dialog bw-dialog--${size}`}
+        className={`bw-dialog bw-dialog--${size} ${className}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}

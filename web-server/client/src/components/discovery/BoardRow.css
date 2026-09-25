@@ -17,7 +17,10 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: 56px 120px minmax(0, 1fr) 132px 112px;
+  /* The name column stops at a reading width, so time and fee stay
+     beside what they describe; the spare width falls at the inline end. */
+  grid-template-columns: 56px 120px minmax(0, 560px) 132px 112px;
+  justify-content: start;
   align-items: center;
   column-gap: var(--bw-space-5);
   padding-block: var(--bw-space-4);

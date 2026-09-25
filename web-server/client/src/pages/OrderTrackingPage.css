@@ -200,9 +200,9 @@
 
 .bw-tracking__bottom {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 620px);
   align-items: start;
-  gap: var(--bw-space-7);
+  gap: var(--bw-space-5);
   margin-block-start: var(--bw-space-9);
 }
 
@@ -295,9 +295,9 @@
 
 .bw-tracking__actions {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--bw-space-2);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-3);
 }
 
 /* Phones: the map runs down the page ---------------------------------- */
@@ -325,11 +325,21 @@
     gap: var(--bw-space-5);
   }
 
+  /* Each time sits under its station's name, as on the wide map. */
   .bw-track__stop {
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr) auto;
+    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-rows: auto auto;
     align-items: center;
     column-gap: var(--bw-space-4);
+  }
+
+  .bw-track__dot {
+    grid-row: 1 / span 2;
+  }
+
+  .bw-track__time {
+    grid-column: 2;
   }
 
   .bw-track__dot {

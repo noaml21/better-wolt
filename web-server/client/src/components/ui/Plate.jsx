@@ -17,7 +17,11 @@ export default function Plate({ restaurant, size = 'card', className = '' }) {
     const word = restaurant?.name?.trim().split(/\s+/)[0] || '';
 
     return (
-      <span className={`bw-plate ${line.className} bw-plate--thumb ${className}`} aria-hidden="true">
+      <span
+        className={`bw-plate ${line.className} bw-plate--thumb ${className}`}
+        style={{ '--bw-plate-len': Math.max(word.length, 3) }}
+        aria-hidden="true"
+      >
         <span className="bw-plate__word">{word}</span>
       </span>
     );

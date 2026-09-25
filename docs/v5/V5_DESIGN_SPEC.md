@@ -79,7 +79,7 @@ Dark theme — *night platform* (follows the system until chosen, remembered aft
 | 0 green | `#0B7A3E` / white | `#4CC38A` / ink-dark |
 | 1 blue | `#1D4ED8` / white | `#7AA2FF` / ink-dark |
 | 2 purple | `#7B2D9B` / white | `#C48BE0` / ink-dark |
-| 3 orange | `#E07800` / `#101214` | `#FFA24C` / ink-dark |
+| 3 lime | `#4D7C0F` / white | `#A3E635` / ink-dark |
 | 4 teal | `#00747A` / white | `#3CC2C9` / ink-dark |
 | 5 magenta | `#B0165A` / white | `#F07AA8` / ink-dark |
 | 6 navy | `#1B2A6B` / white | `#9FB0FF` / ink-dark |
@@ -149,7 +149,8 @@ they never decorate alone.
 - **Buttons:** *primary* ink fill, panel text, 48 px, square — one per screen; *secondary* 2 px ink outline;
   *ghost* underlined text; *danger* error fill. Loading keeps the size. The primary on the cart carries the total.
 - **Add control:** a 44 px square, 2 px ink border, plus icon; name `הוספה: <dish>`. After the first add it becomes a
-  stepper of three 40 px squares (− · n · +) in the same place; focus follows. Where the row has room (≥ 600 px, not
+  stepper of three outlined 40 px squares (− · n · +) in the same place; focus follows. Nothing in the stepper is
+  filled: the one filled control on the page is the order button. Where the row has room (≥ 600 px, not
   owner mode) the add control carries the word "הוספה".
 - **Line badge:** a square in the line colour with the number in Karantina; 44 px in rows, 72 px in the header,
   `aria-hidden`.
@@ -177,7 +178,7 @@ they never decorate alone.
 
 ## 6. Screens
 
-- **Home:** LED strip (if any) → "לאן הערב?" title with the search field ("בא לי…") and five quick searches as outlined
+- **Home:** LED strip (if any) → "מה אוכלים הערב?" title with the search field ("בא לי…") and five quick searches as outlined
   squares → "להזמין שוב" as a row of line chips (badge + name) from the customer's own orders → the departures board of
   every restaurant → the World Cup as a special line (black band, amber stations with flags, the contract name "חגיגת
   מונדיאל") → footer. The sponsored video keeps its slot as a board row–height panel between rows 3 and 4, labelled
@@ -185,8 +186,9 @@ they never decorate alone.
 - **Restaurants (all):** the full board with the same rows.
 - **Restaurant:** header (photo panel + line block with badge, name, facts: time, fee, rating, address, phone link)
   → route menu + ticket. **Owner mode:** the header block turns neutral (panel with a line chip) so editing never looks
-  like an alert; an owner toolbar ("ניהול המסעדה", dish count and price range, add dish, edit details, close) sits
-  above the menu; each stop gets edit and delete squares.
+  like an alert; the owner's tools ("ניהול המסעדה", dish count and price range, add dish, edit details, and
+  "סגירת המסעדה" set apart at the bottom) are a sticky panel in the ticket's column from 1100 px and a toolbar above
+  the menu below it; each stop gets edit and delete squares, delete resting neutral and turning red only on focus.
 - **Search:** the query as the page title in Karantina, the field under it, then board rows with "בתפריט: <dish>"
   (query marked) when a dish matched. No result: "אף מסעדה לא מגישה את זה" + quick searches + "כל המסעדות".
 - **Orders:** "בדרך אליכם" (LED-styled row with arrival time and "למעקב"), then "הזמנות קודמות" grouped by day, order
@@ -258,4 +260,6 @@ Details in the implementation plan's mobile phase.
 | 2026-09-25 | The World Cup restaurant keeps its contract name "חגיגת מונדיאל"; "קו מיוחד" is only a label beside it. |
 | 2026-09-25 | The floating order dock is replaced by the LED strip in the page flow; the only floating element is the phone cart bar. |
 | 2026-09-25 | Radius 0 system-wide; circles only for stops and stations. |
+| 2026-09-25 | Second Impeccable pass: line 3 moves from orange to lime (it sat beside the LED amber); the rule and focus shorthands are declared on `body` so dark mode resolves them; the stepper and repeated actions are outlined; sign-in drops its benefits checklist and static amber; the owner's tools take the ticket column on desktop. |
+| 2026-09-25 | The home title stays "מה אוכלים הערב?" rather than the prototype's "לאן הערב?": plain food language (principle 1 of §1). |
 | 2026-09-25 | Figma was not used: this environment exposes only Figma's authentication entry points; concepts were built as coded prototypes and inspected in the browser. |

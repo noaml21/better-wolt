@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Button, Field, Icon, InlineMessage, useToast } from '../components/ui';
+import { Button, Field, InlineMessage, useToast } from '../components/ui';
 import AuthLayout from '../components/auth/AuthLayout';
 
-const highlights = ['משלוחים מכל המסעדות בעיר', 'מעקב אחרי השליח בזמן אמת', 'היסטוריית הזמנות בלחיצה'];
 
 export default function LoginPage() {
   const [values, setValues] = useState({ username: '', password: '' });
@@ -74,15 +73,6 @@ export default function LoginPage() {
             <strong>האוכל של העיר, אצלכם בדלת.</strong>
             <span>נכנסים פעם אחת, מזמינים בכל פעם בשתי הקשות.</span>
           </div>
-
-          <ul className="bw-auth__aside-list">
-            {highlights.map((item) => (
-              <li key={item}>
-                <Icon name="check" size={18} />
-                {item}
-              </li>
-            ))}
-          </ul>
         </>
       }
     >

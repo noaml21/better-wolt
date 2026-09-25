@@ -155,7 +155,7 @@ button {
   max-width: var(--bw-content-max);
   margin-inline: auto;
   padding-inline: var(--bw-gutter);
-  padding-block: var(--bw-space-7) var(--bw-space-10);
+  padding-block: var(--bw-space-7) var(--bw-space-7);
 }
 
 .bw-page--narrow {

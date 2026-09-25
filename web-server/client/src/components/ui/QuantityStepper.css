@@ -1,6 +1,6 @@
-/* The stepper (V5 spec §5): three square cells on one 2px ink frame.
-   "More" is the repeated action, so it is the filled cell; "less" and
-   the count stay quiet. */
+/* The stepper (V5 spec §5): three square outlined cells on one 2px ink
+   frame. It repeats on every chosen dish, so nothing in it is filled —
+   the one filled control on the page is the order button. */
 
 .bw-stepper {
   display: inline-flex;
@@ -31,18 +31,9 @@
   inset: -4px 0;
 }
 
-.bw-stepper__button:last-child {
-  background-color: var(--bw-ink);
-  color: var(--bw-on-ink);
-}
-
 @media (hover: hover) {
   .bw-stepper__button:hover {
-    background-color: var(--bw-ground);
-  }
-
-  .bw-stepper__button:last-child:hover {
-    background-color: var(--bw-ink-muted);
+    background-color: var(--bw-ink);
     color: var(--bw-on-ink);
   }
 }
@@ -54,10 +45,6 @@
 .bw-stepper__button:focus-visible {
   outline-offset: -3px;
   z-index: 1;
-}
-
-.bw-stepper__button:last-child:focus-visible {
-  outline-color: var(--bw-led);
 }
 
 .bw-stepper__value {

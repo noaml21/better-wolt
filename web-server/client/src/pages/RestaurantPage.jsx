@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import useMenuCart from '../hooks/useMenuCart';
 import usePlaceOrder from '../hooks/usePlaceOrder';
 import { dishCount } from '../services/counts';
+import { getLine } from '../services/restaurantMeta';
 import {
   Button,
   ConfirmDialog,
@@ -220,6 +221,7 @@ export default function RestaurantPage() {
   }
 
   const products = restaurant.products || [];
+  const line = getLine(restaurant);
   const filterable = products.length > MENU_FILTER_THRESHOLD;
   const shownProducts = filterable ? products.filter((product) => matchesDish(product, menuQuery)) : products;
   const openAddDish = () => setProductDialog({ open: true, product: null });
@@ -232,8 +234,8 @@ export default function RestaurantPage() {
     });
 
   return (
-    <div className="bw-page bw-restaurant-page">
-      <RestaurantHero restaurant={restaurant} />
+    <div className={`bw-page bw-restaurant-page ${line.className}`}>
+      <RestaurantHero restaurant={restaurant} owner={isOwner} />
 
       <div className={`bw-restaurant-page__layout ${isOwner ? 'bw-restaurant-page__layout--owner' : ''}`}>
         {/* First in the DOM for the owner: the tools come before the menu
@@ -289,7 +291,7 @@ export default function RestaurantPage() {
               }
             />
           ) : (
-            <ul className="bw-menu-list">
+            <ol className="bw-route">
               {shownProducts.map((product) => (
                 <DishRow
                   key={product.id}
@@ -308,7 +310,7 @@ export default function RestaurantPage() {
                   }
                 />
               ))}
-            </ul>
+            </ol>
           )}
         </section>
 
@@ -325,6 +327,7 @@ export default function RestaurantPage() {
               restaurantName={restaurant.name}
               problem={orderProblem}
               onDismissProblem={dismissProblem}
+              line={line}
             />
           </aside>
         )}
@@ -332,7 +335,7 @@ export default function RestaurantPage() {
 
       {!isOwner && (
         <>
-          <CartBar itemCount={cart.itemCount} subtotal={cart.subtotal} onOpen={() => setCartOpen(true)} />
+          <CartBar itemCount={cart.itemCount} subtotal={cart.subtotal} onOpen={() => setCartOpen(true)} line={line} />
 
           <Dialog open={cartOpen} onClose={() => setCartOpen(false)} title="הסל שלי">
             <CartPanel
@@ -347,6 +350,7 @@ export default function RestaurantPage() {
               restaurantName={restaurant.name}
               problem={orderProblem}
               onDismissProblem={dismissProblem}
+              line={line}
             />
           </Dialog>
         </>

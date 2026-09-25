@@ -1,120 +1,135 @@
-/* The menu is one surface divided by hairlines (V4 spec §4.3), not a
-   stack of cards: the rows are read in sequence, like a printed menu. */
-.bw-menu-list {
-  display: grid;
-  /* An implicit track is as wide as its longest unbreakable word; this
-     one may shrink so a long dish name wraps instead of widening the page. */
-  grid-template-columns: minmax(0, 1fr);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-surface);
-  overflow: hidden;
-}
+/* The route menu (V5 spec §5). The line runs down the inline start
+   through every stop's ring; a stop is ring · dish · price · action. */
 
-.bw-menu-list--loading {
-  margin-block-start: var(--bw-space-5);
-}
-
-.bw-menu-list--loading .bw-dish__text {
-  flex: 1;
-  gap: var(--bw-space-2);
-}
-
-.bw-dish {
+.bw-route {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--bw-space-5);
-  padding: var(--bw-space-4) var(--bw-space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-/* The hairline stops short of the edges so rows read as one list. */
-.bw-dish + .bw-dish::before {
+.bw-route::before {
   content: '';
   position: absolute;
-  inset-block-start: 0;
-  inset-inline: var(--bw-space-6);
-  border-block-start: 1px solid var(--bw-line);
+  inset-block: 34px;
+  inset-inline-start: 17px;
+  width: 8px;
+  background-color: var(--bw-route, var(--bw-ink));
 }
 
-.bw-dish__text {
+.bw-stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 8ch auto;
+  align-items: center;
+  column-gap: var(--bw-space-5);
+  padding-block: var(--bw-space-5);
+  border-block-end: var(--bw-rule-hair);
+}
+
+.bw-stop:last-child {
+  border-block-end: 0;
+}
+
+.bw-stop__ring {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 6px solid var(--bw-route, var(--bw-ink));
+  border-radius: 50%;
+  background-color: var(--bw-ground);
+  color: var(--bw-on-route, var(--bw-on-ink));
+  font-size: 1rem;
+  font-weight: 900;
+  transition: background-color 240ms var(--bw-ease-out), transform 240ms var(--bw-ease-out);
+}
+
+.bw-stop--on .bw-stop__ring {
+  background-color: var(--bw-route, var(--bw-ink));
+  transform: scale(1.08);
+}
+
+.bw-stop__text {
   display: flex;
   flex-direction: column;
   gap: var(--bw-space-1);
   min-width: 0;
 }
 
-.bw-dish__name {
-  display: flex;
-  align-items: baseline;
-  gap: var(--bw-space-2);
-  font-size: 1.0625rem;
-  line-height: 1.35;
-  font-weight: 600;
-}
-
-.bw-dish__label {
-  min-width: 0;
-  unicode-bidi: isolate;
-}
-
-.bw-dish__count {
-  animation: bw-pop-in 160ms var(--bw-ease);
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding-inline: 6px;
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-flame);
-  color: var(--bw-on-flame);
-  font-size: var(--bw-micro);
-  font-weight: 700;
-  transform: translateY(-1px);
-}
-
-/* The column is a flex column, which sizes each line to its min-content;
-   `anywhere` lets an unbroken word count as breakable there. */
-.bw-dish__name,
-.bw-dish__description {
+.bw-stop__name {
+  font-size: var(--bw-dish);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
-.bw-dish__description {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  max-width: 60ch;
+.bw-stop__description {
   color: var(--bw-ink-muted);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-.bw-dish__price {
-  margin-block-start: var(--bw-space-1);
-  color: var(--bw-ink);
   font-size: var(--bw-body);
-  font-weight: 600;
+  font-weight: 500;
+  max-width: 62ch;
 }
 
-.bw-dish__action {
+.bw-stop__price {
+  font-size: var(--bw-price);
+  font-weight: 800;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.bw-stop__action {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--bw-space-2);
-  flex-shrink: 0;
+  min-width: var(--bw-target);
 }
 
-@media (max-width: 479px) {
-  .bw-dish {
-    gap: var(--bw-space-3);
-    padding: var(--bw-space-4);
+@media (max-width: 599px) {
+  .bw-stop {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'ring text action'
+      'ring price action';
+    column-gap: var(--bw-space-3);
+    row-gap: var(--bw-space-1);
+    padding-block: var(--bw-space-4);
   }
 
-  .bw-dish + .bw-dish::before {
-    inset-inline: var(--bw-space-4);
+  .bw-route::before {
+    inset-inline-start: 13px;
+    width: 8px;
+  }
+
+  .bw-stop__ring {
+    grid-area: ring;
+    width: 34px;
+    height: 34px;
+    border-width: 5px;
+    font-size: 0.875rem;
+  }
+
+  .bw-stop__text {
+    grid-area: text;
+  }
+
+  .bw-stop__price {
+    grid-area: price;
+    text-align: right;
+  }
+
+  .bw-stop__action {
+    grid-area: action;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-stop--on .bw-stop__ring {
+    transform: none;
   }
 }

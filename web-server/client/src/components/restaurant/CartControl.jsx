@@ -9,9 +9,10 @@ import './CartControl.css';
    about to swap the controls, focus follows to the new one: the
    stepper's "more" after adding, the add button after removing.
 
-   The add button is a quiet round control (V4 spec §5): it repeats on
-   every row, so it must not outshout the dish. It has no visible word,
-   and its accessible name carries the dish (WCAG 2.5.3 / 4.1.2). */
+   The add button is a quiet outlined square (V5 spec §5): it repeats on
+   every row, so it must not outshout the dish. Where the row has room it
+   also shows the word "הוספה"; its accessible name starts with that word
+   and carries the dish (WCAG 2.5.3 / 4.1.2). */
 
 export default function CartControl({ name, quantity, onAdd, onRemove, stepperSize = 'md' }) {
   const container = useRef(null);
@@ -54,6 +55,9 @@ export default function CartControl({ name, quantity, onAdd, onRemove, stepperSi
           }}
         >
           <Icon name="plus" size={20} />
+          <span className="bw-add__word" aria-hidden="true">
+            הוספה
+          </span>
         </button>
       )}
     </span>

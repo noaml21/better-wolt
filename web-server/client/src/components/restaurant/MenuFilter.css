@@ -1,20 +1,23 @@
+/* Finding one dish (V5 spec §5): a ruled field above the route. */
+
 .bw-menu-filter {
   position: relative;
   display: flex;
   align-items: center;
-  margin-block-end: var(--bw-space-4);
+  margin-block-end: var(--bw-space-3);
 }
 
 .bw-menu-filter input {
   width: 100%;
-  min-height: 48px;
+  min-height: var(--bw-control);
   padding-inline: 44px 44px;
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-surface);
+  border: var(--bw-rule-thin);
+  background-color: var(--bw-panel);
   color: var(--bw-ink);
   font: inherit;
-  transition: border-color var(--bw-fast) var(--bw-ease);
+  font-weight: 600;
+  font-stretch: var(--bw-wdth-ui);
+  transition: border-color var(--bw-fast) var(--bw-ease), box-shadow var(--bw-fast) var(--bw-ease);
 }
 
 .bw-menu-filter input::placeholder {
@@ -25,35 +28,38 @@
   display: none;
 }
 
-@media (hover: hover) {
-  .bw-menu-filter input:hover {
-    border-color: var(--bw-ink-muted);
-  }
+.bw-menu-filter input:hover {
+  border-color: var(--bw-ink);
+}
+
+.bw-menu-filter input:focus,
+.bw-menu-filter input:focus-visible {
+  outline: none;
+  border-color: var(--bw-ink);
+  box-shadow: inset 0 0 0 2px var(--bw-ink);
 }
 
 .bw-menu-filter__icon {
   position: absolute;
-  inset-inline-start: var(--bw-space-4);
-  color: var(--bw-ink-muted);
+  inset-inline-start: var(--bw-space-3);
+  color: var(--bw-ink);
   pointer-events: none;
 }
 
 .bw-menu-filter__clear {
   position: absolute;
-  inset-inline-end: var(--bw-space-1);
+  inset-inline-end: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border: 0;
-  border-radius: var(--bw-radius-pill);
-  background: transparent;
-  color: var(--bw-ink-muted);
-  cursor: pointer;
+  background: none;
+  color: var(--bw-ink);
 }
 
 .bw-menu-filter__clear:hover {
-  color: var(--bw-ink);
-  background-color: var(--bw-sunken);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }

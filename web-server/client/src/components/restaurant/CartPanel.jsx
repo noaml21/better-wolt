@@ -2,9 +2,13 @@ import { useEffect, useRef } from 'react';
 import { Button, Icon, QuantityStepper, formatPrice } from '../ui';
 import './CartPanel.css';
 
-/* The cart is a summary, not a source of truth: the server recomputes
-   every price when the order is placed (V2_SPEC §3.1), so the total here
-   is labelled as an estimate of the items only. */
+/* The cart is the ticket (V5 spec §5): a band in the restaurant's line
+   colour, the lines on perforations, the total in big condensed figures,
+   and the one primary action carrying it. It is a summary, not a source
+   of truth: the server recomputes every price when the order is placed
+   (V2_SPEC §3.1), so the note says the final price is the menu's at the
+   moment of ordering. `line` is getLine(restaurant): the sheet renders in
+   a portal outside the page, so it cannot inherit the page's colour. */
 
 export default function CartPanel({
   lines,
@@ -17,6 +21,7 @@ export default function CartPanel({
   restaurantName,
   problem,
   onDismissProblem,
+  line,
   variant = 'panel',
 }) {
   const isEmpty = lines.length === 0;
@@ -37,34 +42,37 @@ export default function CartPanel({
     <section
       ref={panel}
       tabIndex={-1}
-      className={`bw-cart bw-cart--${variant}`}
+      className={`bw-cart bw-cart--${variant} ${line?.className || ''} ${isEmpty ? 'bw-cart--empty' : ''}`}
       aria-labelledby="bw-cart-title"
     >
       <header className="bw-cart__header">
-        <h2 className="bw-cart__title" id="bw-cart-title">
-          הסל שלי
-          {/* Keyed by the count: each change remounts it, which replays the
-              bump that confirms the add landed. */}
-          {itemCount > 0 && (
-            <span key={itemCount} className="bw-cart__count bw-num">
-              {itemCount}
-            </span>
-          )}
-        </h2>
-        {restaurantName && !isEmpty && (
-          <p className="bw-cart__from">
-            <Icon name="store" size={14} />
-            <span>{restaurantName}</span>
-          </p>
+        {line && (
+          <span className="bw-cart__badge" aria-hidden="true">
+            {line.number}
+          </span>
         )}
+        <div className="bw-cart__heading">
+          <h2 className="bw-cart__title" id="bw-cart-title">
+            הסל שלי
+            {/* Keyed by the count: each change remounts it, which replays the
+                bump that confirms the add landed. */}
+            {itemCount > 0 && (
+              <span key={itemCount} className="bw-cart__count bw-num">
+                {itemCount}
+              </span>
+            )}
+          </h2>
+          {restaurantName && (
+            <p className="bw-cart__from">
+              <bdi>{restaurantName}</bdi>
+            </p>
+          )}
+        </div>
       </header>
 
       {isEmpty ? (
         <div className="bw-cart__empty">
-          <span className="bw-cart__empty-icon" aria-hidden="true">
-            <Icon name="cart" size={22} />
-          </span>
-          <p>הסל ריק. מנות שתוסיפו מהתפריט יופיעו כאן.</p>
+          <p>הסל ריק. כל + בתפריט עולה לכאן.</p>
         </div>
       ) : (
         <>
@@ -132,7 +140,7 @@ export default function CartPanel({
   );
 }
 
-export function CartBar({ itemCount, subtotal, onOpen }) {
+export function CartBar({ itemCount, subtotal, onOpen, line }) {
   useEffect(() => {
     document.body.classList.toggle('bw-has-cart-bar', itemCount > 0);
 
@@ -144,13 +152,13 @@ export function CartBar({ itemCount, subtotal, onOpen }) {
   }
 
   return (
-    <div className="bw-cart-bar">
+    <div className={`bw-cart-bar ${line?.className || ''}`}>
       <button type="button" className="bw-cart-bar__button" onClick={onOpen}>
         <span key={itemCount} className="bw-cart-bar__count bw-num">
           {itemCount}
         </span>
-        <span className="bw-cart-bar__label">צפייה בסל</span>
-        <span className="bw-cart-bar__total">{formatPrice(subtotal)}</span>
+        <span className="bw-cart-bar__label">לסל</span>
+        <span className="bw-cart-bar__total bw-num">{formatPrice(subtotal)}</span>
       </button>
     </div>
   );

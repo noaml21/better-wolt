@@ -6,7 +6,7 @@
 
 /* The stepper takes the add button's place as the dish goes in. */
 .bw-cart-control .bw-stepper {
-  animation: bw-pop-in 160ms var(--bw-ease);
+  animation: bw-pop-in 160ms var(--bw-ease-out);
 }
 
 .bw-add {
@@ -14,39 +14,39 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-flame-tint);
-  color: var(--bw-flame-deep);
+  gap: var(--bw-space-2);
+  min-width: var(--bw-target);
+  height: var(--bw-target);
+  padding-inline: var(--bw-space-3);
+  border: var(--bw-rule-strong);
+  background-color: transparent;
+  color: var(--bw-ink);
+  font-size: var(--bw-body);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
   cursor: pointer;
-  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease),
-    transform var(--bw-fast) var(--bw-ease);
-}
-
-/* The control draws 40px; the finger gets 48. */
-.bw-add::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
 }
 
 @media (hover: hover) {
   .bw-add:hover {
-    background-color: var(--bw-flame);
-    color: var(--bw-on-flame);
+    background-color: var(--bw-ink);
+    color: var(--bw-on-ink);
   }
 }
 
 .bw-add:active {
-  transform: scale(0.94);
+  transform: translateY(1px);
 }
 
-body.dark .bw-add {
-  color: var(--bw-flame);
-}
+/* The word only where the row has room (spec §5). */
+@media (max-width: 599px) {
+  .bw-add {
+    padding-inline: 0;
+    width: var(--bw-target);
+  }
 
-body.dark .bw-add:hover {
-  color: var(--bw-on-flame);
+  .bw-add__word {
+    display: none;
+  }
 }

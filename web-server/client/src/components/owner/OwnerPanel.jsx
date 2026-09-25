@@ -25,7 +25,7 @@ export default function OwnerPanel({ products, onAddDish, onEdit, onDelete }) {
           {low !== null && (
             <>
               {' · '}
-              <span className="bw-num">
+              <span className="bw-num bw-range">
                 {low === high ? formatPrice(low) : `${formatPrice(low)}–${formatPrice(high)}`}
               </span>
             </>

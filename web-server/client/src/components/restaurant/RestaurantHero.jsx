@@ -1,81 +1,114 @@
 import { useState } from 'react';
-import { Icon, Media, Plate, Rating, Skeleton } from '../ui';
-import { getRestaurantMeta } from '../../services/restaurantMeta';
+import { Media, Skeleton, formatPrice } from '../ui';
+import { getLine, getRestaurantMeta } from '../../services/restaurantMeta';
 import './RestaurantHero.css';
 
-/* The restaurant's name is set on its own food (V4 spec §4.4): a bottom
-   scrim keeps white text readable on any photograph. Without a photo —
-   none given, or the URL is dead — the plate takes the frame and the
-   name sits on the plate's own tint instead, so there is no scrim to
-   darken it. The facts sit on the page underneath, not in a card. */
+/* The restaurant's header (V5 spec §6): its line block — badge, name at
+   signage scale, the facts — beside the food, which is the largest thing
+   on the page. The name never sits on the photo. Without a photo (none
+   given, or the URL is dead) the line block takes the whole width rather
+   than framing an empty panel. For the owner the block turns neutral, so
+   managing the menu never looks like an alert (spec §6, owner mode). */
 
-export default function RestaurantHero({ restaurant }) {
+export default function RestaurantHero({ restaurant, owner = false }) {
   const meta = getRestaurantMeta(restaurant);
+  const line = getLine(restaurant);
   const [failedSrc, setFailedSrc] = useState(null);
   const hasPhoto = Boolean(restaurant.image) && failedSrc !== restaurant.image;
+  const phone = restaurant.phone?.trim();
 
   return (
-    <header className="bw-restaurant-hero">
-      <div className={`bw-restaurant-hero__media ${hasPhoto ? 'bw-restaurant-hero__media--photo' : ''}`}>
-        <Media
-          src={restaurant.image}
-          onFail={setFailedSrc}
-          fallback={<Plate restaurant={restaurant} size="hero" />}
-        />
+    <header
+      className={[
+        'bw-restaurant-hero',
+        line.className,
+        hasPhoto ? 'bw-restaurant-hero--photo' : '',
+        owner ? 'bw-restaurant-hero--owner' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <div className="bw-restaurant-hero__block">
+        <span className="bw-restaurant-hero__badge" aria-hidden="true">
+          {line.number}
+        </span>
 
-        <h1 className="bw-restaurant-hero__name bw-display">{restaurant.name}</h1>
+        <h1
+          className={`bw-restaurant-hero__name bw-display ${
+            restaurant.name.length > 24 ? 'bw-restaurant-hero__name--long' : ''
+          }`}
+        >
+          {restaurant.name}
+        </h1>
+
+        <dl className="bw-restaurant-hero__facts">
+          <div>
+            <dt>זמן משלוח</dt>
+            <dd>
+              <span className="bw-num bw-range">{meta.eta.replace('-', '–')}</span> דק׳
+            </dd>
+          </div>
+          <div>
+            <dt>משלוח</dt>
+            <dd className="bw-num">{meta.deliveryFee === 0 ? 'חינם' : formatPrice(meta.deliveryFee)}</dd>
+          </div>
+          <div>
+            <dt>דירוג</dt>
+            <dd className="bw-num">{meta.rating}</dd>
+          </div>
+          {restaurant.address && (
+            <div>
+              <dt>כתובת</dt>
+              <dd>
+                <bdi>{restaurant.address}</bdi>
+              </dd>
+            </div>
+          )}
+          {phone && (
+            <div>
+              <dt>טלפון</dt>
+              <dd>
+                <a href={`tel:${phone.replace(/[^\d+]/g, '')}`} className="bw-num" dir="ltr">
+                  {phone}
+                </a>
+              </dd>
+            </div>
+          )}
+        </dl>
       </div>
 
-      <p className="bw-restaurant-hero__facts">
-        <Rating value={meta.rating} />
-        <span>
-          <Icon name="clock" size={16} />
-          <span className="bw-num">{meta.eta}</span> דק׳
-        </span>
-        <span className={meta.deliveryFee === 0 ? 'bw-restaurant-hero__free' : undefined}>
-          <Icon name="scooter" size={16} />
-          {meta.deliveryLabel}
-        </span>
-        {restaurant.address && (
-          <span>
-            <Icon name="location" size={16} />
-            {restaurant.address}
-          </span>
-        )}
-        {restaurant.phone && (
-          <a className="bw-restaurant-hero__phone" href={`tel:${restaurant.phone.replace(/[^\d+]/g, '')}`}>
-            <Icon name="phone" size={16} />
-            <span className="bw-num" dir="ltr">
-              {restaurant.phone}
-            </span>
-          </a>
-        )}
-      </p>
+      {hasPhoto && (
+        <div className="bw-restaurant-hero__photo">
+          <Media src={restaurant.image} alt="" onFail={setFailedSrc} />
+        </div>
+      )}
     </header>
   );
 }
 
-/* The page's own shapes while it loads: the hero frame at its real size,
-   the facts line, and a few menu rows. */
+/* The page's own shapes while it loads: the header at its real size and a
+   few stops of the route. */
 export function RestaurantHeroSkeleton() {
   return (
-    <div aria-busy="true">
-      <header className="bw-restaurant-hero">
-        <Skeleton className="bw-restaurant-hero__media" height={null} radius="lg" />
-        <div className="bw-restaurant-hero__facts">
-          <Skeleton width="55%" height={14} />
+    <div aria-busy="true" className="bw-restaurant-skeleton">
+      <header className="bw-restaurant-hero bw-restaurant-hero--photo bw-restaurant-hero--loading">
+        <div className="bw-restaurant-hero__block">
+          <Skeleton width={72} height={72} />
+          <Skeleton width="70%" height={96} />
+          <Skeleton width="55%" height={20} />
         </div>
+        <Skeleton className="bw-restaurant-hero__photo" height={null} />
       </header>
-      <Skeleton width={120} height={26} />
-      <div className="bw-menu-list bw-menu-list--loading">
+      <div className="bw-route bw-route--loading">
         {[0, 1, 2, 3].map((key) => (
-          <div key={key} className="bw-dish">
-            <div className="bw-dish__text">
-              <Skeleton width={160} height={18} />
-              <Skeleton width="80%" height={12} />
-              <Skeleton width={48} height={14} />
+          <div key={key} className="bw-stop">
+            <Skeleton className="bw-stop__ring" height={null} />
+            <div className="bw-stop__text">
+              <Skeleton width={180} height={20} />
+              <Skeleton width="70%" height={14} />
             </div>
-            <Skeleton width={40} height={40} radius="pill" />
+            <Skeleton width={56} height={20} />
+            <Skeleton width={44} height={44} />
           </div>
         ))}
       </div>

@@ -1,3 +1,7 @@
+/* The owner's toolbar (V5 spec §6): a ruled strip above the route — what
+   is being managed on the start, the three actions on the end, the
+   destructive one last and in the error colour. */
+
 .bw-owner-panel {
   display: flex;
   flex-wrap: wrap;
@@ -5,23 +9,34 @@
   justify-content: space-between;
   gap: var(--bw-space-4);
   padding: var(--bw-space-4) var(--bw-space-5);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-surface);
+  border: var(--bw-rule-heavy);
+  background-color: var(--bw-panel);
+}
+
+.bw-owner-panel__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
 }
 
 .bw-owner-panel__title {
   display: flex;
   align-items: center;
   gap: var(--bw-space-2);
-  font-size: var(--bw-body-l);
+  font-family: var(--bw-font-display);
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 0.9;
+}
+
+.bw-owner-panel__title svg {
+  display: none;
 }
 
 .bw-owner-panel__summary {
-  margin-block-start: 2px;
   color: var(--bw-ink-muted);
-  font-size: var(--bw-caption);
-  font-weight: 500;
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-owner-panel__actions {
@@ -30,25 +45,6 @@
   gap: var(--bw-space-2);
 }
 
-.bw-owner-panel__close {
-  color: var(--bw-danger);
-}
-
-/* Beside the menu it is a sticky column, like the cart it replaces. */
-@media (min-width: 1100px) {
-  .bw-owner-panel {
-    position: sticky;
-    inset-block-start: calc(var(--bw-topbar-height) + var(--bw-space-5));
-    flex-direction: column;
-    align-items: stretch;
-    padding: var(--bw-space-6);
-  }
-
-  .bw-owner-panel__actions {
-    flex-direction: column;
-  }
-
-  .bw-owner-panel__actions > * {
-    width: 100%;
-  }
+.bw-owner-panel__close.bw-button--ghost {
+  color: var(--bw-error);
 }

@@ -2,11 +2,12 @@ import { IconButton, formatPrice } from '../ui';
 import CartControl from './CartControl';
 import './DishRow.css';
 
-/* One dish, read the way a menu is read: name, what is in it, what it
-   costs. The add action repeats on every row, so it stays quiet — a small
-   round control at the row's end (V4 spec §5) — and the dish name is the
-   loudest thing in the row. The owner gets edit and delete in the same
-   place, so the menu is managed where it is read. */
+/* One dish as a stop on the restaurant's route (V5 spec §5): a ring on
+   the line, the dish, its price on a tab stop, and the quiet add control
+   at the row's end. When the dish is in the cart its ring fills with the
+   line colour and shows how many — the menu itself says what you chose.
+   The owner gets edit and delete in the same place, so the menu is
+   managed where it is read. */
 
 export default function DishRow({
   product,
@@ -20,22 +21,22 @@ export default function DishRow({
   const inCart = quantity > 0;
 
   return (
-    <li className={`bw-dish ${inCart ? 'bw-dish--in-cart' : ''}`}>
-      <div className="bw-dish__text">
-        <h3 className="bw-dish__name">
-          {/* The stepper already says how many; this is the glance. */}
-          {inCart && (
-            <span className="bw-dish__count bw-num" aria-hidden="true">
-              {quantity}
-            </span>
-          )}
+    <li className={`bw-stop ${inCart ? 'bw-stop--on' : ''}`}>
+      {/* The stepper already says how many; the ring is the glance. */}
+      <span className="bw-stop__ring bw-num" aria-hidden="true">
+        {inCart ? quantity : ''}
+      </span>
+
+      <div className="bw-stop__text">
+        <h3 className="bw-stop__name">
           <span className="bw-dish__label">{product.name}</span>
         </h3>
-        {product.description && <p className="bw-dish__description">{product.description}</p>}
-        <p className="bw-dish__price bw-num">{formatPrice(product.price)}</p>
+        {product.description && <p className="bw-stop__description bw-dish__description">{product.description}</p>}
       </div>
 
-      <div className="bw-dish__action">
+      <p className="bw-stop__price bw-num">{formatPrice(product.price)}</p>
+
+      <div className="bw-stop__action">
         {isOwner ? (
           <>
             <IconButton icon="edit" label={`עריכת ${product.name}`} variant="outline" onClick={() => onEdit(product)} />

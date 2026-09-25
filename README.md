@@ -24,44 +24,45 @@ This project is not affiliated with or endorsed by Wolt.
 
 ## Screenshots
 
-The V4 interface. Every screen is right-to-left Hebrew; the full set is in
-[docs/screenshots/v4](docs/screenshots/v4), and the V3 and V2 interfaces before it are in
-[docs/screenshots/v3](docs/screenshots/v3) and [docs/screenshots/v2](docs/screenshots/v2).
+The V5 interface, "Line": Better Wolt read like the city's transit system. Every screen is right-to-left Hebrew; the
+full set is in [docs/screenshots/v5](docs/screenshots/v5), the three concepts explored before it in
+[docs/screenshots/v5/concepts](docs/screenshots/v5/concepts), and the V4, V3 and V2 interfaces in
+[docs/screenshots/v4](docs/screenshots/v4), [v3](docs/screenshots/v3) and [v2](docs/screenshots/v2).
 
 ### Web
 
 <p align="center">
-  <img src="docs/screenshots/v4/web-home-desktop.jpg" alt="Better Wolt web home page: the night search band with photo links to restaurants, the order-again row, the World Cup strip and the restaurant grid" width="850">
+  <img src="docs/screenshots/v5/web-home-desktop.jpg" alt="Better Wolt web home: the LED strip with the order on its way, the question in signage type over the search, order-again line chips, and the departures board of restaurants with line badges, photos, times and fees" width="850">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/v4/web-restaurant-desktop.jpg" alt="Restaurant page: the name set on the photo, the menu as one list with quiet add controls, and the cart panel with the total in its button" width="420">
+  <img src="docs/screenshots/v5/web-restaurant-desktop.jpg" alt="Restaurant page: the food beside the restaurant's line block, the menu as a route whose rings fill with the count, and the ticket in the line colour with the total in its button" width="420">
   &nbsp;
-  <img src="docs/screenshots/v4/web-tracking.jpg" alt="Order tracking: the arrival time, the minutes left and four stages with their times" width="420">
+  <img src="docs/screenshots/v5/web-tracking.jpg" alt="Order tracking: the LED board with the arrival time in amber, the restaurant's line map with four stations, and the receipt as a ticket" width="420">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/v4/web-orders.jpg" alt="Orders: what is on its way first, then history grouped by day with reorder links" width="420">
+  <img src="docs/screenshots/v5/web-orders.jpg" alt="Orders: history by day, each order a ruled row with its line badge, total and reorder" width="420">
   &nbsp;
-  <img src="docs/screenshots/v4/web-home-dark.jpg" alt="The home page in the dark theme" width="420">
+  <img src="docs/screenshots/v5/web-home-dark.jpg" alt="The home page in the dark night-platform theme" width="420">
 </p>
 
 ### Mobile
 
 <p align="center">
-  <img src="docs/screenshots/v4/mobile-home.jpg" alt="Mobile home: search, quick searches, the order-again row, the World Cup strip and restaurant cards" width="240">
+  <img src="docs/screenshots/v5/mobile-home.jpg" alt="Mobile home: the LED strip, the question, search, order-again line chips, the World Cup line with flag stations, and the board" width="240">
   &nbsp;
-  <img src="docs/screenshots/v4/mobile-restaurant.jpg" alt="Mobile restaurant screen: the name on the photo, the menu as one list and the cart bar" width="240">
+  <img src="docs/screenshots/v5/mobile-restaurant.jpg" alt="Mobile restaurant: the route menu with filled rings and the ink cart bar" width="240">
   &nbsp;
-  <img src="docs/screenshots/v4/mobile-tracking.jpg" alt="Mobile order tracking with the arrival time and a vertical stage timeline" width="240">
+  <img src="docs/screenshots/v5/mobile-tracking.jpg" alt="Mobile tracking: the LED board and the vertical line map" width="240">
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/v4/mobile-world-cup.jpg" alt="The World Cup campaign on mobile as one list with flags" width="240">
+  <img src="docs/screenshots/v5/mobile-world-cup.jpg" alt="The World Cup on mobile: the black band and the dishes as ruled cells" width="240">
   &nbsp;
-  <img src="docs/screenshots/v4/mobile-cart.jpg" alt="Mobile cart with steppers, the total and the order button carrying it" width="240">
+  <img src="docs/screenshots/v5/mobile-cart.jpg" alt="Mobile cart as a ticket in the restaurant's line colour" width="240">
   &nbsp;
-  <img src="docs/screenshots/v4/mobile-orders.jpg" alt="Mobile orders: on the way, then history by day" width="240">
+  <img src="docs/screenshots/v5/mobile-orders.jpg" alt="Mobile orders: the order on its way as an LED row, then history by day" width="240">
 </p>
 
 ## Architecture
@@ -87,6 +88,11 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 - [docs/V4_VISUAL_AUDIT.md](docs/V4_VISUAL_AUDIT.md) — the audit of V3 in the browser that V4 answers
 - [docs/V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md) — the V4 design: principles, type, components, motion
 - [docs/V4_IMPLEMENTATION_PLAN.md](docs/V4_IMPLEMENTATION_PLAN.md) — the V4 phases, what was built and how it was verified
+- [docs/v5/V5_VISUAL_RESEARCH.md](docs/v5/V5_VISUAL_RESEARCH.md) — research outside food delivery that V5 started from
+- [docs/v5/V5_CONCEPTS.md](docs/v5/V5_CONCEPTS.md) — three concepts, the critique and the choice
+- [docs/v5/V5_DESIGN_SPEC.md](docs/v5/V5_DESIGN_SPEC.md) — the V5 "Line" design system
+- [docs/v5/V5_IMPLEMENTATION_PLAN.md](docs/v5/V5_IMPLEMENTATION_PLAN.md) — the V5 phases, what was built and verified
+- [docs/v5/V5_VISUAL_AUDIT.md](docs/v5/V5_VISUAL_AUDIT.md) — the V5 audits, QA matrix and second Impeccable pass
 - [AGENTS.md](AGENTS.md) — branch policy, commands and conventions for contributors
 
 ## Tech Stack
@@ -110,7 +116,7 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 - Create React App / `react-scripts`
 - CSS custom properties as design tokens (`client/src/styles/tokens.css`), CSS logical properties for RTL,
   and a small `components/ui` primitive set — no UI framework
-- Suez One and Rubik from Google Fonts
+- Karantina and Noto Sans Hebrew from Google Fonts
 
 ### Mobile
 
@@ -155,7 +161,7 @@ The backend is organized by feature (`web-server/src/features/<name>/` with `rou
 web-server/             Node.js/Express API (src/features/...) and the React web client
 web-server/test/        API integration tests (node:test + supertest)
 mobile/                 React Native/Expo mobile client
-docs/                   Architecture, API contract, extension guide, the V2–V4 specs and plans, screenshots
+docs/                   Architecture, API contract, extension guide, the V2–V5 specs and plans, screenshots
 docker-compose.yml      Backend, MongoDB and the optional Expo dev server
 docker-compose.test.yml Throwaway MongoDB for the test suite
 .github/workflows/      CI: API tests, web tests and build, image build, mobile bundle
@@ -232,16 +238,18 @@ Web client tests: `cd web-server/client && npm test -- --watchAll=false`.
 
 ## Design
 
-The interface is specified in [docs/V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md), which evolves
-[docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md). In short: warm paper surfaces, a deep aubergine ink, one pomegranate
-action colour and an amber highlight. Food is loud and chrome is quiet: photography leads, a restaurant without a
-photo gets a designed plate in its own tint, and a menu reads like a menu — one list, the dish name first, a small
-round add control rather than a button per row. Prices, totals and times are exact: tabular figures, never the
-display face. Problems at checkout are written beside the cart and stay until they are dealt with, and a price the
-server corrected is explained on the tracking page. Motion only answers an action (the cart bar rising, a count
-bumping) or the passing of time (the tracking stages), and stops under the operating system's reduced-motion
-setting. Hebrew is the layout, not a patch: CSS logical properties and plaintext bidi for what people type on the web,
-a direction-aware layer in the mobile theme, and no `I18nManager.forceRTL`.
+The interface is specified in [docs/v5/V5_DESIGN_SPEC.md](docs/v5/V5_DESIGN_SPEC.md) ("Line"), chosen from three
+concepts ([V5_CONCEPTS.md](docs/v5/V5_CONCEPTS.md)). Better Wolt is read like the city's transit system: every
+restaurant is a line with its own colour and number, the restaurants are a departures board, a menu is a route whose
+stops fill as you add dishes, the cart is a ticket, the order on its way is an amber LED strip, and tracking is the
+line map between four stations. The metaphor is visual only; the words stay plain food Hebrew. Concrete ground,
+black rules, square controls, Karantina signage type for names and titles and Noto Sans Hebrew for everything else,
+with timetable-exact numbers (tabular, condensed, ₪ first, ranges isolated left-to-right). Amber means live and red
+means error, and neither is ever a restaurant's colour. Repeated actions are quiet outlines; one filled action per
+screen. Problems at checkout are written on the ticket and stay until they are dealt with, and a price the server
+corrected is explained on tracking. Motion explains a change (a row floods with its line colour, a stop fills, the
+ticket prints, the line map fills with time) and stops under reduced motion. Light and dark ("night platform")
+themes; Hebrew is the layout, not a patch.
 
 ## Special World Cup Feature
 

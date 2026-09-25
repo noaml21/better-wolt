@@ -8,13 +8,16 @@ Project guidance for contributors and coding agents. The documents in `docs/` ar
 [V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md) (V3 design direction, tokens, component language) ·
 [V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) (V3 phases and progress) ·
 [V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md) (V4 design, evolving V3) ·
-[V4_IMPLEMENTATION_PLAN.md](docs/V4_IMPLEMENTATION_PLAN.md) (V4 phases, progress and the resume point).
+[V4_IMPLEMENTATION_PLAN.md](docs/V4_IMPLEMENTATION_PLAN.md) (V4 phases and progress) ·
+[v5/V5_DESIGN_SPEC.md](docs/v5/V5_DESIGN_SPEC.md) (V5 "Line", which replaces the V3/V4 visual system) ·
+[v5/V5_IMPLEMENTATION_PLAN.md](docs/v5/V5_IMPLEMENTATION_PLAN.md) (V5 phases, progress and the resume point).
+`PRODUCT.md` holds the product record the design work reads.
 
 ## Git
 
-- V4 (the premium frontend pass) happens on `v4/premium-frontend`, branched from the V3 HEAD `b547763`. V3 work
-  happened on `v3/ui-overhaul` and V2 on `v2/extensible-architecture`. Do not commit to or merge into `main`, and do
-  not modify the V2 or V3 branches.
+- V5 (the visual reinvention) happens on `v5/visual-reinvention`, branched from the V4 HEAD `b500a21`. V4 work
+  happened on `v4/premium-frontend`, V3 on `v3/ui-overhaul` and V2 on `v2/extensible-architecture`. Do not commit to
+  or merge into `main`, and do not modify the V2, V3 or V4 branches.
 - Never reset, clean, discard, force-push or rewrite history; recover with `git revert`.
 - One concern per commit, with the verification you actually ran in the message.
 

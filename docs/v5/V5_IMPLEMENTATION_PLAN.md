@@ -41,11 +41,43 @@ unchecked box. Never merge into `main` or touch the V2–V4 branches.
 - [x] **V5.15 — Web QA.** Every route × 1440/1024/768/390/320 × light/dark; hostile content; slow and failing API;
       failed images; keyboard and focus; 200 % text; functional smoke (order, World Cup order, owner CRUD, tracking,
       reorder, auth redirect/return, 401, account switch).
-- [ ] **V5.16 — Mobile (Expo).** Fonts, tokens, line identity, LED strip, board rows, route menu, ticket screen,
-      tracking, orders, auth, owner forms, World Cup; Android export; Expo web captures.
+- [x] **V5.16 — Mobile (Expo).** Karantina + Noto Sans Hebrew (expo-font, the seven faces used), Line tokens for
+      both themes (the V3/V4 colour names removed), `getLine()` identical to the web's, the line badge and plate,
+      board rows that flood on press, line chips, the World Cup band, the LED strip on home, the route menu with
+      filling rings, the ink cart bar, the ticket cart screen, the tracking board and line map (no pulse), orders as
+      LED/ruled rows, search, the line bar tab bar, auth on the board, owner toolbar and forms. Verified on Expo web
+      at 412×915 (light and dark) and by Android export; not on a device.
 - [x] **V5.17 — Second Impeccable pass (web).** Dual-agent critique + detector on the built product; ten findings
       fixed (V5_VISUAL_AUDIT §3.3). The mobile app gets its own check at the end of V5.16.
-- [ ] **V5.18 — Evidence and docs.** `docs/screenshots/v5/` final set, README and AGENTS.md pointing at V5, final gate.
+- [x] **V5.18 — Evidence and docs.** `docs/screenshots/v5/`: 14 web (1440×950, 390×844) and 9 mobile (Expo web
+      412×915 at 2×) captures plus the concept set; README and AGENTS.md point at V5; final gate below.
+
+**V5 is complete.** Open items are listed under "Known limitations" and "Needs a device".
+
+## Verification at the end of V5
+
+API 144/144 (no backend file changed since `b500a21`), web Jest 43/43 (38 at V4 + 5 for the line allocation),
+`eslint --ext .js,.jsx` clean, `CI=true npm run build` green (103.6 kB JS, 13.0 kB CSS gzipped), `docker build
+./web-server` green, mobile `expo lint` at its two documented baseline findings (SearchResultsScreen and
+TrackingScreen, `set-state-in-effect`, unchanged from V4), Android export green (24 assets, 7 fonts). Impeccable
+detector: 0 findings on the web source; 0 contrast failures and 0 overflow in the rendered pages (V5_VISUAL_AUDIT
+§3.3).
+
+## Known limitations
+
+- The dev database still holds V3 test restaurants ("Smoke mu…", "dfsf") at the top of `GET /restaurants`; they
+  are data, not design, and double as no-photo cases.
+- Restaurant line numbers are derived from the id; two restaurants may rarely share a number (spec §4.1).
+- The mobile app follows the OS colour scheme only (no in-app toggle), as in V4.
+
+## Needs a device
+
+Everything in V4_IMPLEMENTATION_PLAN "Needs a device" still applies. V5 adds:
+
+- The custom fonts on Android: the per-weight family mapping (`createStyles`) was checked on Expo web and in the
+  Android export's asset list, not on a device.
+- The dashed perforations (`borderStyle: 'dashed'` on one edge) render differently across Android versions.
+- The board row's pressed flood and the cart bar's rise run on the native driver; felt only on Expo web.
 
 ## Implementation rules
 

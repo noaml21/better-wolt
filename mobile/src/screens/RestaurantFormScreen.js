@@ -233,8 +233,8 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     height: 180,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.sunken,
+    borderColor: colors.hairline,
+    backgroundColor: colors.ground,
     overflow: 'hidden',
   },
   pressed: { opacity: 0.9 },
@@ -247,7 +247,7 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
   footer: {
     padding: space[4],
     borderTopWidth: 1,
-    borderTopColor: colors.line,
-    backgroundColor: colors.surface,
+    borderTopColor: colors.hairline,
+    backgroundColor: colors.panel,
   },
 }));

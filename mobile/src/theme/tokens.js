@@ -47,36 +47,8 @@ const darkCore = {
   scrim: 'rgba(0, 0, 0, 0.7)',
 };
 
-/* Names the V3/V4 components were written against, mapped onto the Line
-   system while each screen is rebuilt (V5 plan V5.16). */
-function withLegacyNames(core) {
-  return {
-    ...core,
-    paper: core.ground,
-    surface: core.panel,
-    sunken: core.ground,
-    line: core.hairline,
-    flame: core.ink,
-    flameDeep: core.ink,
-    onFlame: core.onInk,
-    flameTint: core.panel,
-    amber: core.led,
-    onAmber: '#101214',
-    amberTint: core.panel,
-    herb: core.ok,
-    onHerb: core.onInk,
-    herbTint: core.panel,
-    danger: core.error,
-    onDanger: core.onError,
-    dangerTint: core.errorTint,
-    inkTint: core.panel,
-    night: core.board,
-    onNight: core.onBoard,
-  };
-}
-
-const light = withLegacyNames(lightCore);
-const dark = withLegacyNames(darkCore);
+const light = lightCore;
+const dark = darkCore;
 
 export const palettes = { light, dark };
 

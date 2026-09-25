@@ -55,7 +55,7 @@ function Flag({ team }) {
 
 export default function WorldCupScreen({ navigation }) {
   const styles = useStyles();
-  const { colors } = useTheme();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   const cart = useCart();
@@ -167,15 +167,12 @@ export default function WorldCupScreen({ navigation }) {
           onPress={navigation.goBack}
           style={styles.heroBack}
         />
-        <View style={styles.trophy}>
-          <Icon name="trophy" size={24} color={colors.onAmber} />
-        </View>
       </View>
 
       <Text style={styles.title}>{restaurant.name}</Text>
       <Text style={styles.lead}>
         מנה אחת מכל נבחרת
-        {flatPrice !== null ? `, כל אחת ב-${formatPrice(flatPrice)}` : ''}. מזמינים כמו מכל מסעדה
+        {flatPrice !== null ? `, כל אחת ב־${formatPrice(flatPrice)}` : ''}. מזמינים כמו מכל מסעדה
         אחרת.
       </Text>
       <Text style={styles.count}>{dishCount(products.length)}</Text>
@@ -203,7 +200,6 @@ export default function WorldCupScreen({ navigation }) {
              is said in the hero; a price per row only if they differ. */
           return (
             <View style={[styles.dish, first && styles.dishFirst, last && styles.dishLast]}>
-              {!first ? <View style={styles.hairline} /> : null}
               <Flag team={team} />
 
               <View style={styles.dishText}>
@@ -231,6 +227,7 @@ export default function WorldCupScreen({ navigation }) {
 
       {showCartBar ? (
         <CartBar
+          line={theme.cup}
           itemsCount={cart.itemsCount}
           subtotal={cart.subtotal}
           onPress={() => navigation.navigate('Tabs', { screen: 'Cart' }, { pop: true })}
@@ -240,7 +237,9 @@ export default function WorldCupScreen({ navigation }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+/* The World Cup (V5 spec §6): the board's special line — the server's
+   name in amber signage on black, the teams as ruled cells. */
+const useStyles = createStyles(({ colors, space, type, font }) => ({
   skeleton: { gap: space[4], padding: space[4] },
   backRow: { ...rtl.row, paddingHorizontal: space[4] },
   list: { paddingHorizontal: space[4] },
@@ -252,53 +251,45 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     paddingHorizontal: space[4],
     paddingTop: space[9],
     paddingBottom: space[6],
-    backgroundColor: colors.night,
+    backgroundColor: colors.board,
   },
   heroTop: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between' },
   heroBack: { marginStart: -space[2] },
-  trophy: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.amber,
-  },
-  title: { ...type.h1, ...rtl.text, marginTop: space[3], fontWeight: '900', color: colors.onNight },
-  lead: { ...type.body, ...rtl.text, color: colors.onNight, opacity: 0.78 },
-  count: { ...type.caption, ...rtl.text, color: colors.onNight, opacity: 0.6 },
+  title: { fontFamily: font.display, fontSize: 64, lineHeight: 60, paddingTop: 8, ...rtl.text, marginTop: space[3], color: colors.led },
+  lead: { ...type.bodyL, ...rtl.text, fontWeight: '700', color: colors.onBoard },
+  count: { ...type.body, ...rtl.text, fontWeight: '700', color: colors.boardMuted },
 
   dish: {
     ...rtl.row,
     alignItems: 'center',
     gap: space[3],
-    paddingHorizontal: space[4],
+    paddingHorizontal: space[3],
     paddingVertical: space[3],
     minHeight: 72,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderLeftWidth: 2,
+    borderRightWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  dishFirst: { borderTopWidth: 1, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
-  dishLast: { borderBottomWidth: 1, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
-  hairline: { position: 'absolute', top: 0, left: space[4], right: space[4], height: 1, backgroundColor: colors.line },
+  dishFirst: { borderTopWidth: 2 },
+  dishLast: {},
   /* A flag keeps its own 3:2 proportion; cropping it to a square
      mangles the ones with vertical bands. */
   flag: {
-    width: 52,
-    height: 35,
-    borderRadius: radius.xs,
+    width: 56,
+    height: 38,
+    borderWidth: 2,
+    borderColor: colors.ink,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.sunken,
+    backgroundColor: colors.ground,
     overflow: 'hidden',
   },
   flagImage: { width: '100%', height: '100%' },
   dishText: { flex: 1, gap: 2, alignItems: 'flex-end' },
-  team: { ...type.micro, ...rtl.text, color: colors.inkMuted },
-  dishName: { ...type.h3, ...rtl.text, fontSize: 17, fontWeight: '600', color: colors.ink },
+  team: { ...type.caption, ...rtl.text, fontWeight: '800', color: colors.inkMuted },
+  dishName: { ...type.h3, ...rtl.text, fontSize: 17, fontWeight: '800', color: colors.ink },
   price: { ...type.price, ...rtl.text, color: colors.ink },
   dishAction: {},
-
 }));

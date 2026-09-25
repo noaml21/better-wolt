@@ -263,7 +263,7 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     gap: space[3],
     padding: space[3],
     borderRadius: radius.md,
-    backgroundColor: colors.sunken,
+    backgroundColor: colors.ground,
   },
   pressed: { opacity: 0.9 },
   avatar: {
@@ -272,7 +272,7 @@ const useStyles = createStyles(({ colors, space, radius, type }) => ({
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.panel,
     overflow: 'hidden',
   },
   avatarImage: { width: '100%', height: '100%' },

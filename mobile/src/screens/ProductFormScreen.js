@@ -151,7 +151,7 @@ const useStyles = createStyles(({ colors, space }) => ({
   footer: {
     padding: space[4],
     borderTopWidth: 1,
-    borderTopColor: colors.line,
-    backgroundColor: colors.surface,
+    borderTopColor: colors.hairline,
+    backgroundColor: colors.panel,
   },
 }));

@@ -3,7 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { createStyles, rtl, useTheme } from '../theme';
 import { getRestaurants } from '../services/api';
-import { findWorldCupRestaurant } from '../services/presentation';
+import { findWorldCupRestaurant, getArrivalTime, getSecondsLeft, isActive } from '../services/presentation';
 import { useAuth } from '../context/AuthContext';
 import { Button, Chip, ErrorState, Icon, IconButton, Logo, Screen, SkeletonCard } from '../ui';
 import RestaurantCard from '../components/RestaurantCard';
@@ -23,8 +23,12 @@ export default function HomeScreen({ navigation }) {
   const [status, setStatus] = useState('loading');
   const [refreshing, setRefreshing] = useState(false);
   const [orderedFrom, setOrderedFrom] = useState(() => new Set());
+  const [onTheWay, setOnTheWay] = useState(null);
   const rememberOrders = useCallback((orders) => {
     setOrderedFrom(new Set(orders.map((order) => String(order.restaurant))));
+    /* The LED strip (V5 spec §11): the soonest order still on its way. */
+    const active = orders.filter(isActive).sort((a, b) => getSecondsLeft(a) - getSecondsLeft(b));
+    setOnTheWay(active[0] || null);
   }, []);
   const shown = useRef(false);
 
@@ -71,6 +75,22 @@ export default function HomeScreen({ navigation }) {
 
   const header = (
     <View style={styles.header}>
+      {onTheWay ? (
+        <Pressable
+          onPress={() => navigation.navigate('Tracking', { orderId: onTheWay.id })}
+          accessibilityRole="button"
+          accessibilityLabel={`${onTheWay.restaurantName} בדרך אליכם, מגיעה ב-${getArrivalTime(onTheWay)}, למעקב`}
+          style={({ pressed }) => [styles.led, pressed && styles.ledPressed]}
+        >
+          <View style={styles.ledLive} />
+          <Text style={styles.ledText} numberOfLines={1}>
+            {`מגיעה ב־${getArrivalTime(onTheWay)}`}
+          </Text>
+          <Text style={styles.ledText}>{`עוד ${Math.ceil(getSecondsLeft(onTheWay) / 60)} דק׳`}</Text>
+          <Text style={styles.ledGo}>למעקב</Text>
+        </Pressable>
+      ) : null}
+
       <View style={styles.identity}>
         <Logo size={30} />
         <IconButton icon="logout" label="התנתקות" variant="outline" onPress={logout} />
@@ -201,6 +221,21 @@ export default function HomeScreen({ navigation }) {
 const useStyles = createStyles(({ colors, space, type, font }) => ({
   list: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[7] },
   header: { gap: space[4], paddingBottom: space[3] },
+  /* The one live element: amber on the board, nothing blinking. */
+  led: {
+    ...rtl.row,
+    alignItems: 'center',
+    gap: space[4],
+    minHeight: 48,
+    marginHorizontal: -space[4],
+    marginTop: -space[3],
+    paddingHorizontal: space[4],
+    backgroundColor: colors.board,
+  },
+  ledPressed: { opacity: 0.9 },
+  ledLive: { width: 10, height: 10, backgroundColor: colors.led },
+  ledText: { ...type.body, ...type.num, fontWeight: '800', color: colors.led },
+  ledGo: { ...type.body, fontWeight: '800', color: colors.onBoard, textDecorationLine: 'underline', marginLeft: 'auto' },
   identity: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between', gap: space[3] },
   title: { fontFamily: font.display, fontSize: 72, lineHeight: 64, paddingTop: 10, color: colors.ink, ...rtl.text },
   search: {

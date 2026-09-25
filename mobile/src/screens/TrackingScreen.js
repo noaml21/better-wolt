@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Animated, ScrollView, Text, View } from 'react-native';
-import { createStyles, rtl, useReducedMotion, useTheme } from '../theme';
+import { ScrollView, Text, View } from 'react-native';
+import { createStyles, rtl, useTheme } from '../theme';
 import { getOrderById } from '../services/api';
 import {
   formatOrderNumber,
   getArrivalTime,
+  getLine,
   getSecondsLeft,
   getSegmentFill,
   getStageIndex,
   getStageTimes,
   itemCount,
+  lineColours,
   stages,
 } from '../services/presentation';
 import { useAuth } from '../context/AuthContext';
@@ -17,7 +19,6 @@ import {
   Button,
   EmptyState,
   ErrorState,
-  Icon,
   InlineMessage,
   Screen,
   ScreenHeader,
@@ -25,7 +26,9 @@ import {
   formatPrice,
 } from '../ui';
 
-/* The showpiece. The server never advances an order's status
+/* The showpiece (V5 spec §6, §11): the LED board with the arrival time,
+   the restaurant's line map, the receipt as a ticket. Nothing pulses.
+   The server never advances an order's status
    (ARCHITECTURE §6), so progress is derived from startTime — recomputed
    from the timestamp on every tick rather than decremented, so a
    backgrounded app comes back correct. */
@@ -34,8 +37,7 @@ const DOT = 28;
 
 export default function TrackingScreen({ navigation, route }) {
   const styles = useStyles();
-  const { colors } = useTheme();
-  const reducedMotion = useReducedMotion();
+  const theme = useTheme();
   const { token } = useAuth();
   const orderId = route.params?.orderId;
   /* Set by the cart when the server charged a different total from the
@@ -73,27 +75,6 @@ export default function TrackingScreen({ navigation, route }) {
 
     return () => clearInterval(timer);
   }, [order]);
-
-  const [halo] = useState(() => new Animated.Value(0));
-  const arrivedNow = order ? secondsLeft <= 0 : false;
-
-  /* The stop the order is at breathes, slowly. Decorative — the stage
-     note says the same in words — so it simply does not run under
-     reduced motion, or once the order has arrived. */
-  useEffect(() => {
-    if (!order || reducedMotion || arrivedNow) {
-      halo.setValue(0);
-      return undefined;
-    }
-
-    const loop = Animated.loop(
-      Animated.timing(halo, { toValue: 1, duration: 2400, useNativeDriver: true })
-    );
-
-    loop.start();
-
-    return () => loop.stop();
-  }, [order, reducedMotion, arrivedNow, halo]);
 
   if (status === 'loading') {
     return (
@@ -134,8 +115,9 @@ export default function TrackingScreen({ navigation, route }) {
   const arrivalTime = getArrivalTime(order);
   const minutesLeft = Math.ceil(secondsLeft / 60);
   const units = (order.orderItems || []).reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-  const haloScale = halo.interpolate({ inputRange: [0, 1], outputRange: [1, 1.9] });
-  const haloOpacity = halo.interpolate({ inputRange: [0, 0.7, 1], outputRange: [0.5, 0, 0] });
+  /* The order carries its restaurant's id and name: the same line the
+     restaurant has everywhere else. */
+  const [lineFill, lineText] = lineColours(getLine({ id: order.restaurant, name: order.restaurantName }), theme);
 
   return (
     <Screen>
@@ -146,21 +128,19 @@ export default function TrackingScreen({ navigation, route }) {
       />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.stage, arrived && styles.stageArrived]}>
+        <View style={styles.board}>
           {arrived ? (
             <View style={styles.eta}>
-              <View style={styles.doneMark}>
-                <Icon name="check" size={30} color={colors.onHerb} strokeWidth={2.4} />
-              </View>
-              <Text style={[styles.big, styles.onArrived]}>בתיאבון</Text>
-              {arrivalTime ? <Text style={[styles.sub, styles.onArrived]}>{`הגיעה ב-${arrivalTime}`}</Text> : null}
+              <Text style={styles.arrivedWord}>בתיאבון</Text>
+              {arrivalTime ? <Text style={styles.arrivedAt}>{`הגיעה ב־${arrivalTime}`}</Text> : null}
             </View>
           ) : (
-            <View style={styles.eta} accessible accessibilityLabel={`הגעה משוערת ב-${arrivalTime}, עוד ${minutesLeft} דקות`}>
+            <View style={styles.eta} accessible accessibilityLabel={`מגיעה ב-${arrivalTime}, עוד ${minutesLeft} דקות`}>
               {/* The clock time is what a person plans around; the minutes
-                  are the reassurance (V4 spec §5). */}
+                  are the reassurance. Both are labelled. */}
+              <Text style={styles.label}>מגיעה ב־</Text>
               <Text style={styles.big}>{arrivalTime}</Text>
-              <Text style={styles.sub}>{`הגעה משוערת · עוד ${minutesLeft} דק׳`}</Text>
+              <Text style={styles.left}>{`עוד ${minutesLeft} דק׳`}</Text>
             </View>
           )}
 
@@ -169,58 +149,51 @@ export default function TrackingScreen({ navigation, route }) {
               {stage.note}
             </Text>
           ) : null}
+        </View>
 
-          <View style={styles.track}>
-            {stages.map((item, index) => {
-              const done = index < stageIndex || arrived;
-              const current = index === stageIndex && !arrived;
-              const fill = arrived ? 1 : getSegmentFill(index, secondsLeft);
+        <View style={styles.track}>
+          {stages.map((item, index) => {
+            const done = index < stageIndex || arrived;
+            const current = index === stageIndex && !arrived;
+            const fill = arrived ? 1 : getSegmentFill(index, secondsLeft);
 
-              return (
-                <View
-                  key={item.key}
-                  style={[styles.stop, index === stages.length - 1 && styles.stopLast]}
-                  accessible
-                  accessibilityLabel={`${item.label}${stageTimes[index] ? `, ${stageTimes[index]}` : ''}`}
-                  accessibilityState={{ selected: index === stageIndex }}
-                >
-                  {index < stages.length - 1 ? (
-                    <View style={[styles.segment, arrived && styles.segmentArrived]}>
-                      <View style={[styles.segmentFill, arrived && styles.segmentFillArrived, { height: `${fill * 100}%` }]} />
-                    </View>
-                  ) : null}
-
-                  <View style={styles.dotWrap}>
-                    {current ? (
-                      <Animated.View
-                        style={[styles.halo, { opacity: haloOpacity, transform: [{ scale: haloScale }] }]}
-                      />
-                    ) : null}
-                    <View style={[styles.dot, (done || current) && styles.dotOn, arrived && styles.dotArrived]}>
-                      {done ? (
-                        <Icon name="check" size={14} color={arrived ? colors.herb : colors.onAmber} strokeWidth={2.6} />
-                      ) : current ? (
-                        <Icon name="scooter" size={15} color={colors.onAmber} />
-                      ) : null}
-                    </View>
+            return (
+              <View
+                key={item.key}
+                style={[styles.stop, index === stages.length - 1 && styles.stopLast]}
+                accessible
+                accessibilityLabel={`${item.label}${stageTimes[index] ? `, ${stageTimes[index]}` : ''}`}
+                accessibilityState={{ selected: index === stageIndex }}
+              >
+                {index < stages.length - 1 ? (
+                  <View style={styles.segment}>
+                    <View style={[styles.segmentFill, { backgroundColor: lineFill, height: `${fill * 100}%` }]} />
                   </View>
+                ) : null}
 
-                  <Text style={[styles.stopLabel, (done || current) && styles.stopLabelOn, arrived && styles.onArrived]}>
-                    {item.label}
-                  </Text>
-                  {stageTimes[index] ? (
-                    <Text style={[styles.stopTime, arrived && styles.onArrived]}>{stageTimes[index]}</Text>
-                  ) : null}
+                <View
+                  style={[
+                    styles.dot,
+                    (done || current) && { borderColor: lineFill },
+                    done && { backgroundColor: lineFill },
+                    current && styles.dotCurrent,
+                    current && { borderColor: lineFill },
+                  ]}
+                />
+
+                <View style={styles.stopText}>
+                  <Text style={[styles.stopLabel, current && styles.stopLabelOn]}>{item.label}</Text>
+                  {stageTimes[index] ? <Text style={styles.stopTime}>{stageTimes[index]}</Text> : null}
                 </View>
-              );
-            })}
-          </View>
+              </View>
+            );
+          })}
         </View>
 
         <View style={styles.summary}>
-          <View style={styles.summaryHead}>
-            <Text style={styles.summaryTitle}>מה בהזמנה</Text>
-            <Text style={styles.summaryCount}>{itemCount(units)}</Text>
+          <View style={[styles.summaryHead, { backgroundColor: lineFill }]}>
+            <Text style={[styles.summaryTitle, { color: lineText }]}>מה בהזמנה</Text>
+            <Text style={[styles.summaryCount, { color: lineText }]}>{itemCount(units)}</Text>
           </View>
 
           {(order.orderItems || []).map((item) => (
@@ -269,107 +242,76 @@ export default function TrackingScreen({ navigation, route }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+const useStyles = createStyles(({ colors, space, type, font }) => ({
   skeleton: { gap: space[4], padding: space[4] },
   content: { padding: space[4], gap: space[5], paddingBottom: space[8] },
 
-  stage: {
-    gap: space[4],
-    padding: space[5],
-    borderRadius: radius.lg,
-    backgroundColor: colors.night,
-  },
-  stageArrived: { backgroundColor: colors.herb },
-  /* The delivered card is herb, and herb wants its own text colour —
-     the night text would drop under AA on it. */
-  onArrived: { color: colors.onHerb },
-  eta: { alignItems: 'flex-end', gap: 2 },
-  big: {
-    ...type.num,
-    ...rtl.text,
-    fontSize: 56,
-    lineHeight: 62,
-    fontWeight: '800',
-    letterSpacing: -1,
-    color: colors.onNight,
-  },
-  sub: { ...type.body, ...rtl.text, fontWeight: '700', color: colors.amber },
-  doneMark: {
-    width: 52,
-    height: 52,
-    marginBottom: space[2],
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-  },
-  note: { ...type.bodyL, ...rtl.text, color: colors.onNight, opacity: 0.88 },
+  /* The LED board: amber is the live order and nothing else. */
+  board: { gap: space[3], padding: space[5], marginHorizontal: -space[4], marginTop: -space[4], backgroundColor: colors.board },
+  eta: { alignItems: 'flex-end' },
+  label: { ...type.bodyL, fontWeight: '800', color: colors.led },
+  big: { ...type.num, fontSize: 84, lineHeight: 88, fontWeight: '900', color: colors.led },
+  left: { ...type.bodyL, fontSize: 22, lineHeight: 28, fontWeight: '800', color: colors.led },
+  arrivedWord: { fontFamily: font.display, fontSize: 72, lineHeight: 68, paddingTop: 8, color: colors.led },
+  arrivedAt: { ...type.bodyL, ...type.num, fontWeight: '800', color: colors.onBoard },
+  note: { ...type.bodyL, ...rtl.text, fontWeight: '700', color: colors.onBoard },
 
-  track: { marginTop: space[1] },
-  stop: { ...rtl.row, alignItems: 'center', gap: space[3], minHeight: 52, paddingBottom: space[4] },
-  stopLast: { minHeight: 0, paddingBottom: 0 },
+  /* The line map: the restaurant's line, one station per stage. */
+  track: { paddingTop: space[1] },
+  stop: { ...rtl.row, alignItems: 'flex-start', gap: space[4], minHeight: 64 },
+  stopLast: { minHeight: 0 },
   segment: {
     position: 'absolute',
-    right: DOT / 2 - 1,
-    top: DOT + 2,
-    bottom: 2,
-    width: 2,
-    borderRadius: 1,
+    right: DOT / 2 - 5,
+    top: DOT / 2,
+    height: 64,
+    width: 10,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: colors.hairline,
   },
-  segmentArrived: { backgroundColor: 'rgba(255, 255, 255, 0.3)' },
-  segmentFill: { width: 2, backgroundColor: colors.amber },
-  segmentFillArrived: { backgroundColor: colors.onHerb },
-  dotWrap: { width: DOT, height: DOT, alignItems: 'center', justifyContent: 'center' },
-  halo: {
-    position: 'absolute',
-    width: DOT,
-    height: DOT,
-    borderRadius: DOT / 2,
-    backgroundColor: colors.amber,
-  },
+  segmentFill: { width: 10 },
   dot: {
     width: DOT,
     height: DOT,
     borderRadius: DOT / 2,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.28)',
-    backgroundColor: colors.night,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 6,
+    borderColor: colors.hairline,
+    backgroundColor: colors.ground,
   },
-  dotOn: { borderColor: colors.amber, backgroundColor: colors.amber },
-  dotArrived: { borderColor: colors.onHerb, backgroundColor: colors.onHerb },
-  stopLabel: { ...type.body, ...rtl.text, flex: 1, fontWeight: '700', color: colors.onNight, opacity: 0.6 },
-  stopLabelOn: { opacity: 1 },
-  stopTime: { ...type.caption, ...type.num, color: colors.onNight, opacity: 0.7 },
+  dotCurrent: { borderWidth: 9 },
+  stopText: { flex: 1, alignItems: 'flex-end', paddingTop: 2 },
+  stopLabel: { ...type.bodyL, ...rtl.text, fontWeight: '800', color: colors.ink },
+  stopLabelOn: { textDecorationLine: 'underline' },
+  stopTime: { ...type.body, ...type.num, fontWeight: '800', color: colors.inkMuted },
 
-  summary: {
-    gap: space[3],
-    padding: space[4],
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
-  },
-  summaryHead: { ...rtl.row, alignItems: 'baseline', justifyContent: 'space-between' },
-  summaryTitle: { ...type.h3, ...rtl.text, color: colors.ink },
-  summaryCount: { ...type.caption, color: colors.inkMuted },
-  item: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between', gap: space[3] },
-  itemName: { ...type.body, ...rtl.text, flex: 1, color: colors.ink },
-  itemQuantity: { color: colors.inkMuted, fontVariant: ['tabular-nums'] },
-  itemPrice: { ...type.body, ...type.num, color: colors.ink, fontWeight: '600' },
-  totalRow: {
+  summary: { borderWidth: 3, borderColor: colors.ink, backgroundColor: colors.panel },
+  summaryHead: {
     ...rtl.row,
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: space[3],
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
+    padding: space[3],
+    borderBottomWidth: 3,
+    borderBottomColor: colors.ink,
   },
-  totalLabel: { ...type.body, color: colors.inkMuted },
-  totalValue: { ...type.h2, ...type.num, color: colors.ink },
+  summaryTitle: { fontFamily: font.display, fontSize: 32, lineHeight: 32, paddingTop: 5 },
+  summaryCount: { ...type.body, fontWeight: '800' },
+  item: {
+    ...rtl.row,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: space[3],
+    marginHorizontal: space[4],
+    paddingVertical: space[3],
+    borderBottomWidth: 2,
+    borderStyle: 'dashed',
+    borderBottomColor: colors.hairline,
+  },
+  itemName: { ...type.body, ...rtl.text, flex: 1, fontWeight: '700', color: colors.ink },
+  itemQuantity: { ...type.num, fontWeight: '900' },
+  itemPrice: { ...type.body, ...type.num, fontWeight: '800', color: colors.ink },
+  totalRow: { ...rtl.row, alignItems: 'baseline', justifyContent: 'space-between', padding: space[4] },
+  totalLabel: { ...type.bodyL, fontWeight: '800', color: colors.ink },
+  totalValue: { ...type.num, fontSize: 32, lineHeight: 36, fontWeight: '900', color: colors.ink },
 
   actions: { gap: space[2] },
 }));

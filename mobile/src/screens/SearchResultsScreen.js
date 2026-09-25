@@ -180,23 +180,23 @@ function MatchNote({ note }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
-  note: { ...type.caption, ...rtl.text, color: colors.ink },
-  noteMark: { fontWeight: '800', backgroundColor: colors.amberTint },
-  bar: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[3] },
+const useStyles = createStyles(({ colors, space, type }) => ({
+  note: { ...type.caption, ...rtl.text, fontWeight: '700', color: colors.ink },
+  noteMark: { fontWeight: '900', backgroundColor: colors.ink, color: colors.onInk },
+  bar: { paddingHorizontal: space[4], paddingTop: space[3], paddingBottom: space[3], borderBottomWidth: 3, borderBottomColor: colors.ink },
   field: {
     ...rtl.row,
     alignItems: 'center',
     gap: space[3],
-    minHeight: 52,
+    minHeight: 56,
     paddingHorizontal: space[4],
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
+    borderWidth: 3,
+    borderColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  fieldFocused: { borderColor: colors.flameDeep, borderWidth: 2, paddingHorizontal: space[4] - 1 },
-  input: { ...type.body, ...rtl.text, flex: 1, paddingVertical: space[3], color: colors.ink },
+  fieldFocused: { backgroundColor: colors.raised },
+  /* The field's 3pt border is the focus ring; web would draw a second. */
+  input: { ...type.bodyL, ...rtl.text, fontWeight: '700', flex: 1, paddingVertical: space[3], color: colors.ink, outlineStyle: 'none' },
   list: { paddingHorizontal: space[4], paddingBottom: space[7] },
-  count: { ...type.caption, ...rtl.text, marginBottom: space[3], color: colors.inkMuted },
+  count: { ...type.body, ...rtl.text, fontWeight: '800', marginTop: space[3], marginBottom: space[2], color: colors.inkMuted },
 }));

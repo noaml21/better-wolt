@@ -24,6 +24,7 @@ import {
   ScreenHeader,
   Skeleton,
   formatPrice,
+  LineBadge,
 } from '../ui';
 
 /* Order history. The newest order is the one you just placed, so the
@@ -122,7 +123,7 @@ export default function OrdersScreen({ navigation }) {
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.flame} />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.ink} />
         }
         ListEmptyComponent={
           status === 'loading' ? (
@@ -173,19 +174,17 @@ export default function OrdersScreen({ navigation }) {
                 accessibilityLabel={`מעקב אחרי ההזמנה מ${order.restaurantName}, עוד ${minutes} דקות`}
                 style={({ pressed }) => [styles.active, pressed && styles.pressed]}
               >
-                <View style={styles.activeIcon}>
-                  <Icon name="scooter" size={22} color={colors.onAmber} />
-                </View>
+                <LineBadge restaurant={{ id: order.restaurant, name: order.restaurantName }} size={48} />
                 <View style={styles.activeText}>
                   <Text style={styles.activeName} numberOfLines={1}>
                     {order.restaurantName}
                   </Text>
                   <Text style={styles.activeMeta}>
-                    {arrival ? `תגיע בסביבות ${arrival} · ` : ''}
+                    {arrival ? `מגיעה ב־${arrival}   ` : ''}
                     {`עוד ${minutes} דק׳`}
                   </Text>
                 </View>
-                <Icon name="back" size={18} color={colors.onNight} />
+                <Icon name="back" size={18} color={colors.onBoard} />
               </Pressable>
             );
           }
@@ -194,10 +193,9 @@ export default function OrdersScreen({ navigation }) {
           const start = Number(order.startTime);
 
           return (
-            <View style={[styles.past, row.first && styles.pastFirst, row.last && styles.pastLast]}>
-              {!row.first ? <View style={styles.hairline} /> : null}
-
+            <View style={styles.past}>
               <View style={styles.pastTop}>
+                <LineBadge restaurant={{ id: order.restaurant, name: order.restaurantName }} size={44} />
                 <View style={styles.pastText}>
                   <Text style={styles.pastName} numberOfLines={1}>
                     {order.restaurantName}
@@ -232,7 +230,7 @@ export default function OrdersScreen({ navigation }) {
                     accessibilityRole="button"
                     accessibilityLabel={`להזמין שוב מ${order.restaurantName}`}
                     hitSlop={6}
-                    style={({ pressed }) => [styles.link, pressed && styles.pressed]}
+                    style={({ pressed }) => [styles.link, styles.linkAgainBox, pressed && styles.pressed]}
                   >
                     <Text style={[styles.linkText, styles.linkAgain]}>להזמין שוב</Text>
                   </Pressable>
@@ -246,58 +244,56 @@ export default function OrdersScreen({ navigation }) {
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type }) => ({
+/* Orders (V5 spec §6, §11): what is on its way as LED rows, then the
+   history by day, each order a ruled row with its line badge. */
+const useStyles = createStyles(({ colors, space, type, font }) => ({
   list: { paddingHorizontal: space[4], paddingBottom: space[7] },
   skeletons: { gap: space[4] },
   skeletonCard: { gap: space[3], padding: space[4] },
 
   pressed: { opacity: 0.85 },
-  heading: { ...type.h3, ...rtl.text, fontSize: 20, marginTop: space[4], marginBottom: space[3], color: colors.ink },
-  day: { ...type.caption, ...rtl.text, marginTop: space[3], marginBottom: space[2], color: colors.inkMuted, fontWeight: '700' },
+  heading: { ...type.body, ...rtl.text, fontWeight: '800', marginTop: space[5], marginBottom: space[2], color: colors.ink },
+  day: {
+    fontFamily: font.display,
+    fontSize: 36,
+    lineHeight: 36,
+    paddingTop: 5,
+    ...rtl.text,
+    marginTop: space[3],
+    paddingBottom: space[2],
+    borderBottomWidth: 3,
+    borderBottomColor: colors.ink,
+    color: colors.ink,
+  },
 
   active: {
     ...rtl.row,
     alignItems: 'center',
     gap: space[3],
-    padding: space[4],
-    marginBottom: space[3],
-    borderRadius: radius.lg,
-    backgroundColor: colors.night,
-  },
-  activeIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.amber,
+    padding: space[3],
+    marginBottom: space[2],
+    backgroundColor: colors.board,
   },
   activeText: { flex: 1, gap: 2 },
-  activeName: { ...type.bodyL, ...rtl.text, fontWeight: '800', color: colors.onNight },
-  activeMeta: { ...type.caption, ...type.num, ...rtl.text, fontWeight: '700', color: colors.amber },
+  activeName: { fontFamily: font.display, fontSize: 32, lineHeight: 32, paddingTop: 5, ...rtl.text, color: colors.onBoard },
+  activeMeta: { ...type.body, ...type.num, ...rtl.text, fontWeight: '800', color: colors.led },
 
   past: {
     gap: space[2],
-    paddingHorizontal: space[4],
-    paddingTop: space[3],
-    paddingBottom: space[2],
-    backgroundColor: colors.surface,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: colors.line,
+    paddingVertical: space[3],
+    borderBottomWidth: 2,
+    borderBottomColor: colors.ink,
   },
-  pastFirst: { borderTopWidth: 1, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
-  pastLast: { borderBottomWidth: 1, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
-  hairline: { position: 'absolute', top: 0, left: space[4], right: space[4], height: 1, backgroundColor: colors.line },
   pastTop: { ...rtl.row, alignItems: 'flex-start', gap: space[3] },
   pastText: { flex: 1, gap: 2 },
-  pastName: { ...type.bodyL, ...rtl.text, fontWeight: '700', color: colors.ink },
-  pastItems: { ...type.caption, ...rtl.text, fontWeight: '400', color: colors.inkMuted },
-  pastMeta: { ...type.micro, ...rtl.text, color: colors.inkMuted, fontWeight: '500' },
+  pastName: { fontFamily: font.display, fontSize: 32, lineHeight: 32, paddingTop: 5, ...rtl.text, color: colors.ink },
+  pastItems: { ...type.body, ...rtl.text, fontWeight: '700', color: colors.ink },
+  pastMeta: { ...type.caption, ...rtl.text, color: colors.inkMuted, fontWeight: '700' },
   orderNumber: { fontVariant: ['tabular-nums'] },
-  pastTotal: { ...type.price, color: colors.ink },
-  pastActions: { ...rtl.row, gap: space[1], marginRight: -space[2] },
-  link: { minHeight: 40, justifyContent: 'center', paddingHorizontal: space[2], borderRadius: radius.pill },
-  linkText: { ...type.caption, fontWeight: '700', color: colors.ink },
-  linkAgain: { color: colors.flameDeep },
+  pastTotal: { ...type.num, fontSize: 26, lineHeight: 30, fontWeight: '900', color: colors.ink },
+  pastActions: { ...rtl.row, alignItems: 'center', gap: space[3], marginRight: 44 + space[3] },
+  link: { minHeight: 44, justifyContent: 'center', paddingHorizontal: space[2] },
+  linkAgainBox: { borderWidth: 2, borderColor: colors.ink, paddingHorizontal: space[3] },
+  linkText: { ...type.body, fontWeight: '800', color: colors.ink, textDecorationLine: 'underline' },
+  linkAgain: { textDecorationLine: 'none' },
 }));

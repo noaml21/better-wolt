@@ -1,15 +1,15 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
-import { Karantina_700Bold } from '@expo-google-fonts/karantina';
-import {
-  NotoSansHebrew_400Regular,
-  NotoSansHebrew_500Medium,
-  NotoSansHebrew_600SemiBold,
-  NotoSansHebrew_700Bold,
-  NotoSansHebrew_800ExtraBold,
-  NotoSansHebrew_900Black,
-} from '@expo-google-fonts/noto-sans-hebrew';
+/* One module per face, so only the seven faces the app uses are bundled
+   (each package's index pulls in every weight). */
+import { Karantina_700Bold } from '@expo-google-fonts/karantina/700Bold';
+import { NotoSansHebrew_400Regular } from '@expo-google-fonts/noto-sans-hebrew/400Regular';
+import { NotoSansHebrew_500Medium } from '@expo-google-fonts/noto-sans-hebrew/500Medium';
+import { NotoSansHebrew_600SemiBold } from '@expo-google-fonts/noto-sans-hebrew/600SemiBold';
+import { NotoSansHebrew_700Bold } from '@expo-google-fonts/noto-sans-hebrew/700Bold';
+import { NotoSansHebrew_800ExtraBold } from '@expo-google-fonts/noto-sans-hebrew/800ExtraBold';
+import { NotoSansHebrew_900Black } from '@expo-google-fonts/noto-sans-hebrew/900Black';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ThemeProvider, useTheme } from './src/theme';

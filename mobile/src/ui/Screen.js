@@ -17,5 +17,5 @@ export default function Screen({ children, style, topInset = true }) {
 }
 
 const useStyles = createStyles(({ colors }) => ({
-  screen: { flex: 1, backgroundColor: colors.paper },
+  screen: { flex: 1, backgroundColor: colors.ground },
 }));

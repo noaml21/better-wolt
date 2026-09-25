@@ -1,20 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { createStyles, rtl } from '../theme';
+import { createStyles, rtl, useTheme } from '../theme';
 import { createOrder, getRestaurantById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { dishCount } from '../services/presentation';
+import { dishCount, getLine, lineColours } from '../services/presentation';
 import {
   Button,
   EmptyState,
-  Icon,
   InlineMessage,
   QuantityStepper,
   Screen,
   ScreenHeader,
   formatPrice,
   useToast,
+  LineBadge,
 } from '../ui';
 
 /* The cart is a summary, not a source of truth: the request carries only
@@ -31,6 +31,8 @@ export default function CartScreen({ navigation }) {
   const { token } = useAuth();
   const { showToast } = useToast();
   const cart = useCart();
+  const theme = useTheme();
+  const [lineFill, lineText] = cart.restaurant ? lineColours(getLine(cart.restaurant), theme) : [theme.colors.ink, theme.colors.onInk];
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState('');
 
@@ -162,19 +164,20 @@ export default function CartScreen({ navigation }) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.ticket}>
         <Pressable
           onPress={() =>
             navigation.navigate('RestaurantDetails', { restaurantId: cart.restaurantId })
           }
           accessibilityRole="button"
           accessibilityLabel={`חזרה לתפריט של ${cart.restaurant?.name}`}
-          style={({ pressed }) => [styles.restaurant, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.restaurant, { backgroundColor: lineFill }, pressed && styles.pressed]}
         >
-          <Icon name="store" size={18} color={styles.restaurantIcon.color} />
-          <Text style={styles.restaurantName} numberOfLines={1}>
+          <LineBadge restaurant={cart.restaurant} size={44} outline={lineText} />
+          <Text style={[styles.restaurantName, { color: lineText }]} numberOfLines={1}>
             {cart.restaurant?.name}
           </Text>
-          <Text style={styles.restaurantLink}>לתפריט</Text>
+          <Text style={[styles.restaurantLink, { color: lineText }]}>לתפריט</Text>
         </Pressable>
 
         <View style={styles.lines}>
@@ -199,6 +202,7 @@ export default function CartScreen({ navigation }) {
             </View>
           ))}
         </View>
+        </View>
 
         {/* Server strings are contract and shown as they come (ARCHITECTURE
             §4.3); the lead says what they mean. */}
@@ -217,61 +221,57 @@ export default function CartScreen({ navigation }) {
         <Text style={styles.note}>המחיר הסופי נקבע לפי התפריט ברגע ההזמנה.</Text>
 
         <Button size="lg" fullWidth loading={placing} onPress={placeOrder}>
-          {`לביצוע ההזמנה · ${formatPrice(cart.subtotal)}`}
+          {`לביצוע ההזמנה  ${formatPrice(cart.subtotal)}`}
         </Button>
       </View>
     </Screen>
   );
 }
 
-const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+/* The ticket (V5 spec §5, §11). */
+const useStyles = createStyles(({ colors, space, type, font }) => ({
   content: { padding: space[4], gap: space[4] },
 
+  ticket: { borderWidth: 3, borderColor: colors.ink, backgroundColor: colors.panel },
   restaurant: {
     ...rtl.row,
     alignItems: 'center',
     gap: space[3],
-    padding: space[4],
-    borderRadius: radius.md,
-    backgroundColor: colors.sunken,
+    padding: space[3],
+    borderBottomWidth: 3,
+    borderBottomColor: colors.ink,
   },
   pressed: { opacity: 0.9 },
-  restaurantIcon: { color: colors.inkMuted },
-  restaurantName: { ...type.h3, ...rtl.text, flex: 1, color: colors.ink },
-  restaurantLink: { ...type.caption, color: colors.flameDeep, fontWeight: '700' },
+  restaurantName: { fontFamily: font.display, fontSize: 32, lineHeight: 32, paddingTop: 5, ...rtl.text, flex: 1 },
+  restaurantLink: { ...type.body, fontWeight: '800', textDecorationLine: 'underline' },
 
-  lines: {
-    paddingHorizontal: space[4],
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.surface,
-  },
+  lines: { paddingHorizontal: space[4] },
   line: {
     ...rtl.row,
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: space[4],
-    paddingVertical: space[3],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    paddingVertical: space[4],
+    /* Perforation between lines. */
+    borderBottomWidth: 2,
+    borderStyle: 'dashed',
+    borderBottomColor: colors.hairline,
   },
   lineLast: { borderBottomWidth: 0 },
   lineText: { flex: 1, gap: 2 },
-  lineName: { ...type.body, ...rtl.text, color: colors.ink, fontWeight: '600' },
-  linePrice: { ...type.caption, ...type.num, ...rtl.text, color: colors.ink, fontWeight: '700' },
-  lineUnit: { color: colors.inkMuted, fontWeight: '500' },
+  lineName: { ...type.body, ...rtl.text, color: colors.ink, fontWeight: '800' },
+  linePrice: { ...type.bodyL, ...type.num, ...rtl.text, color: colors.ink, fontWeight: '800' },
+  lineUnit: { color: colors.inkMuted, fontWeight: '600', fontSize: 13 },
 
   footer: {
     gap: space[2],
     padding: space[4],
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
-    backgroundColor: colors.surface,
-    ...shadow.e2,
+    borderTopWidth: 3,
+    borderTopColor: colors.ink,
+    backgroundColor: colors.panel,
   },
-  total: { ...rtl.row, alignItems: 'center', justifyContent: 'space-between' },
-  totalLabel: { ...type.body, color: colors.ink, fontWeight: '600' },
-  totalValue: { ...type.h2, ...type.num, color: colors.ink },
+  total: { ...rtl.row, alignItems: 'baseline', justifyContent: 'space-between' },
+  totalLabel: { ...type.bodyL, color: colors.ink, fontWeight: '800' },
+  totalValue: { ...type.num, fontSize: 36, lineHeight: 40, fontWeight: '900', color: colors.ink },
   note: { ...type.caption, ...rtl.text, marginBottom: space[2], color: colors.inkMuted },
 }));

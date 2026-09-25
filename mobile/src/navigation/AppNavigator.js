@@ -56,12 +56,12 @@ export default function AppNavigator() {
     dark: colors.name === 'dark',
     colors: {
       ...DefaultTheme.colors,
-      primary: colors.flame,
-      background: colors.paper,
-      card: colors.surface,
+      primary: colors.ink,
+      background: colors.ground,
+      card: colors.panel,
       text: colors.ink,
-      border: colors.line,
-      notification: colors.flame,
+      border: colors.hairline,
+      notification: colors.ink,
     },
   };
 

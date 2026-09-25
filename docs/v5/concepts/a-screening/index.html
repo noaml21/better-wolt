@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Better Wolt — Concept A: Screening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300..900&family=Noto+Sans+Hebrew:wdth,wght@62.5..100,300..800&display=swap" rel="stylesheet">
+<style>
+/* Concept A — Screening. Food as cinema: the photograph is the screen, the
+   black around it is the auditorium, words sit in the letterbox bars, the
+   menu rolls like credits and the cart speaks in subtitles. */
+:root {
+  --black: #000;
+  --bar: #0d0c0a;          /* the letterbox bar, a hair above black */
+  --ivory: #efe8da;        /* projected light on text */
+  --dim: #9a9284;          /* credits secondary, 6.7:1 on black */
+  --rule: #2b2823;
+  --sub: #f3d34a;          /* subtitle yellow — only for subtitles */
+  --serif: 'Frank Ruhl Libre', 'David Libre', serif;
+  --sans: 'Noto Sans Hebrew', system-ui, sans-serif;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--black); }
+body { margin: 0; background: var(--black); color: var(--ivory); font: 400 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--sub); color: #000; }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--ivory); outline-offset: 3px; }
+.num { font-family: var(--sans); font-variant-numeric: tabular-nums lining-nums; }
+.iso { unicode-bidi: isolate; }
+mark { background: none; color: var(--sub); }
+
+/* Top bar: floats over the first frame, text only */
+.top { position: absolute; inset: 0 0 auto 0; z-index: 20; display: flex; align-items: center; gap: 28px; padding: 22px clamp(16px, 4vw, 56px); }
+.top__mark { font: 800 22px/1 var(--serif); text-decoration: none; letter-spacing: -.01em; }
+.top__nav { display: flex; gap: 22px; margin-inline-start: auto; font-size: 15px; }
+.top__nav a { text-decoration: none; opacity: .86; }
+.top__nav a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 6px; }
+.top__me { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--dim); display: grid; place-items: center; font: 600 14px/1 var(--sans); }
+.top--solid { position: sticky; top: 0; background: rgba(0,0,0,.92); backdrop-filter: blur(8px); }
+
+/* Photo frames */
+.ph { position: relative; display: block; overflow: hidden; background: #1a1814; }
+.ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ph.is-failed::after { content: attr(data-fallback); position: absolute; inset: 0; display: grid; place-items: center; padding: 8%; text-align: center; font: 300 clamp(28px, 5vw, 72px)/1.05 var(--serif); color: #5d574c; background: repeating-linear-gradient(0deg, #13110e 0 2px, #16140f 2px 4px); }
+
+/* Home: the sentence search */
+.ask { padding: clamp(96px, 16vh, 150px) clamp(16px, 6vw, 96px) 40px; max-width: 1400px; }
+.ask form { display: flex; align-items: baseline; flex-wrap: wrap; gap: .25em; font: 300 clamp(40px, 7.4vw, 104px)/1.02 var(--serif); letter-spacing: -.02em; }
+.ask label { white-space: nowrap; }
+.ask input { flex: 1 1 5ch; min-width: 5ch; font: inherit; color: var(--ivory); background: none; border: 0; border-bottom: 2px solid var(--rule); padding: 0 0 .05em; outline: none; }
+.ask input::placeholder { color: #4c473f; }
+.ask input:focus { border-bottom-color: var(--ivory); }
+.ask__go { align-self: center; font: 600 16px/1 var(--sans); border: 1px solid var(--ivory); padding: 14px 22px; }
+.ask__go:hover { background: var(--ivory); color: #000; }
+.ask p { margin: 22px 0 0; color: var(--dim); font-size: 16px; }
+.ask p a { color: var(--ivory); text-underline-offset: 5px; }
+
+/* Now showing: an active order as a subtitle line */
+.now { margin: 18px clamp(16px, 6vw, 96px) 0; display: flex; gap: 18px; align-items: center; padding: 16px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); text-decoration: none; }
+.now__time { font: 600 28px/1 var(--sans); font-variant-numeric: tabular-nums; }
+.now__txt { color: var(--sub); font-weight: 500; }
+.now__bar { flex: 1; height: 2px; background: var(--rule); position: relative; min-width: 60px; }
+.now__bar i { position: absolute; inset: 0 0 0 auto; background: var(--sub); transform-origin: right; }
+
+/* Feature: one restaurant in scope */
+.feature { margin-top: clamp(48px, 8vh, 96px); }
+.feature .ph { aspect-ratio: 2.39 / 1; }
+.titlecard { background: var(--bar); padding: 30px clamp(16px, 6vw, 96px) 40px; display: grid; grid-template-columns: 1fr auto; gap: 8px 40px; align-items: end; }
+.titlecard h2 { margin: 0; font: 900 clamp(44px, 7vw, 112px)/.95 var(--serif); letter-spacing: -.02em; }
+.titlecard .subline { grid-column: 1; margin: 6px 0 0; color: var(--sub); font-size: 18px; font-weight: 500; }
+.titlecard .facts { grid-column: 2; grid-row: 1 / span 2; display: flex; gap: 28px; color: var(--dim); font-size: 14px; }
+.facts dt { font-size: 12px; color: #6f685c; }
+.facts dd { margin: 2px 0 0; color: var(--ivory); font-size: 16px; font-weight: 500; }
+.go { display: inline-block; margin-top: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 6px; }
+
+/* Programme: alternating scenes, not a grid */
+.prog { padding: clamp(64px, 10vh, 120px) clamp(16px, 6vw, 96px) 40px; }
+.prog__head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--rule); padding-bottom: 14px; margin-bottom: 56px; }
+.prog__head h2 { margin: 0; font: 300 clamp(32px, 4vw, 56px)/1 var(--serif); }
+.prog__head span { color: var(--dim); }
+.scene { display: grid; grid-template-columns: 7fr 5fr; gap: clamp(20px, 4vw, 64px); align-items: center; margin-bottom: clamp(56px, 9vh, 110px); text-decoration: none; }
+.scene:nth-child(even) { grid-template-columns: 5fr 7fr; }
+.scene:nth-child(even) .ph { order: 2; }
+.scene .ph { aspect-ratio: 16 / 9; }
+.scene .ph img { transition: transform .9s var(--ease), filter .9s var(--ease); filter: saturate(.92); }
+.scene:hover .ph img { transform: scale(1.03); filter: saturate(1.05); }
+.scene h3 { margin: 0 0 10px; font: 700 clamp(30px, 3.6vw, 54px)/1.02 var(--serif); letter-spacing: -.01em; overflow-wrap: anywhere; }
+.scene .subline { margin: 0 0 16px; color: var(--sub); font-weight: 500; }
+.scene .meta { color: var(--dim); font-size: 14px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.scene .meta b { color: var(--ivory); font-weight: 500; }
+
+/* Festival band */
+.fest { margin: 40px clamp(16px, 6vw, 96px) 0; padding: 48px 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 32px; align-items: center; }
+.fest h2 { margin: 0; font: 900 clamp(36px, 5vw, 72px)/1 var(--serif); }
+.fest p { margin: 10px 0 0; color: var(--dim); }
+.flags { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+.flags img { width: 100%; aspect-ratio: 3/2; object-fit: cover; display: block; filter: saturate(.85); }
+.foot { padding: 64px clamp(16px, 6vw, 96px) 120px; color: #6f685c; font-size: 13px; }
+
+/* Restaurant: letterbox */
+.lb { background: var(--black); padding-top: 76px; }
+.lb .ph { aspect-ratio: 2.39 / 1; max-height: 62vh; width: 100%; }
+.lb__title { background: var(--bar); text-align: center; padding: 36px 16px 30px; }
+.lb__title h1 { margin: 0 auto; max-width: 18ch; font: 900 clamp(44px, 8vw, 128px)/.92 var(--serif); letter-spacing: -.025em; overflow-wrap: anywhere; }
+.credits { display: flex; justify-content: center; flex-wrap: wrap; gap: 14px 48px; margin: 26px 0 0; }
+.credits div { min-width: 90px; }
+.credits dt { font-size: 12px; color: #6f685c; }
+.credits dd { margin: 2px 0 0; font-weight: 500; }
+.credits a { text-underline-offset: 4px; }
+
+.menu { max-width: 1000px; margin: 0 auto; padding: 56px 16px 180px; }
+.filter { display: flex; justify-content: center; margin-bottom: 44px; }
+.filter input { width: min(420px, 100%); text-align: center; font: 400 18px/1 var(--sans); color: var(--ivory); background: none; border: 0; border-bottom: 1px solid var(--rule); padding: 10px; }
+.filter input:focus { outline: none; border-bottom-color: var(--ivory); }
+.roll { list-style: none; margin: 0; padding: 0; }
+.roll li { display: grid; grid-template-columns: 1fr 64px 1fr; align-items: start; padding: 18px 0; }
+.roll .dish { text-align: left; }            /* RTL: the right column hugs the gutter */
+.roll .dish h3 { margin: 0; font: 600 clamp(20px, 2.2vw, 26px)/1.2 var(--serif); overflow-wrap: anywhere; }
+.roll .dish p { margin: 4px 0 0; color: var(--dim); font-size: 14px; }
+.roll .gut { display: grid; place-items: center; padding-top: 6px; color: #4c473f; }
+.roll .cost { display: flex; align-items: center; gap: 14px; padding-top: 2px; }
+.roll .cost .num { font-size: 19px; font-weight: 500; min-width: 4ch; }
+.in { color: var(--sub); font: 600 14px/1 var(--sans); margin-inline-end: 8px; }
+.add { width: 36px; height: 36px; border: 1px solid #4c473f; border-radius: 50%; display: grid; place-items: center; position: relative; }
+.add::before { content: ''; position: absolute; inset: -5px; }
+.add:hover { border-color: var(--ivory); }
+.step { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #4c473f; border-radius: 20px; padding: 2px; }
+.step button { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; }
+.step button:hover { background: #1c1a16; }
+.step span { min-width: 2ch; text-align: center; font-weight: 600; }
+svg.i { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+
+/* Subtitle cart */
+.subbar { position: fixed; inset: auto 0 0 0; z-index: 30; display: flex; justify-content: center; padding: 0 12px 22px; pointer-events: none; }
+.subbar button { pointer-events: auto; background: rgba(0,0,0,.86); color: var(--sub); font: 500 clamp(16px, 2vw, 20px)/1.3 var(--sans); padding: 12px 22px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.6); animation: rise .5s var(--ease) both; }
+.subbar button b { color: var(--ivory); font-weight: 600; }
+@keyframes rise { from { transform: translateY(24px); opacity: 0; } }
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 39; }
+.sheet { position: fixed; z-index: 40; inset: auto 0 0 0; margin: 0 auto; width: min(620px, 100%); max-height: 86vh; overflow: auto; background: var(--bar); border-top: 1px solid var(--rule); padding: 30px clamp(16px, 4vw, 40px) 28px; animation: rise .45s var(--ease) both; }
+.sheet h2 { margin: 0; text-align: center; font: 300 34px/1.1 var(--serif); }
+.sheet .from { text-align: center; color: var(--dim); margin: 6px 0 22px; }
+.sheet ul { list-style: none; margin: 0; padding: 0; }
+.sheet li { display: grid; grid-template-columns: 1fr auto auto; gap: 16px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.sheet li .num { min-width: 5ch; text-align: left; }
+.sum { display: flex; justify-content: space-between; align-items: baseline; margin: 20px 0 4px; font-size: 18px; }
+.sum .num { font-size: 30px; font-weight: 600; }
+.note { color: var(--dim); font-size: 13px; margin: 0 0 18px; }
+.primary { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--ivory); color: #000; font: 700 17px/1 var(--sans); padding: 18px 22px; }
+.primary:hover { background: #fff; }
+.problem { border: 1px solid #7a3a2a; color: #f1b7a4; padding: 12px 14px; margin: 0 0 14px; font-size: 14px; }
+
+/* Tracking: a film timeline */
+.track { padding: 110px clamp(16px, 6vw, 96px) 120px; max-width: 1200px; margin: 0 auto; }
+.track h1 { margin: 0; font: 300 clamp(28px, 3vw, 40px)/1.1 var(--serif); color: var(--dim); }
+.track .clock { font: 200 clamp(96px, 17vw, 240px)/.9 var(--sans); font-variant-numeric: tabular-nums; letter-spacing: -.04em; margin: 10px 0 0; }
+.track .left { color: var(--sub); font-size: clamp(18px, 2vw, 24px); font-weight: 500; margin: 8px 0 0; }
+.tl { position: relative; margin: 64px 0 24px; height: 2px; background: var(--rule); }
+.tl i { position: absolute; inset: 0 0 0 auto; background: var(--ivory); transform-origin: right; transition: transform .8s var(--ease); }
+.tl b { position: absolute; top: -7px; width: 16px; height: 16px; border-radius: 50%; background: var(--sub); transform: translateX(50%); box-shadow: 0 0 0 6px rgba(243,211,74,.18); }
+.chapters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.chapters div { border-inline-start: 1px solid var(--rule); padding-inline-start: 12px; color: var(--dim); font-size: 14px; }
+.chapters div.on { color: var(--ivory); }
+.chapters div.on strong { color: var(--sub); }
+.chapters strong { display: block; font-weight: 600; font-size: 16px; }
+.receipt { margin-top: 72px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 48px; align-items: start; }
+.receipt .ph { aspect-ratio: 16/9; }
+.receipt ul { list-style: none; margin: 0; padding: 0; }
+.receipt li { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.textlinks { display: flex; gap: 24px; margin-top: 22px; font-weight: 600; }
+.textlinks a { text-underline-offset: 6px; }
+
+/* Orders */
+.orders { padding: 120px clamp(16px, 6vw, 96px) 120px; max-width: 1200px; }
+.orders h1 { margin: 0 0 40px; font: 300 clamp(40px, 6vw, 88px)/1 var(--serif); }
+.orders h2 { font: 500 14px/1 var(--sans); color: var(--dim); margin: 48px 0 8px; }
+.orow { display: grid; grid-template-columns: 180px 1fr auto; gap: 24px; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--rule); }
+.orow .ph { aspect-ratio: 16/9; }
+.orow h3 { margin: 0; font: 700 26px/1.1 var(--serif); }
+.orow p { margin: 4px 0 0; color: var(--dim); font-size: 14px; }
+.orow .num { font-size: 20px; font-weight: 600; text-align: left; }
+.orow .textlinks { margin-top: 8px; font-size: 14px; gap: 18px; }
+
+/* Festival page */
+.wc { padding: 120px clamp(16px, 6vw, 96px) 160px; }
+.wc h1 { margin: 0; font: 900 clamp(56px, 11vw, 168px)/.9 var(--serif); letter-spacing: -.03em; }
+.wc > p { color: var(--dim); font-size: 20px; margin: 16px 0 56px; }
+.wc__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 44px 28px; }
+.wc__grid article img { width: 100%; aspect-ratio: 3/2; object-fit: cover; display: block; }
+.wc__grid h3 { margin: 12px 0 2px; font: 600 20px/1.2 var(--serif); }
+.wc__grid p { margin: 0 0 10px; color: var(--dim); font-size: 14px; }
+
+@media (max-width: 900px) {
+  .top__nav a.hide-s { display: none; }
+  .titlecard { grid-template-columns: 1fr; }
+  .titlecard .facts { grid-column: 1; grid-row: auto; flex-wrap: wrap; gap: 14px 24px; }
+  .feature .ph { aspect-ratio: 4 / 3; }
+  .scene, .scene:nth-child(even) { grid-template-columns: 1fr; }
+  .scene:nth-child(even) .ph { order: 0; }
+  .fest { grid-template-columns: 1fr; }
+  .flags { grid-template-columns: repeat(5, 1fr); }
+  .lb .ph { aspect-ratio: 4 / 3; }
+  .roll li { grid-template-columns: 1fr auto; gap: 16px; border-bottom: 1px solid var(--rule); }
+  .roll .dish { text-align: right; }
+  .roll .gut { display: none; }
+  .receipt { grid-template-columns: 1fr; }
+  .orow { grid-template-columns: 96px 1fr; }
+  .orow .num { grid-column: 2; text-align: right; }
+  .chapters { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 380px) {
+  .top { gap: 14px; }
+  .top__nav { gap: 14px; font-size: 14px; }
+  .ask__go { width: 100%; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="../shared/data.js"></script>
+<script src="../shared/proto.js"></script>
+<script>
+const { D, esc, price } = BW;
+const plus = '<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+const minus = '<svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>';
+const dishes = (r, n = 3) => r.products.slice(0, n).map((p) => p.name).join(', ');
+
+function topBar(solid) {
+  return `<header class="top ${solid ? 'top--solid' : ''}">
+    <a class="top__mark" href="#/">Better Wolt</a>
+    <nav class="top__nav" aria-label="ראשי">
+      <a class="hide-s" href="#/">מסעדות</a>
+      <a class="hide-s" href="#/world-cup">מונדיאל</a>
+      <a href="#/orders">ההזמנות שלי</a>
+    </nav>
+    <span class="top__me" aria-label="נועם לוי">נ</span>
+  </header>`;
+}
+
+function facts(r) {
+  const m = D.meta(r);
+  return `<dl class="facts">
+    <div><dt>משלוח</dt><dd class="num">${m.eta} דק׳</dd></div>
+    <div><dt>דמי משלוח</dt><dd class="num">${m.fee ? price(m.fee) : 'חינם'}</dd></div>
+    <div><dt>דירוג</dt><dd class="num">${m.rating}</dd></div>
+  </dl>`;
+}
+
+function home() {
+  const active = D.orders.find((o) => o.status === 'active');
+  const st = BW.stage(active);
+  const feature = D.byId('r-burger');
+  const rest = D.restaurants.filter((r) => r !== feature);
+  return `${topBar()}
+  <main>
+    <section class="ask">
+      <form data-search role="search">
+        <label for="q">בא לי</label>
+        <input id="q" name="q" placeholder="חומוס, סושי, משהו מתוק" autocomplete="off">
+        <button class="ask__go" type="submit">חיפוש</button>
+      </form>
+      <p>או פשוט: <a href="#/search/פיצה">פיצה</a>, <a href="#/search/סושי">סושי</a>, <a href="#/search/גלידה">גלידה</a>, <a href="#/search/המבורגר">המבורגר</a></p>
+      <a class="now" href="#/track/${active.id}">
+        <span class="now__time num">${st.arrival}</span>
+        <span class="now__txt">${esc(D.byId(active.restaurant).name)} בדרך אליכם, עוד ${st.left} דק׳</span>
+        <span class="now__bar" aria-hidden="true"><i style="transform:scaleX(${st.fraction})"></i></span>
+      </a>
+    </section>
+
+    <section class="feature" aria-label="להזמין שוב">
+      <a href="#/r/${feature.id}" style="text-decoration:none">${BW.photo(feature.image, feature.name)}</a>
+      <div class="titlecard">
+        <div>
+          <h2><a href="#/r/${feature.id}" style="text-decoration:none">${esc(feature.name)}</a></h2>
+          <p class="subline">הזמנתם מכאן אתמול: המבורגר קלאסי וטבעות בצל</p>
+          <a class="go" href="#/r/${feature.id}">להזמין שוב</a>
+        </div>
+        ${facts(feature)}
+      </div>
+    </section>
+
+    <section class="prog" aria-labelledby="prog-h">
+      <div class="prog__head"><h2 id="prog-h">כל המסעדות הערב</h2><span class="num">${D.restaurants.length} מסעדות</span></div>
+      ${rest.map((r) => {
+        const m = D.meta(r);
+        return `<a class="scene" href="#/r/${r.id}">
+          ${BW.photo(r.image, r.name)}
+          <div>
+            <h3 class="iso">${esc(r.name)}</h3>
+            <p class="subline">${esc(dishes(r))}</p>
+            <p class="meta"><span><b class="num">${m.eta}</b> דק׳</span><span>${esc(m.feeLabel)}</span><span>דירוג <b class="num">${m.rating}</b></span><span>מנות מ-<b class="num">${price(m.from)}</b></span></p>
+          </div>
+        </a>`;
+      }).join('')}
+    </section>
+
+    <section class="fest">
+      <div><h2>חגיגת מונדיאל</h2><p>20 מנות מ-20 נבחרות, כל אחת ₪30.</p><a class="go" href="#/world-cup">לתפריט המונדיאל</a></div>
+      <div class="flags" aria-hidden="true">${D.worldCup.teams.map((t) => `<img src="${t.flag}" alt="">`).join('')}</div>
+    </section>
+    <p class="foot">Better Wolt — פרויקט לדוגמה. התמונות, הדירוגים, זמני המשלוח ודמי המשלוח להמחשה בלבד.</p>
+  </main>`;
+}
+
+function cartUi() {
+  const n = BW.count();
+  if (!n) return '';
+  const r = D.byId(BW.state.cart.restaurant) || D.worldCup;
+  const bar = BW.state.sheet ? '' : `<div class="subbar"><button data-sheet="open"><b class="num">${n}</b> מנות מ${esc(r.name)} — <b class="num">${price(BW.total())}</b>. לסל</button></div>`;
+  const sheet = !BW.state.sheet ? '' : `<div class="scrim" data-sheet="close"></div>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="cart-h">
+      <h2 id="cart-h">הסל שלך</h2>
+      <p class="from">מ${esc(r.name)}</p>
+      <ul>${BW.lines().map((l) => `<li><span>${esc(l.name)}</span>
+        <span class="step"><button data-add="${l.id}" data-r="${r.id}" aria-label="עוד אחת: ${esc(l.name)}">${plus}</button><span class="num">${l.qty}</span><button data-dec="${l.id}" aria-label="אחת פחות: ${esc(l.name)}">${minus}</button></span>
+        <span class="num">${price(l.price * l.qty)}</span></li>`).join('')}</ul>
+      <div class="sum"><span>סך הכול</span><span class="num">${price(BW.total())}</span></div>
+      <p class="note">המחיר הסופי נקבע לפי התפריט ברגע ההזמנה.</p>
+      <button class="primary"><span>לביצוע ההזמנה</span><span class="num">${price(BW.total())}</span></button>
+    </section>`;
+  return bar + sheet;
+}
+
+function control(r, p) {
+  const q = BW.qty(p.id);
+  if (!q) return `<button class="add" data-add="${p.id}" data-r="${r.id}" aria-label="הוספה: ${esc(p.name)}">${plus}</button>`;
+  return `<span class="step"><button data-add="${p.id}" data-r="${r.id}" aria-label="עוד אחת: ${esc(p.name)}">${plus}</button><span class="num">${q}</span><button data-dec="${p.id}" aria-label="אחת פחות: ${esc(p.name)}">${minus}</button></span>`;
+}
+
+function restaurant(id) {
+  const r = D.byId(id) || D.restaurants[0];
+  const m = D.meta(r);
+  return `${topBar()}
+  <main>
+    <section class="lb">
+      ${BW.photo(r.image, r.name)}
+      <div class="lb__title">
+        <h1 class="iso">${esc(r.name)}</h1>
+        <dl class="credits">
+          <div><dt>כתובת</dt><dd>${esc(r.address)}</dd></div>
+          <div><dt>משלוח</dt><dd class="num">${m.eta} דק׳, ${esc(m.feeLabel)}</dd></div>
+          <div><dt>דירוג</dt><dd class="num">${m.rating}</dd></div>
+          ${r.phone ? `<div><dt>טלפון</dt><dd><a class="num" href="tel:${r.phone}">${r.phone}</a></dd></div>` : ''}
+        </dl>
+      </div>
+    </section>
+    <section class="menu" aria-label="התפריט">
+      <div class="filter"><input placeholder="חיפוש בתפריט" aria-label="חיפוש בתפריט"></div>
+      <ol class="roll">
+        ${r.products.map((p) => `<li>
+          <div class="dish"><h3>${BW.qty(p.id) ? `<span class="in num">${BW.qty(p.id)}×</span>` : ''}<span class="iso">${esc(p.name)}</span></h3><p>${esc(p.description)}</p></div>
+          <span class="gut" aria-hidden="true">—</span>
+          <div class="cost"><span class="num">${price(p.price)}</span>${control(r, p)}</div>
+        </li>`).join('')}
+      </ol>
+    </section>
+    ${cartUi()}
+  </main>`;
+}
+
+function search(q) {
+  const res = BW.search(q);
+  return `${topBar()}
+  <main>
+    <section class="ask">
+      <form data-search role="search"><label for="q">בא לי</label><input id="q" name="q" value="${esc(q)}" autocomplete="off"><button class="ask__go" type="submit">חיפוש</button></form>
+      <p>${res.length ? `<span class="num">${res.length}</span> מסעדות מגישות את זה` : 'אף מסעדה לא מגישה את זה עדיין. נסו מילה אחרת, או <a href="#/">כל המסעדות</a>.'}</p>
+    </section>
+    <section class="prog" style="padding-top:24px">
+      ${res.map(({ r, why }) => `<a class="scene" href="#/r/${r.id}">${BW.photo(r.image, r.name)}
+        <div><h3 class="iso">${BW.mark(r.name, q)}</h3>
+        <p class="subline">${why ? `בתפריט: ${BW.mark(why, q)}` : esc(dishes(r))}</p>
+        <p class="meta"><span><b class="num">${D.meta(r).eta}</b> דק׳</span><span>${esc(r.address)}</span></p></div></a>`).join('')}
+    </section>
+  </main>`;
+}
+
+function track(id) {
+  const o = D.orders.find((x) => x.id === id) || D.orders[0];
+  const r = D.byId(o.restaurant);
+  const st = BW.stage(o);
+  return `${topBar()}
+  <main class="track">
+    <h1>${esc(r.name)} בדרך אליכם</h1>
+    <p class="clock num" aria-label="הגעה משוערת ${st.arrival}">${st.arrival}</p>
+    <p class="left">עוד ${st.left} דק׳. ${st.index === 2 ? 'השליח יצא עם ההזמנה.' : ''}</p>
+    <div class="tl" aria-hidden="true"><i style="transform:scaleX(${st.fraction})"></i><b style="right:${st.fraction * 100}%"></b></div>
+    <div class="chapters">${st.labels.map((l, k) => `<div class="${k === st.index ? 'on' : ''}"><strong>${l}</strong><span class="num">${st.times[k]}</span></div>`).join('')}</div>
+    <section class="receipt">
+      ${BW.photo(r.image, r.name)}
+      <div>
+        <ul>${o.items.map(([n, p, q]) => `<li><span><span class="num">${q}×</span> ${esc(n)}</span><span class="num">${price(p * q)}</span></li>`).join('')}
+        <li style="font-size:20px;font-weight:600;border:0"><span>סך הכול</span><span class="num">${price(o.total)}</span></li></ul>
+        <div class="textlinks"><a href="#/r/${r.id}">להזמין שוב</a><a href="#/orders">כל ההזמנות</a></div>
+      </div>
+    </section>
+  </main>`;
+}
+
+function orders() {
+  const row = (o) => {
+    const r = D.byId(o.restaurant);
+    const st = o.status === 'active' ? BW.stage(o) : null;
+    return `<div class="orow">${BW.photo(r.image, r.name)}
+      <div><h3>${esc(r.name)}</h3><p>${st ? `<span style="color:var(--sub)">מגיעה ב-<span class="num">${st.arrival}</span></span>` : o.date}. ${esc(o.items.map((i) => i[0]).join(', '))}</p>
+      <div class="textlinks"><a href="#/track/${o.id}">${st ? 'למעקב' : 'פרטים'}</a><a href="#/r/${r.id}">להזמין שוב</a></div></div>
+      <span class="num">${price(o.total)}</span></div>`;
+  };
+  return `${topBar()}
+  <main class="orders"><h1>ההזמנות שלי</h1>
+    <h2>בדרך אליכם</h2>${D.orders.filter((o) => o.status === 'active').map(row).join('')}
+    <h2>הזמנות קודמות</h2>${D.orders.filter((o) => o.status !== 'active').map(row).join('')}
+  </main>`;
+}
+
+function worldcup() {
+  const wc = D.worldCup;
+  return `${topBar()}
+  <main class="wc"><h1>חגיגת מונדיאל</h1><p>20 נבחרות, 20 מנות. כל מנה ₪30.</p>
+    <div class="wc__grid">${wc.teams.map((t) => {
+      const id = `wc-${t.code}`;
+      const q = BW.qty(id);
+      return `<article><img src="${t.flag}" alt="דגל ${esc(t.team)}" loading="lazy"><h3>${esc(t.dish)}</h3><p>${esc(t.team)}</p>
+        ${q ? `<span class="step"><button data-add="${id}" data-r="${wc.id}" aria-label="עוד אחת">${plus}</button><span class="num">${q}</span><button data-dec="${id}" aria-label="אחת פחות">${minus}</button></span>` : `<button class="add" data-add="${id}" data-r="${wc.id}" aria-label="הוספה: ${esc(t.dish)}">${plus}</button>`}</article>`;
+    }).join('')}</div>
+    ${cartUi()}
+  </main>`;
+}
+
+BW.onRender((rt) => {
+  const view = { home, restaurant: () => restaurant(rt.id), search: () => search(rt.q), orders, track: () => track(rt.id), worldcup }[rt.name];
+  document.getElementById('app').innerHTML = view();
+});
+</script>
+</body>
+</html>

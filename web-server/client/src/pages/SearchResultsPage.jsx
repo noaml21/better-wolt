@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getQuery } from '../services/api';
 import { Chip, EmptyState, ErrorState, SectionHeader } from '../components/ui';
 import { restaurantCount } from '../services/counts';
-import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/RestaurantCard';
+import BoardRow, { BoardRowSkeleton } from '../components/discovery/BoardRow';
 
 /* Results come from GET /search/:query, which matches the query literally
    against restaurant names, addresses and dish names (V2_SPEC BF-5). */
@@ -144,11 +144,11 @@ export default function SearchResultsPage() {
       )}
 
       {status === 'loading' && (
-        <ul className="bw-restaurant-grid" aria-busy="true" aria-label="תוצאות החיפוש">
+        <ol className="bw-board" aria-busy="true" aria-label="תוצאות החיפוש">
           {Array.from({ length: 3 }, (_, index) => (
-            <RestaurantCardSkeleton key={index} />
+            <BoardRowSkeleton key={index} />
           ))}
-        </ul>
+        </ol>
       )}
 
       {status === 'ready' && query && results.length === 0 && (
@@ -168,11 +168,11 @@ export default function SearchResultsPage() {
       )}
 
       {status === 'ready' && results.length > 0 && (
-        <ul className="bw-restaurant-grid" aria-label="תוצאות החיפוש">
+        <ol className="bw-board" aria-label="תוצאות החיפוש">
           {results.map((restaurant) => (
-            <RestaurantCard key={restaurant.id} restaurant={restaurant} note={matchNote(restaurant, query)} />
+            <BoardRow key={restaurant.id} restaurant={restaurant} note={matchNote(restaurant, query)} />
           ))}
-        </ul>
+        </ol>
       )}
     </div>
   );

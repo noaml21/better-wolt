@@ -1,86 +1,123 @@
+/* The World Cup line (V5 spec §4.1, §6): the one campaign rides the
+   board's own colours. */
+
 .bw-campaign {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
     'text cta'
-    'flags flags';
-  align-items: center;
-  gap: var(--bw-space-4) var(--bw-space-5);
-  padding: var(--bw-space-5) var(--bw-space-6);
-  border: 1px solid var(--bw-line);
-  border: 1px solid color-mix(in srgb, var(--bw-amber) 35%, transparent);
-  border-radius: var(--bw-radius-lg);
-  background-color: var(--bw-amber-tint);
-  color: var(--bw-ink);
+    'line line';
+  align-items: end;
+  gap: var(--bw-space-6) var(--bw-space-6);
+  margin-block: var(--bw-space-9) 0;
+  padding: var(--bw-space-7) var(--bw-space-7) var(--bw-space-8);
+  background-color: var(--bw-board);
+  color: var(--bw-on-board);
   text-decoration: none;
-  transition: border-color var(--bw-base) var(--bw-ease), box-shadow var(--bw-base) var(--bw-ease);
 }
 
-@media (hover: hover) {
-  .bw-campaign:hover {
-    border-color: var(--bw-amber);
-    box-shadow: var(--bw-e2);
-    text-decoration: none;
-  }
+.bw-campaign:hover {
+  text-decoration: none;
 }
 
 .bw-campaign__text {
   grid-area: text;
   display: flex;
   flex-direction: column;
-  gap: var(--bw-space-1);
-  min-width: 0;
+  gap: var(--bw-space-2);
 }
 
 .bw-campaign__title {
-  font-size: 1.75rem;
-  overflow-wrap: anywhere;
+  color: var(--bw-led);
+  font-size: clamp(3.5rem, 7vw, 6.5rem);
 }
 
 .bw-campaign__description {
-  color: var(--bw-ink-muted);
-  font-size: var(--bw-body);
+  font-size: var(--bw-body-l);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
 }
 
-.bw-campaign__flags {
-  grid-area: flags;
+.bw-campaign__line {
+  grid-area: line;
+  position: relative;
   display: flex;
+  justify-content: space-between;
   gap: var(--bw-space-2);
-  overflow: hidden;
 }
 
-.bw-campaign__flag {
-  width: 44px;
-  height: 30px;
+.bw-campaign__line::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 50%;
+  height: 6px;
+  background-color: var(--bw-led);
+  transform: translateY(-50%);
+}
+
+.bw-campaign__station {
+  position: relative;
   flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border: 5px solid var(--bw-led);
+  border-radius: 50%;
+  background-color: var(--bw-board);
+}
+
+.bw-campaign__station img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 4px;
-  box-shadow: 0 0 0 1px rgba(31, 19, 48, 0.08);
 }
 
 .bw-campaign__cta {
   grid-area: cta;
   display: inline-flex;
   align-items: center;
-  gap: var(--bw-space-1);
-  min-height: 44px;
-  padding-inline: var(--bw-space-4);
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-ink);
-  color: var(--bw-paper);
-  font-size: var(--bw-caption);
-  font-weight: 700;
+  gap: var(--bw-space-2);
+  min-height: var(--bw-control);
+  padding-inline: var(--bw-space-5);
+  border: 2px solid var(--bw-on-board);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
   white-space: nowrap;
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
 }
 
-@media (min-width: 900px) {
+.bw-campaign:hover .bw-campaign__cta {
+  background-color: var(--bw-on-board);
+  color: var(--bw-board);
+}
+
+.bw-campaign:focus-visible {
+  outline-offset: 3px;
+}
+
+@media (max-width: 699px) {
   .bw-campaign {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    grid-template-areas: 'text flags cta';
-    padding: var(--bw-space-6) var(--bw-space-7);
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'text'
+      'line'
+      'cta';
+    margin-inline: calc(-1 * var(--bw-gutter));
+    padding: var(--bw-space-6) var(--bw-gutter);
   }
 
-  .bw-campaign__flags {
-    max-width: 420px;
+  .bw-campaign__station {
+    width: 36px;
+    height: 36px;
+    border-width: 4px;
+  }
+
+  .bw-campaign__station:nth-child(n + 7) {
+    display: none;
+  }
+
+  .bw-campaign__cta {
+    justify-content: center;
   }
 }

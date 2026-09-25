@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import usePrefersReducedMotion from '../../hooks/usePrefersReducedMotion';
 import './SponsoredCard.css';
 
-/* The sponsored slot sits inside the grid as one more card instead of
+/* The sponsored slot sits on the board as one more row instead of
    floating over the page. The video is muted and rotates with the clip.
 
    Under `prefers-reduced-motion` it neither plays nor rotates by itself
@@ -57,13 +57,14 @@ export default function SponsoredCard() {
           aria-label={`פרסומת: ${ad.title}`}
           onError={() => setFailed((current) => [...current, ad.id])}
         />
-        <span className="bw-sponsored__badge">ממומן</span>
       </div>
 
       <div className="bw-sponsored__body">
         <h3 className="bw-sponsored__title">{ad.title}</h3>
         <p className="bw-sponsored__note">תוכן פרסומי</p>
       </div>
+
+      <span className="bw-sponsored__badge">ממומן</span>
     </li>
   );
 }

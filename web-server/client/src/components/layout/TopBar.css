@@ -109,6 +109,13 @@
   display: none;
 }
 
+/* Home opens on its own search field; one is enough on the wide bar. */
+@media (min-width: 900px) {
+  .bw-topbar__search--home {
+    visibility: hidden;
+  }
+}
+
 /* Actions ------------------------------------------------------------- */
 
 .bw-topbar__actions {
@@ -314,6 +321,12 @@
     display: none;
   }
 
+  /* Signed out, the way in stays on the bar at every width. */
+  .bw-topbar__auth .bw-topbar__link {
+    display: inline-flex;
+    padding-inline: var(--bw-space-2);
+  }
+
   .bw-topbar__avatar-button {
     padding: 0;
   }
@@ -322,5 +335,17 @@
 @media (max-width: 379px) {
   .bw-logo__word {
     display: none;
+  }
+
+  .bw-topbar__inner {
+    gap: var(--bw-space-2);
+  }
+
+  .bw-topbar__actions {
+    gap: 0;
+  }
+
+  .bw-topbar__auth .bw-button {
+    padding-inline: var(--bw-space-3);
   }
 }

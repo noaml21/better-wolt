@@ -1,5 +1,59 @@
+/* Home (V5 spec §6): the question, order again, the departures board,
+   the World Cup line. The board's head carries the column labels. */
+
 .bw-home {
-  display: flex;
-  flex-direction: column;
-  gap: var(--bw-space-8);
+  padding-block-start: 0;
+}
+
+.bw-board-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--bw-space-3) var(--bw-space-5);
+  padding-block-end: var(--bw-space-3);
+}
+
+.bw-board-head__title {
+  font-size: var(--bw-page-title);
+}
+
+.bw-board-head__count {
+  margin-block-start: var(--bw-space-2);
+  color: var(--bw-ink-muted);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+/* Column labels line up over the row's time and fee columns
+   (BoardRow.css: 132px and 112px at the inline end). */
+.bw-board-head__cols {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 132px 112px;
+  column-gap: var(--bw-space-5);
+  justify-self: end;
+  font-size: var(--bw-caption);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+  text-align: left;
+}
+
+@media (max-width: 899px) {
+  .bw-board-head__cols {
+    grid-template-columns: 96px;
+  }
+
+  .bw-board-head__cols span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 599px) {
+  .bw-board-head {
+    grid-template-columns: 1fr;
+  }
+
+  .bw-board-head__cols {
+    display: none;
+  }
 }

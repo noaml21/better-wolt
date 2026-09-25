@@ -1,106 +1,89 @@
+/* Order again (V5 spec §6): line chips in one row. The row label is a
+   real heading, set small at the row's start rather than above it. */
+
 .bw-again {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--bw-space-4);
+  margin-block-end: var(--bw-space-7);
 }
 
 .bw-again__title {
-  font-size: 1.375rem;
+  flex-shrink: 0;
+  font-size: var(--bw-body-l);
+  font-weight: 800;
 }
 
-/* A row that scrolls sideways on a phone and sits as a grid on a desk. */
 .bw-again__list {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(240px, 78%);
-  gap: var(--bw-space-3);
-  margin-inline: calc(var(--bw-gutter) * -1);
-  padding-inline: var(--bw-gutter);
+  display: flex;
+  gap: var(--bw-space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  scroll-padding-inline: var(--bw-gutter);
   scrollbar-width: none;
 }
 
-.bw-again__list::-webkit-scrollbar {
-  display: none;
+.bw-again__chip {
+  display: flex;
+  align-items: stretch;
+  min-height: 52px;
+  border: var(--bw-rule-strong);
+  background-color: var(--bw-panel);
+  color: var(--bw-ink);
+  text-decoration: none;
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
 }
 
-.bw-again__list > li {
-  scroll-snap-align: start;
+.bw-again__chip:hover {
+  background-color: var(--bw-route);
+  color: var(--bw-on-route);
+  text-decoration: none;
 }
 
-.bw-again__item {
+.bw-again__badge {
   display: flex;
   align-items: center;
-  gap: var(--bw-space-3);
-  height: 100%;
-  padding: var(--bw-space-2);
-  padding-inline-end: var(--bw-space-4);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-md);
-  background-color: var(--bw-surface);
-  color: inherit;
-  text-decoration: none;
-  transition: border-color var(--bw-fast) var(--bw-ease);
-}
-
-@media (hover: hover) {
-  .bw-again__item:hover {
-    border-color: var(--bw-ink-muted);
-  }
-}
-
-.bw-again__thumb {
-  position: relative;
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  overflow: hidden;
-  border-radius: var(--bw-radius-sm);
-  background-color: var(--bw-sunken);
-}
-
-.bw-again__thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.bw-again__thumb .bw-plate {
-  padding: var(--bw-space-1);
-}
-
-.bw-again__thumb .bw-plate__word {
-  font-size: 0.875rem;
+  justify-content: center;
+  min-width: 48px;
+  background-color: var(--bw-route);
+  color: var(--bw-on-route);
+  font-family: var(--bw-font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  padding-block-start: 3px;
 }
 
 .bw-again__text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.bw-again__name {
-  overflow: hidden;
-  font-weight: 700;
-  text-overflow: ellipsis;
+  justify-content: center;
+  padding-inline: var(--bw-space-3) var(--bw-space-4);
   white-space: nowrap;
 }
 
-.bw-again__day {
-  color: var(--bw-ink-muted);
-  font-size: var(--bw-caption);
+.bw-again__name {
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+  line-height: 1.2;
 }
 
-@media (min-width: 900px) {
+.bw-again__day {
+  font-size: var(--bw-caption);
+  font-weight: 600;
+}
+
+@media (max-width: 599px) {
+  .bw-again {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--bw-space-2);
+  }
+
   .bw-again__list {
-    grid-auto-flow: row;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-inline: 0;
-    padding-inline: 0;
-    overflow: visible;
+    margin-inline: calc(-1 * var(--bw-gutter));
+    padding-inline: var(--bw-gutter);
   }
 }

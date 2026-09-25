@@ -42,3 +42,18 @@
   align-items: center;
   justify-content: center;
 }
+
+.bw-plate__word {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--bw-font-display);
+  font-weight: 700;
+  font-size: clamp(1rem, 26cqmin, 2.5rem);
+  line-height: 0.9;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow-wrap: anywhere;
+  unicode-bidi: plaintext;
+}

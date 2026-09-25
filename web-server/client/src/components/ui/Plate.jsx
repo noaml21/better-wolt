@@ -11,10 +11,22 @@ import './Plate.css';
 export default function Plate({ restaurant, size = 'card', className = '' }) {
   const line = getLine(restaurant);
 
+  /* A thumbnail sits beside the line badge, so it shows the name's first
+     word instead of repeating the number. */
+  if (size === 'thumb') {
+    const word = restaurant?.name?.trim().split(/\s+/)[0] || '';
+
+    return (
+      <span className={`bw-plate ${line.className} bw-plate--thumb ${className}`} aria-hidden="true">
+        <span className="bw-plate__word">{word}</span>
+      </span>
+    );
+  }
+
   return (
     <span className={`bw-plate ${line.className} bw-plate--${size} ${className}`} aria-hidden="true">
       <span className="bw-plate__number">{line.number}</span>
-      {size !== 'thumb' && <span className="bw-plate__name">{restaurant?.name}</span>}
+      <span className="bw-plate__name">{restaurant?.name}</span>
     </span>
   );
 }

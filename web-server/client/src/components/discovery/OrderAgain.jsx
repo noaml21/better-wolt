@@ -1,46 +1,16 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { getUserOrders } from '../../services/api';
 import { formatOrderDay } from '../../services/orderStatus';
-import { Media, Plate } from '../ui';
+import { getLine } from '../../services/restaurantMeta';
 import './OrderAgain.css';
 
 /* The restaurants this account ordered from most recently, still open
-   (V4 spec §6) — real data from GET /orders, nothing inferred. Hidden
-   until there is something to show; a failed request shows nothing
-   rather than an error, because the rest of the page does not depend on
-   it. An answer that lands after the account changed is dropped, the
-   same rule as the order dock. */
+   (V5 spec §6) — from the customer's own orders, nothing inferred — as a
+   row of line chips: the line badge, the name, when. Hidden until there
+   is something to show. */
 
 const LIMIT = 4;
 
-export default function OrderAgain({ restaurants }) {
-  const { isAuthenticated, user } = useAuth();
-  const account = isAuthenticated ? user?.username : null;
-  const [fetched, setFetched] = useState({ account: null, orders: [] });
-
-  useEffect(() => {
-    if (!account) {
-      return undefined;
-    }
-
-    let current = true;
-
-    getUserOrders()
-      .then((orders) => {
-        if (current) {
-          setFetched({ account, orders: Array.isArray(orders) ? orders : [] });
-        }
-      })
-      .catch(() => {});
-
-    return () => {
-      current = false;
-    };
-  }, [account]);
-
-  const orders = fetched.account === account ? fetched.orders : [];
+export default function OrderAgain({ restaurants, orders }) {
   const byId = new Map(restaurants.map((restaurant) => [restaurant.id, restaurant]));
   const picks = [];
   const seen = new Set();
@@ -65,19 +35,27 @@ export default function OrderAgain({ restaurants }) {
         להזמין שוב
       </h2>
       <ul className="bw-again__list">
-        {picks.map(({ restaurant, day }) => (
-          <li key={restaurant.id}>
-            <Link to={`/restaurant/${restaurant.id}`} className="bw-again__item">
-              <span className="bw-again__thumb">
-                <Media src={restaurant.image} loading="lazy" fallback={<Plate restaurant={restaurant} />} />
-              </span>
-              <span className="bw-again__text">
-                <span className="bw-again__name">{restaurant.name}</span>
-                {day && <span className="bw-again__day">הזמנתם {day === 'היום' || day === 'אתמול' ? day : `ב-${day}`}</span>}
-              </span>
-            </Link>
-          </li>
-        ))}
+        {picks.map(({ restaurant, day }) => {
+          const line = getLine(restaurant);
+
+          return (
+            <li key={restaurant.id}>
+              <Link to={`/restaurant/${restaurant.id}`} className={`bw-again__chip ${line.className}`}>
+                <span className="bw-again__badge" aria-hidden="true">
+                  {line.number}
+                </span>
+                <span className="bw-again__text">
+                  <span className="bw-again__name">{restaurant.name}</span>
+                  {day && (
+                    <span className="bw-again__day">
+                      {day === 'היום' || day === 'אתמול' ? `הזמנתם ${day}` : `הזמנתם ב־${day}`}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

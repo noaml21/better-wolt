@@ -1,0 +1,255 @@
+/* The departures board (V5 spec §5). A row is a grid: badge · photo ·
+   name and stops · time · fee. Rows are separated by 2px ink rules; the
+   board's own 3px rule sits above the first. */
+
+.bw-board {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-block-start: var(--bw-rule-heavy);
+}
+
+.bw-board-row {
+  border-block-end: var(--bw-rule-strong);
+}
+
+.bw-board-row__link {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 56px 120px minmax(0, 1fr) 132px 112px;
+  align-items: center;
+  column-gap: var(--bw-space-5);
+  padding-block: var(--bw-space-4);
+  color: var(--bw-ink);
+  text-decoration: none;
+  transition: color var(--bw-fast) var(--bw-ease);
+}
+
+/* The flood: the line's colour sweeps in from the inline start. */
+.bw-board-row__link::before {
+  content: '';
+  position: absolute;
+  inset: 0 calc(-1 * var(--bw-space-3));
+  z-index: -1;
+  background-color: var(--bw-route);
+  clip-path: inset(0 0 0 100%);
+  transition: clip-path var(--bw-sweep) var(--bw-ease-out);
+}
+
+@media (hover: hover) {
+  .bw-board-row__link:hover::before {
+    clip-path: inset(0 0 0 0);
+  }
+
+  .bw-board-row__link:hover {
+    color: var(--bw-on-route);
+    text-decoration: none;
+  }
+}
+
+.bw-board-row__link:focus-visible::before {
+  clip-path: inset(0 0 0 0);
+}
+
+.bw-board-row__link:focus-visible {
+  color: var(--bw-on-route);
+  outline-offset: 4px;
+}
+
+.bw-board-row__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background-color: var(--bw-route);
+  color: var(--bw-on-route);
+  box-shadow: inset 0 0 0 2px var(--bw-ink);
+  font-family: var(--bw-font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  padding-block-start: 4px;
+}
+
+/* On the flooded row the badge keeps its edge in the row's text colour. */
+.bw-board-row__link:hover .bw-board-row__badge,
+.bw-board-row__link:focus-visible .bw-board-row__badge {
+  box-shadow: inset 0 0 0 2px var(--bw-on-route);
+}
+
+.bw-board-row__photo {
+  display: block;
+  width: 120px;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background-color: var(--bw-hairline);
+}
+
+.bw-board-row__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bw-board-row__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+  min-width: 0;
+}
+
+.bw-board-row__name {
+  font-size: clamp(2.5rem, 4.2vw, 4rem);
+  overflow-wrap: anywhere;
+  unicode-bidi: plaintext;
+  text-align: right;
+}
+
+.bw-board-row__stops {
+  overflow: hidden;
+  font-size: var(--bw-body);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  unicode-bidi: plaintext;
+  text-align: right;
+}
+
+.bw-board-row__stops--note {
+  white-space: normal;
+}
+
+.bw-board-row__stops mark {
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+  padding-inline: 2px;
+}
+
+.bw-board-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--bw-space-1) var(--bw-space-4);
+  font-size: var(--bw-caption);
+  font-weight: 600;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-board-row__mark {
+  padding-inline: var(--bw-space-2);
+  border: 1px solid currentColor;
+  font-weight: 800;
+}
+
+.bw-board-row__meta-fee {
+  display: none;
+}
+
+.bw-board-row__time,
+.bw-board-row__fee {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: left;
+}
+
+.bw-board-row__big {
+  font-size: 2.25rem;
+  font-weight: 900;
+  font-stretch: var(--bw-wdth-big);
+  line-height: 1;
+}
+
+.bw-board-row__unit {
+  font-size: var(--bw-caption);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-board-row--loading .bw-board-row__link {
+  pointer-events: none;
+}
+
+/* Tablet: the fee joins the meta line --------------------------------- */
+
+@media (max-width: 899px) {
+  .bw-board-row__link {
+    grid-template-columns: 48px 96px minmax(0, 1fr) 96px;
+    column-gap: var(--bw-space-4);
+  }
+
+  .bw-board-row__badge {
+    width: 48px;
+    height: 48px;
+    font-size: 2.125rem;
+  }
+
+  .bw-board-row__photo {
+    width: 96px;
+  }
+
+  .bw-board-row__fee {
+    display: none;
+  }
+
+  .bw-board-row__meta-fee {
+    display: inline;
+  }
+}
+
+/* Phone: badge over photo, name, time ---------------------------------- */
+
+@media (max-width: 599px) {
+  .bw-board-row__link {
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    column-gap: var(--bw-space-3);
+    padding-block: var(--bw-space-3);
+    align-items: start;
+  }
+
+  .bw-board-row__badge {
+    grid-column: 1;
+    grid-row: 1;
+    z-index: 1;
+    width: 32px;
+    height: 32px;
+    font-size: 1.5rem;
+    align-self: start;
+  }
+
+  .bw-board-row__photo {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: 72px;
+    aspect-ratio: 1;
+  }
+
+  .bw-board-row__main {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .bw-board-row__name {
+    font-size: 2.25rem;
+  }
+
+  .bw-board-row__stops {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .bw-board-row__time {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .bw-board-row__big {
+    font-size: 1.75rem;
+  }
+}

@@ -3,12 +3,13 @@ import { getRestaurants } from '../services/api';
 import { findWorldCupRestaurant } from '../services/restaurantMeta';
 import { restaurantCount } from '../services/counts';
 import { useAuth } from '../context/AuthContext';
-import { Button, EmptyState, ErrorState, SectionHeader } from '../components/ui';
-import HeroBand from '../components/discovery/HeroBand';
+import useMyOrders from '../hooks/useMyOrders';
+import { Button, EmptyState, ErrorState } from '../components/ui';
+import HomeHeader from '../components/discovery/HomeHeader';
 import CampaignCard from '../components/discovery/CampaignCard';
 import OrderAgain from '../components/discovery/OrderAgain';
 import SponsoredCard from '../components/discovery/SponsoredCard';
-import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/RestaurantCard';
+import BoardRow, { BoardRowSkeleton } from '../components/discovery/BoardRow';
 import RestaurantFormDialog from '../components/owner/RestaurantFormDialog';
 import './HomePage.css';
 
@@ -16,6 +17,7 @@ const SPONSORED_POSITION = 3;
 
 export default function HomePage() {
   const { isAuthenticated, user } = useAuth();
+  const myOrders = useMyOrders();
   const [restaurants, setRestaurants] = useState([]);
   const [status, setStatus] = useState('loading');
   const [createOpen, setCreateOpen] = useState(false);
@@ -49,43 +51,48 @@ export default function HomePage() {
     }
   }, [canCreateRestaurant]);
 
+  const orderedFrom = new Set(myOrders.map((order) => order.restaurant));
+
   return (
     <>
-      <HeroBand restaurants={everyday} />
+      <div className="bw-page bw-home">
+        <HomeHeader />
 
-      <div className="bw-page">
         {status === 'error' ? (
           <ErrorState
             title="לא הצלחנו לטעון את המסעדות"
             description="השרת לא הגיב. אפשר לנסות שוב בעוד רגע."
             onRetry={loadRestaurants}
           />
-      ) : (
-          <div className="bw-home">
-            {status === 'ready' && <OrderAgain restaurants={restaurants} />}
+        ) : (
+          <>
+            {status === 'ready' && <OrderAgain restaurants={restaurants} orders={myOrders} />}
 
-            {campaign && <CampaignCard restaurant={campaign} to="/world-cup" />}
-
-            <section aria-labelledby="bw-home-restaurants">
-              <SectionHeader
-                id="bw-home-restaurants"
-                title="כל המסעדות"
-                description={
-                  status === 'ready' && !isEmpty
-                    ? `${restaurantCount(everyday.length)} שמשלוחות אליכם עכשיו.`
-                    : undefined
-                }
-                action={
-                  canCreateRestaurant && (
-                    <Button icon="store" variant="secondary" onClick={() => setCreateOpen(true)}>
-                      פתיחת מסעדה חדשה
-                    </Button>
-                  )
-                }
-              />
+            <section className="bw-home__board" aria-labelledby="bw-home-restaurants">
+              <header className="bw-board-head">
+                <div className="bw-board-head__text">
+                  <h2 className="bw-board-head__title bw-display" id="bw-home-restaurants">
+                    כל המסעדות
+                  </h2>
+                  {status === 'ready' && !isEmpty && (
+                    <p className="bw-board-head__count">{restaurantCount(everyday.length)} משלוחות אליכם עכשיו.</p>
+                  )}
+                </div>
+                {canCreateRestaurant && (
+                  <Button icon="store" variant="secondary" onClick={() => setCreateOpen(true)}>
+                    פתיחת מסעדה חדשה
+                  </Button>
+                )}
+                {!isEmpty && (
+                  <span className="bw-board-head__cols" aria-hidden="true">
+                    <span>זמן</span>
+                    <span>משלוח</span>
+                  </span>
+                )}
+              </header>
 
               {/* The heading promises a selection; with nothing to show,
-                  say so instead of leaving an empty grid under it. */}
+                  say so instead of leaving an empty board under it. */}
               {isEmpty ? (
                 <EmptyState
                   icon="store"
@@ -93,25 +100,26 @@ export default function HomePage() {
                   description="ברגע שמסעדה תיפתח היא תופיע כאן."
                 />
               ) : (
-                <ul
-                  className="bw-restaurant-grid"
-                  aria-busy={status === 'loading'}
-                  aria-label="רשימת המסעדות"
-                >
+                <ol className="bw-board" aria-busy={status === 'loading'} aria-label="רשימת המסעדות">
                   {status === 'loading'
-                    ? Array.from({ length: 6 }, (_, index) => <RestaurantCardSkeleton key={index} />)
-                    : everyday.flatMap((restaurant, index) =>
-                        index === SPONSORED_POSITION
-                          ? [
-                              <SponsoredCard key="sponsored" />,
-                              <RestaurantCard key={restaurant.id} restaurant={restaurant} />,
-                            ]
-                          : [<RestaurantCard key={restaurant.id} restaurant={restaurant} />]
-                      )}
-                </ul>
+                    ? Array.from({ length: 6 }, (_, index) => <BoardRowSkeleton key={index} />)
+                    : everyday.flatMap((restaurant, index) => {
+                        const row = (
+                          <BoardRow
+                            key={restaurant.id}
+                            restaurant={restaurant}
+                            ordered={orderedFrom.has(restaurant.id)}
+                          />
+                        );
+
+                        return index === SPONSORED_POSITION ? [<SponsoredCard key="sponsored" />, row] : [row];
+                      })}
+                </ol>
               )}
             </section>
-          </div>
+
+            {campaign && <CampaignCard restaurant={campaign} to="/world-cup" />}
+          </>
         )}
       </div>
 

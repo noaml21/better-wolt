@@ -5,15 +5,13 @@ import { dishCount } from '../../services/counts';
 import { worldCupDishes } from '../../services/worldCup';
 import './CampaignCard.css';
 
-/* The seeded World Cup restaurant, presented as what it is: a campaign.
-   Its name comes from the server (ARCHITECTURE §6), never from here.
+/* The seeded World Cup restaurant as the board's one special line (V5
+   spec §6): a black band, the name in amber signage, and the teams as
+   stations on an amber line. Its name comes from the server
+   (ARCHITECTURE §6), never from here; so does the flat price. A flag that
+   does not load drops out of the line. */
 
-   V4 moves it off the night surface onto amber (spec §6): home already has
-   one night band, and two stacked dark slabs pushed the first restaurant
-   below the fold. The flags are the campaign's picture; a flag that does
-   not load simply drops out of the strip. */
-
-const STRIP_FLAGS = 8;
+const STATIONS = 10;
 
 export default function CampaignCard({ restaurant, to }) {
   const [broken, setBroken] = useState(() => new Set());
@@ -26,12 +24,9 @@ export default function CampaignCard({ restaurant, to }) {
   }
 
   const products = restaurant.products || [];
-  /* The campaign's flat price is whatever the seed priced the dishes at,
-     read back from the server rather than written here — the same rule
-     the campaign page follows. */
   const prices = new Set(products.map((product) => Number(product.price)));
   const flatPrice = prices.size === 1 ? [...prices][0] : null;
-  const flags = worldCupDishes.filter((dish) => !broken.has(dish.flag)).slice(0, STRIP_FLAGS);
+  const flags = worldCupDishes.filter((dish) => !broken.has(dish.flag)).slice(0, STATIONS);
 
   return (
     <Link to={to || `/restaurant/${restaurant.id}`} className="bw-campaign">
@@ -41,7 +36,7 @@ export default function CampaignCard({ restaurant, to }) {
           {dishCount(products.length)} מכל העולם
           {flatPrice !== null && (
             <>
-              , כל אחת ב-<span className="bw-num">{formatPrice(flatPrice)}</span>
+              , כל אחת ב־<span className="bw-num">{formatPrice(flatPrice)}</span>
             </>
           )}
           .
@@ -49,15 +44,17 @@ export default function CampaignCard({ restaurant, to }) {
       </span>
 
       {flags.length > 0 && (
-        <span className="bw-campaign__flags" aria-hidden="true">
+        <span className="bw-campaign__line" aria-hidden="true">
           {flags.map((dish) => (
-            <Media key={dish.key} src={dish.flag} className="bw-campaign__flag" onFail={markBroken} />
+            <span key={dish.key} className="bw-campaign__station">
+              <Media src={dish.flag} onFail={markBroken} />
+            </span>
           ))}
         </span>
       )}
 
       <span className="bw-campaign__cta">
-        לתפריט
+        לתפריט המונדיאל
         <Icon name="back" size={18} />
       </span>
     </Link>

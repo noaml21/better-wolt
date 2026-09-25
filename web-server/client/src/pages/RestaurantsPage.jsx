@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getRestaurantMeta } from '../services/restaurantMeta';
 import { restaurantCount } from '../services/counts';
 import { Chip, EmptyState, ErrorState, LinkButton, SectionHeader } from '../components/ui';
-import RestaurantCard, { RestaurantCardSkeleton } from '../components/discovery/RestaurantCard';
+import BoardRow, { BoardRowSkeleton } from '../components/discovery/BoardRow';
 
 /* The full listing. Sorting happens on the client: the API returns every
    restaurant in one response and has no sort parameter (ARCHITECTURE §4.2). */
@@ -127,13 +127,13 @@ export default function RestaurantsPage() {
       )}
 
       {status !== 'error' && (restaurants.length > 0 || status === 'loading') && (
-        <ul className="bw-restaurant-grid" aria-busy={status === 'loading'} aria-label="רשימת המסעדות">
+        <ol className="bw-board" aria-busy={status === 'loading'} aria-label="רשימת המסעדות">
           {status === 'loading'
-            ? Array.from({ length: 8 }, (_, index) => <RestaurantCardSkeleton key={index} />)
+            ? Array.from({ length: 8 }, (_, index) => <BoardRowSkeleton key={index} />)
             : sorted.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                <BoardRow key={restaurant.id} restaurant={restaurant} />
               ))}
-        </ul>
+        </ol>
       )}
     </div>
   );

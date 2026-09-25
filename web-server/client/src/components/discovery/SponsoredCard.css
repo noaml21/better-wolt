@@ -1,14 +1,20 @@
+/* The sponsored slot is one more row on the board (V5 spec §6), plainly
+   labelled, the height of its neighbours plus the video's own frame. */
+
 .bw-sponsored {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--bw-space-5);
+  padding-block: var(--bw-space-4);
+  border-block-end: var(--bw-rule-strong);
 }
 
 .bw-sponsored__media {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  border-radius: var(--bw-radius-md);
-  background-color: var(--bw-night);
+  background-color: var(--bw-board);
 }
 
 .bw-sponsored__media video {
@@ -18,31 +24,51 @@
 }
 
 .bw-sponsored__badge {
-  position: absolute;
-  inset-block-start: var(--bw-space-3);
-  inset-inline-start: var(--bw-space-3);
-  padding: 3px var(--bw-space-3);
-  border-radius: var(--bw-radius-pill);
-  background-color: rgba(31, 19, 48, 0.72);
-  color: #ffffff;
-  font-size: var(--bw-micro);
-  font-weight: 600;
+  grid-column: 3;
+  grid-row: 1;
+  padding: 2px var(--bw-space-2);
+  border: 1px solid var(--bw-ink);
+  font-size: var(--bw-caption);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-sponsored__body {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--bw-space-3);
-  padding-block-start: var(--bw-space-3);
+  flex-direction: column;
+  gap: var(--bw-space-1);
 }
 
 .bw-sponsored__title {
-  font-size: var(--bw-h3);
+  font-family: var(--bw-font-display);
+  font-size: clamp(2rem, 3vw, 2.75rem);
   font-weight: 700;
+  line-height: 0.9;
 }
 
 .bw-sponsored__note {
   color: var(--bw-ink-muted);
   font-size: var(--bw-caption);
+  font-weight: 600;
+}
+
+@media (max-width: 599px) {
+  .bw-sponsored {
+    grid-template-columns: 1fr auto;
+  }
+
+  .bw-sponsored__media {
+    grid-column: 1 / -1;
+    aspect-ratio: 21 / 9;
+  }
+
+  .bw-sponsored__body {
+    grid-row: 2;
+  }
+
+  .bw-sponsored__badge {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+  }
 }

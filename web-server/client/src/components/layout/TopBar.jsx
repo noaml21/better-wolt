@@ -94,7 +94,9 @@ export default function TopBar() {
         </Link>
 
         <form
-          className={`bw-topbar__search ${searchOpen ? 'bw-topbar__search--open' : ''}`}
+          className={`bw-topbar__search ${searchOpen ? 'bw-topbar__search--open' : ''} ${
+            location.pathname === '/' ? 'bw-topbar__search--home' : ''
+          }`}
           onSubmit={handleSearch}
           role="search"
         >

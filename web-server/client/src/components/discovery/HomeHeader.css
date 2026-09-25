@@ -1,0 +1,117 @@
+/* V5 spec §6, home: the question at board-title scale, a heavy-ruled
+   search, quick searches as outlined squares. */
+
+.bw-home-header {
+  display: grid;
+  /* A bare grid track grows to its content's min-content — the search
+     input's intrinsic width — and pushed a 320px phone sideways. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bw-space-5);
+  padding-block: var(--bw-space-8) var(--bw-space-7);
+}
+
+.bw-home-header__title {
+  font-size: var(--bw-board-title);
+  line-height: 0.78;
+  padding-block-start: 0.08em;
+}
+
+.bw-home-header__search {
+  display: flex;
+  align-items: stretch;
+  max-width: 980px;
+  min-height: 64px;
+  border: var(--bw-rule-heavy);
+  background-color: var(--bw-panel);
+}
+
+.bw-home-header__search:focus-within {
+  box-shadow: 0 0 0 3px var(--bw-ground), 0 0 0 6px var(--bw-ink);
+}
+
+.bw-home-header__search-icon {
+  align-self: center;
+  flex-shrink: 0;
+  margin-inline-start: var(--bw-space-5);
+  color: var(--bw-ink);
+}
+
+.bw-home-header__search input {
+  flex: 1;
+  min-width: 0;
+  padding-inline: var(--bw-space-4);
+  border: 0;
+  background: none;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-home-header__search input::placeholder {
+  color: var(--bw-ink-muted);
+}
+
+.bw-home-header__search input:focus {
+  outline: none;
+}
+
+.bw-home-header__search input::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+.bw-home-header__search button {
+  flex-shrink: 0;
+  padding-inline: var(--bw-space-7);
+  border: 0;
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+  font-size: 1.125rem;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+}
+
+.bw-home-header__search button:hover {
+  background-color: var(--bw-ink-muted);
+}
+
+.bw-home-header__search button:focus-visible {
+  outline-color: var(--bw-on-ink);
+  outline-offset: -6px;
+}
+
+.bw-home-header__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-2);
+}
+
+@media (max-width: 599px) {
+  .bw-home-header {
+    gap: var(--bw-space-4);
+    padding-block: var(--bw-space-6) var(--bw-space-5);
+  }
+
+  .bw-home-header__title {
+    font-size: 4.25rem;
+  }
+
+  .bw-home-header__search {
+    min-height: 56px;
+  }
+
+  .bw-home-header__search-icon {
+    display: none;
+  }
+
+  .bw-home-header__search button {
+    padding-inline: var(--bw-space-5);
+  }
+
+  .bw-home-header__quick {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-inline: calc(-1 * var(--bw-gutter));
+    padding-inline: var(--bw-gutter);
+    scrollbar-width: none;
+  }
+}

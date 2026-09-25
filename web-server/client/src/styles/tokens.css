@@ -130,9 +130,8 @@ body.dark {
 }
 
 /* --- Lines: one colour per restaurant (spec §4.1) -------------------------
-   A component sets `.bw-line-N` (services/lines.js) and uses `--bw-route`
-   for the fill and `--bw-on-route` for text on it (`--bw-line` is a V4
-   alias for hairlines until V5.15).
+   A component sets `.bw-line-N` (getLine() in services/restaurantMeta.js)
+   and uses `--bw-route` for the fill and `--bw-on-route` for text on it.
 
    N  light fill / text   ratio   dark fill / text     ratio
    0  #0b7a3e / #ffffff   5.43    #4cc38a / #121416    8.34
@@ -169,46 +168,3 @@ body.dark .bw-line-7 { --bw-route: #56b8f0; --bw-on-route: #121416; }
 body.dark .bw-line-8 { --bw-route: #c9b64a; --bw-on-route: #121416; }
 body.dark .bw-line-9 { --bw-route: #d49a6a; --bw-on-route: #121416; }
 body.dark .bw-line-cup { --bw-route: #000000; --bw-on-route: #ffb000; }
-
-/* --- Transitional aliases ------------------------------------------------
-   V4 component styles still read these names until each component is
-   rebuilt for V5 (plan V5.6–V5.13). They map onto the Line system so the
-   app stays coherent mid-way. Remove this block in V5.15 once nothing
-   references it (grep for each name). */
-:root,
-body.dark {
-  --bw-paper: var(--bw-ground);
-  --bw-surface: var(--bw-panel);
-  --bw-sunken: var(--bw-ground);
-  --bw-line: var(--bw-hairline);
-  --bw-flame: var(--bw-ink);
-  --bw-flame-deep: var(--bw-ink);
-  --bw-on-flame: var(--bw-on-ink);
-  --bw-flame-tint: var(--bw-panel);
-  --bw-amber: var(--bw-led);
-  --bw-on-amber: #101214;
-  --bw-amber-tint: var(--bw-panel);
-  --bw-herb: var(--bw-ok);
-  --bw-on-herb: var(--bw-on-ink);
-  --bw-herb-tint: var(--bw-panel);
-  --bw-danger: var(--bw-error);
-  --bw-on-danger: var(--bw-on-error);
-  --bw-danger-tint: var(--bw-error-tint);
-  --bw-ink-tint: var(--bw-panel);
-  --bw-night: var(--bw-board);
-  --bw-on-night: var(--bw-on-board);
-  --bw-radius-xs: 0;
-  --bw-radius-sm: 0;
-  --bw-radius-md: 0;
-  --bw-radius-lg: 0;
-  --bw-radius-pill: 0;
-  --bw-e1: none;
-  --bw-e2: none;
-  --bw-e3: var(--bw-shadow);
-  --bw-display-xl: var(--bw-page-title);
-  --bw-display-l: var(--bw-section-title);
-  --bw-h1: 2rem;
-  --bw-h2: 1.5rem;
-  --bw-h3: 1.1875rem;
-  --bw-micro: 0.8125rem;
-}

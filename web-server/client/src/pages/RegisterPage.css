@@ -9,8 +9,7 @@
   align-items: center;
   gap: var(--bw-space-4);
   padding: var(--bw-space-4);
-  border: 1px dashed var(--bw-line);
-  border-radius: var(--bw-radius-md);
+  border: 2px dashed var(--bw-rule);
 }
 
 .bw-register__avatar-preview {
@@ -21,8 +20,8 @@
   width: 56px;
   height: 56px;
   overflow: hidden;
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-sunken);
+  border: var(--bw-rule-strong);
+  background-color: var(--bw-ground);
   color: var(--bw-ink-muted);
 }
 

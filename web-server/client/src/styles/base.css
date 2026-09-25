@@ -13,7 +13,7 @@ html {
 
 body {
   margin: 0;
-  background-color: var(--bw-paper);
+  background-color: var(--bw-ground);
   color: var(--bw-ink);
   font-family: var(--bw-font-ui);
   font-size: var(--bw-body);
@@ -50,15 +50,15 @@ h4 {
 }
 
 h1 {
-  font-size: var(--bw-h1);
+  font-size: 2rem;
 }
 
 h2 {
-  font-size: var(--bw-h2);
+  font-size: 1.5rem;
 }
 
 h3 {
-  font-size: var(--bw-h3);
+  font-size: 1.1875rem;
   font-weight: 600;
 }
 

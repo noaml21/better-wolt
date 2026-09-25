@@ -10,8 +10,7 @@
   width: 128px;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border-radius: var(--bw-radius-sm);
-  background-color: var(--bw-sunken);
+  background-color: var(--bw-ground);
 }
 
 .bw-image-preview__frame img {

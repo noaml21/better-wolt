@@ -1,18 +1,28 @@
+/* Buttons in the Line system (V5 spec §5): square, heavy, one filled
+   primary per screen. Secondary is an ink outline that inverts on hover;
+   ghost is underlined text; danger is the error fill (destructive
+   confirmations only). */
+
 .bw-button {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding-inline: var(--bw-space-5);
-  border: 1px solid transparent;
-  border-radius: var(--bw-radius-sm);
-  font-weight: 600;
-  font-size: var(--bw-body);
+  min-height: var(--bw-control);
+  padding-inline: var(--bw-space-6);
+  border: 2px solid transparent;
+  border-radius: 0;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+  font-size: var(--bw-body-l);
+  line-height: 1.2;
   text-decoration: none;
-  transition: background-color var(--bw-fast) var(--bw-ease),
-    border-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease),
-    transform var(--bw-fast) var(--bw-ease), box-shadow var(--bw-fast) var(--bw-ease);
+  transition: background-color var(--bw-fast) var(--bw-ease), border-color var(--bw-fast) var(--bw-ease),
+    color var(--bw-fast) var(--bw-ease), transform var(--bw-fast) var(--bw-ease);
+}
+
+.bw-button:hover {
+  text-decoration: none;
 }
 
 .bw-button__content {
@@ -22,7 +32,7 @@
 }
 
 .bw-button:active:not(:disabled) {
-  transform: scale(0.98);
+  transform: translateY(1px);
 }
 
 .bw-button:disabled {
@@ -49,15 +59,15 @@
 /* Sizes ------------------------------------------------------------- */
 
 .bw-button--sm {
-  min-height: 36px;
+  min-height: 40px;
   padding-inline: var(--bw-space-4);
-  font-size: var(--bw-caption);
+  font-size: var(--bw-body);
 }
 
 .bw-button--lg {
-  min-height: 52px;
+  min-height: 56px;
   padding-inline: var(--bw-space-7);
-  font-size: var(--bw-body-l);
+  font-size: 1.125rem;
 }
 
 .bw-button--full {
@@ -67,72 +77,83 @@
 /* Variants ---------------------------------------------------------- */
 
 .bw-button--primary {
-  background-color: var(--bw-flame);
-  color: var(--bw-on-flame);
+  background-color: var(--bw-ink);
+  border-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
 .bw-button--primary:hover:not(:disabled) {
-  background-color: var(--bw-flame-deep);
+  background-color: var(--bw-ink-muted);
+  border-color: var(--bw-ink-muted);
 }
 
 .bw-button--secondary {
-  background-color: var(--bw-surface);
-  border-color: var(--bw-line);
+  background-color: transparent;
+  border-color: var(--bw-ink);
   color: var(--bw-ink);
 }
 
 .bw-button--secondary:hover:not(:disabled) {
-  border-color: var(--bw-ink-muted);
-  box-shadow: var(--bw-e1);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
 .bw-button--ghost {
   background-color: transparent;
   color: var(--bw-ink);
+  padding-inline: var(--bw-space-3);
 }
 
-.bw-button--ghost:hover:not(:disabled) {
-  background-color: var(--bw-ink-tint);
+.bw-button--ghost .bw-button__label {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+}
+
+.bw-button--ghost:hover:not(:disabled) .bw-button__label {
+  text-decoration-thickness: 2px;
 }
 
 .bw-button--danger {
-  background-color: transparent;
-  border-color: var(--bw-danger);
-  color: var(--bw-danger);
+  background-color: var(--bw-error);
+  border-color: var(--bw-error);
+  color: var(--bw-on-error);
 }
 
 .bw-button--danger:hover:not(:disabled) {
-  background-color: var(--bw-danger-tint);
+  background-color: transparent;
+  color: var(--bw-error);
 }
 
-/* Icon-only --------------------------------------------------------- */
+/* Icon-only: a square, the size of a target ------------------------- */
 
 .bw-icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border: 1px solid transparent;
-  border-radius: var(--bw-radius-pill);
+  width: var(--bw-target);
+  height: var(--bw-target);
+  border: 2px solid transparent;
+  border-radius: 0;
   background-color: transparent;
   color: var(--bw-ink);
-  transition: background-color var(--bw-fast) var(--bw-ease),
-    border-color var(--bw-fast) var(--bw-ease), transform var(--bw-fast) var(--bw-ease);
+  transition: background-color var(--bw-fast) var(--bw-ease), border-color var(--bw-fast) var(--bw-ease),
+    color var(--bw-fast) var(--bw-ease);
 }
 
 .bw-icon-button--sm {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
 }
 
 .bw-icon-button:hover:not(:disabled) {
-  background-color: var(--bw-ink-tint);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
 .bw-icon-button:active:not(:disabled) {
-  transform: scale(0.94);
+  transform: translateY(1px);
 }
 
 .bw-icon-button:disabled {
@@ -141,23 +162,20 @@
 }
 
 .bw-icon-button--outline {
-  border-color: var(--bw-line);
-  background-color: var(--bw-surface);
+  border-color: var(--bw-ink);
 }
 
 .bw-icon-button--solid {
-  background-color: var(--bw-flame);
-  color: var(--bw-on-flame);
-}
-
-.bw-icon-button--solid:hover:not(:disabled) {
-  background-color: var(--bw-flame-deep);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
 .bw-icon-button--danger {
-  color: var(--bw-danger);
+  border-color: var(--bw-error);
+  color: var(--bw-error);
 }
 
 .bw-icon-button--danger:hover:not(:disabled) {
-  background-color: var(--bw-danger-tint);
+  background-color: var(--bw-error);
+  color: var(--bw-on-error);
 }

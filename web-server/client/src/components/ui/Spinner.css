@@ -2,7 +2,7 @@
   display: inline-block;
   border: 2px solid currentColor;
   border-block-start-color: transparent;
-  border-radius: var(--bw-radius-pill);
+  border-radius: 50%;
   opacity: 0.9;
   animation: bw-spin 700ms linear infinite;
 }

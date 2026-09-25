@@ -1,3 +1,8 @@
+/* Fields in the Line system (V5 spec §5): label above, a 48px square
+   input on panel with a 1px rule border (≥ 3:1). Focus thickens the
+   border to 3px of ink — the border is the ring, so the shared outline
+   is not drawn twice. */
+
 .bw-field {
   display: flex;
   flex-direction: column;
@@ -5,27 +10,28 @@
 }
 
 .bw-field__label {
-  font-size: var(--bw-caption);
-  font-weight: 600;
+  font-size: var(--bw-body);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
   color: var(--bw-ink);
 }
 
 .bw-field__required {
   margin-inline-start: 2px;
-  color: var(--bw-danger);
+  color: var(--bw-error);
 }
 
 .bw-field__control {
   width: 100%;
-  min-height: 48px;
+  min-height: var(--bw-control);
   padding-inline: var(--bw-space-4);
   padding-block: var(--bw-space-3);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-sm);
-  background-color: var(--bw-surface);
+  border: 1px solid var(--bw-rule);
+  border-radius: 0;
+  background-color: var(--bw-panel);
   color: var(--bw-ink);
-  transition: border-color var(--bw-fast) var(--bw-ease),
-    box-shadow var(--bw-fast) var(--bw-ease);
+  font-size: var(--bw-body-l);
+  transition: border-color var(--bw-fast) var(--bw-ease), box-shadow var(--bw-fast) var(--bw-ease);
 }
 
 textarea.bw-field__control {
@@ -35,31 +41,27 @@ textarea.bw-field__control {
 
 .bw-field__control::placeholder {
   color: var(--bw-ink-muted);
-  opacity: 0.75;
+  opacity: 1;
 }
 
 .bw-field__control:hover {
-  border-color: var(--bw-ink-muted);
+  border-color: var(--bw-ink);
 }
 
-.bw-field__control:focus {
-  border-color: var(--bw-flame-deep);
-  box-shadow: 0 0 0 3px var(--bw-flame-tint);
-}
-
-/* The shared focus ring still applies — the border and halo above are
-   the field's own emphasis, not a replacement for it (spec §4.4). */
+.bw-field__control:focus,
 .bw-field__control:focus-visible {
-  outline: 2px solid var(--bw-flame-deep);
-  outline-offset: 2px;
+  outline: none;
+  border-color: var(--bw-ink);
+  box-shadow: inset 0 0 0 2px var(--bw-ink);
 }
 
 .bw-field--invalid .bw-field__control {
-  border-color: var(--bw-danger);
+  border-color: var(--bw-error);
+  box-shadow: inset 0 0 0 1px var(--bw-error);
 }
 
 .bw-field--invalid .bw-field__control:focus {
-  box-shadow: 0 0 0 3px var(--bw-danger-tint);
+  box-shadow: inset 0 0 0 2px var(--bw-error);
 }
 
 .bw-field__hint {
@@ -71,24 +73,26 @@ textarea.bw-field__control {
   display: flex;
   align-items: center;
   gap: var(--bw-space-1);
-  color: var(--bw-danger);
+  color: var(--bw-error);
   font-size: var(--bw-caption);
-  font-weight: 500;
+  font-weight: 700;
 }
 
-/* Radio group -------------------------------------------------------- */
+/* Radio group: square cells on a ruled strip ------------------------- */
 
 .bw-radio-group {
   margin: 0;
   padding: 0;
   border: 0;
+  min-width: 0;
 }
 
 .bw-radio-group__options {
   display: grid;
-  gap: var(--bw-space-3);
+  gap: 0;
   margin-block-start: var(--bw-space-3);
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  border: var(--bw-rule-strong);
 }
 
 .bw-radio {
@@ -96,26 +100,28 @@ textarea.bw-field__control {
   align-items: flex-start;
   gap: var(--bw-space-3);
   padding: var(--bw-space-4);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-sm);
-  background-color: var(--bw-surface);
+  background-color: var(--bw-panel);
   cursor: pointer;
-  transition: border-color var(--bw-fast) var(--bw-ease),
-    background-color var(--bw-fast) var(--bw-ease);
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
+}
+
+.bw-radio + .bw-radio {
+  border-inline-start: var(--bw-rule-strong);
 }
 
 .bw-radio:hover {
-  border-color: var(--bw-ink-muted);
+  background-color: var(--bw-ground);
 }
 
-.bw-radio--selected {
-  border-color: var(--bw-flame);
-  background-color: var(--bw-flame-tint);
+.bw-radio--selected,
+.bw-radio--selected:hover {
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
 .bw-radio input {
-  margin: 2px 0 0;
-  accent-color: var(--bw-flame);
+  margin: 3px 0 0;
+  accent-color: var(--bw-on-ink);
   width: 18px;
   height: 18px;
   flex-shrink: 0;
@@ -128,10 +134,23 @@ textarea.bw-field__control {
 }
 
 .bw-radio__title {
-  font-weight: 600;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-radio__description {
-  color: var(--bw-ink-muted);
+  color: inherit;
+  opacity: 0.85;
   font-size: var(--bw-caption);
+}
+
+.bw-radio--selected .bw-radio__description {
+  opacity: 1;
+}
+
+@media (max-width: 420px) {
+  .bw-radio + .bw-radio {
+    border-inline-start: 0;
+    border-block-start: var(--bw-rule-strong);
+  }
 }

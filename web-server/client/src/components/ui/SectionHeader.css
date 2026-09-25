@@ -5,6 +5,8 @@
   justify-content: space-between;
   gap: var(--bw-space-3);
   margin-block-end: var(--bw-space-5);
+  padding-block-end: var(--bw-space-3);
+  border-block-end: var(--bw-rule-heavy);
 }
 
 .bw-section-header__text {
@@ -14,11 +16,14 @@
 }
 
 .bw-section-header__title {
-  font-size: var(--bw-h2);
+  font-family: var(--bw-font-display);
+  font-size: var(--bw-section-title);
   font-weight: 700;
+  line-height: 0.9;
 }
 
 .bw-section-header__description {
   color: var(--bw-ink-muted);
+  font-weight: 600;
   max-width: 60ch;
 }

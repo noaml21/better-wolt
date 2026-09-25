@@ -1,45 +1,44 @@
+/* The line plate (V5 spec §4.4). Sized from its own box, so the same plate
+   fills a board thumbnail and a restaurant header alike. */
+
 .bw-plate {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: var(--bw-space-1);
   width: 100%;
   height: 100%;
-  padding: var(--bw-space-5);
+  padding: clamp(6px, 8cqmin, 28px);
   overflow: hidden;
   container-type: size;
+  background-color: var(--bw-route, var(--bw-ink));
+  color: var(--bw-on-route, var(--bw-on-ink));
 }
 
-.bw-plate__word {
+.bw-plate__number {
+  font-family: var(--bw-font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 46cqmin, 12rem);
+  line-height: 0.8;
+}
+
+.bw-plate__name {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
   max-width: 100%;
-  font-family: var(--bw-font-display);
-  /* Sized from the plate, not the viewport: the same word fills a card
-     and a hero alike, and a long one wraps rather than escaping. */
-  font-size: clamp(1.5rem, 22cqmin, 5.5rem);
-  line-height: 1.05;
-  text-align: center;
+  font-size: clamp(0.75rem, 7cqmin, 1.25rem);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
+  line-height: 1.2;
   overflow-wrap: anywhere;
+  unicode-bidi: plaintext;
+  text-align: right;
 }
 
-.bw-plate--amber {
-  background-color: var(--bw-amber-tint);
-  color: var(--bw-ink);
-}
-
-.bw-plate--flame {
-  background-color: var(--bw-flame-tint);
-  color: var(--bw-flame-deep);
-}
-
-.bw-plate--herb {
-  background-color: var(--bw-herb-tint);
-  color: var(--bw-herb);
-}
-
-.bw-plate--ink {
-  background-color: var(--bw-ink-tint);
-  color: var(--bw-ink);
+.bw-plate--thumb {
+  align-items: center;
+  justify-content: center;
 }

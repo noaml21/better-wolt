@@ -1,63 +1,63 @@
-/* Better Wolt V3 design tokens — docs/V3_DESIGN_SPEC.md §4.
-   Every colour, radius, shadow, duration and type step in the web client
-   comes from here. Components never hardcode these values. */
+/* Better Wolt V5 design tokens — "Line" (docs/v5/V5_DESIGN_SPEC.md §4).
+   Every colour, shape, duration and type step in the web client comes
+   from here. Components never hardcode these values.
+
+   Contrast, as checked when these were set (WCAG 2.1):
+   ink on ground 17.1:1 · ink-muted on ground 6.2:1, on panel 7.0:1 ·
+   rule on ground 3.8:1, on panel 4.3:1 (control borders need 3:1) ·
+   led on board 10.8:1 · error on ground 5.2:1, on error-tint 5.3:1 ·
+   every line fill against its text ≥ 4.5:1 in both themes (table below). */
 
 :root {
-  /* --- Colour: light theme --- */
-  --bw-paper: #fbf7f3;
-  --bw-surface: #ffffff;
-  --bw-sunken: #f3ede6;
-  --bw-ink: #1f1330;
-  --bw-ink-muted: #655b72;
-  --bw-line: #e7dfd7;
-  --bw-flame: #d93a1e;
-  --bw-flame-deep: #b82f17;
-  --bw-amber: #f0a215;
-  --bw-herb: #0e7a57;
-  --bw-danger: #a61b2b;
+  /* --- Colour: light theme, "platform" --- */
+  --bw-ground: #e4e6e1;
+  --bw-panel: #f3f4f1;
+  --bw-raised: #ffffff;
+  --bw-ink: #101214;
+  --bw-ink-muted: #4d535a;
+  --bw-rule: #6e746c;
+  --bw-hairline: #c3c7bf;
+  --bw-on-ink: #f3f4f1;
 
-  /* Tints, used for soft fills (tags, banners, pills). */
-  --bw-flame-tint: #fdece8;
-  --bw-amber-tint: #fdf1da;
-  --bw-herb-tint: #e2f2ec;
-  --bw-danger-tint: #f9e6e8;
-  --bw-ink-tint: #efebf2;
+  /* The LED board: the one live element (spec §3.1). It does not flip
+     with the theme — a board is black in daylight too. */
+  --bw-board: #0a0a0a;
+  --bw-led: #ffb000;
+  --bw-on-board: #f3f4f1;
 
-  /* Text on a coloured fill. Contrast is verified in the spec §4.1:
-     white on flame 4.59:1, ink on amber 8.28:1, white on herb 5.33:1. */
-  --bw-on-flame: #ffffff;
-  --bw-on-amber: var(--bw-ink);
-  --bw-on-herb: #ffffff;
-  --bw-on-ink: #fbf7f3;
-  --bw-on-danger: #ffffff;
+  /* Red means error and only error; no restaurant line may use it. */
+  --bw-error: #b3261e;
+  --bw-error-tint: #f6e3e1;
+  --bw-on-error: #ffffff;
+  --bw-ok: #0b7a3e;
 
-  /* The one surface that does not flip with the theme: the night band
-     the brand is named after (the home hero, the campaign). Inverting it
-     in dark mode would put a bright slab through the middle of a dark
-     page and hand the campaign the page's quietest colour. */
-  --bw-night: #1f1330;
-  --bw-on-night: #fbf7f3;
-
-  /* Scrim behind dialogs and sheets. */
-  --bw-scrim: rgba(31, 19, 48, 0.55);
+  --bw-scrim: rgba(16, 18, 20, 0.55);
+  --bw-shadow: 0 18px 40px -12px rgba(16, 18, 20, 0.35);
 
   /* --- Type --- */
-  --bw-font-display: 'Suez One', 'Heebo', Georgia, serif;
-  --bw-font-ui: 'Rubik', 'Heebo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bw-font-display: 'Karantina', 'Noto Sans Hebrew', 'Arial Narrow', sans-serif;
+  --bw-font-ui: 'Noto Sans Hebrew', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --bw-display-xl: 3.5rem;
-  --bw-display-l: 2.5rem;
-  --bw-h1: 2rem;
-  --bw-h2: 1.5rem;
-  --bw-h3: 1.1875rem;
+  /* Widths of Noto Sans Hebrew's wdth axis, by role (spec §4.2). */
+  --bw-wdth-ui: 87.5%;
+  --bw-wdth-num: 75%;
+  --bw-wdth-big: 62.5%;
+
+  --bw-board-title: clamp(4rem, 11vw, 11rem);
+  --bw-page-title: clamp(3.25rem, 7vw, 6rem);
+  --bw-section-title: clamp(2.25rem, 3.4vw, 2.75rem);
+  --bw-name-l: clamp(3.5rem, 9vw, 10.5rem);
+  --bw-name-m: clamp(2.25rem, 4vw, 4rem);
+  --bw-dish: 1.25rem;
   --bw-body-l: 1.0625rem;
   --bw-body: 0.9375rem;
   --bw-caption: 0.8125rem;
-  --bw-micro: 0.75rem;
+  --bw-price: 1.1875rem;
+  --bw-total: clamp(2rem, 3vw, 2.5rem);
 
-  --bw-lh-display: 1.06;
-  --bw-lh-heading: 1.22;
-  --bw-lh-body: 1.6;
+  --bw-lh-display: 0.84;
+  --bw-lh-heading: 1.2;
+  --bw-lh-body: 1.55;
 
   /* --- Space (4px base) --- */
   --bw-space-1: 4px;
@@ -72,79 +72,143 @@
   --bw-space-10: 72px;
   --bw-space-11: 96px;
 
-  /* --- Radius: varies by role, not one value everywhere --- */
-  --bw-radius-xs: 6px;
-  --bw-radius-sm: 10px;
-  --bw-radius-md: 14px;
-  --bw-radius-lg: 20px;
-  --bw-radius-pill: 999px;
+  /* --- Shape: square (spec §4.3). Circles only for stops and stations. --- */
+  --bw-rule-heavy: 3px solid var(--bw-ink);
+  --bw-rule-strong: 2px solid var(--bw-ink);
+  --bw-rule-thin: 1px solid var(--bw-rule);
+  --bw-rule-hair: 1px solid var(--bw-hairline);
+  --bw-control: 48px;
+  --bw-target: 44px;
 
-  /* --- Elevation, tinted with the ink hue --- */
-  --bw-e1: 0 1px 2px rgba(31, 19, 48, 0.06), 0 1px 1px rgba(31, 19, 48, 0.04);
-  --bw-e2: 0 4px 12px rgba(31, 19, 48, 0.08);
-  --bw-e3: 0 12px 28px rgba(31, 19, 48, 0.14);
-
-  /* --- Motion --- */
-  --bw-fast: 120ms;
+  /* --- Motion (spec §7) --- */
+  --bw-fast: 140ms;
   --bw-base: 180ms;
-  --bw-slow: 320ms;
-  --bw-story: 600ms;
+  --bw-slow: 260ms;
+  --bw-sweep: 420ms;
+  --bw-story: 800ms;
   --bw-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
-  /* Despite its V3 name this curve accelerates (an ease-in); nothing in
-     V4 uses it, because UI that starts slow feels late. */
-  --bw-ease-out: cubic-bezier(0.4, 0, 1, 1);
-  /* Sheets and bars that slide in from an edge: fast start, long settle. */
+  /* Exponential ease-out: fast start, long settle. Floods and prints. */
+  --bw-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Sheets and bars that slide in from an edge. */
   --bw-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* --- Layout --- */
-  --bw-content-max: 1200px;
-  --bw-gutter: var(--bw-space-4);
+  --bw-gutter: clamp(16px, 3vw, 40px);
+  --bw-content-max: 1440px;
+  --bw-reading-max: 760px;
   --bw-topbar-height: 64px;
-  --bw-focus-ring: 2px solid var(--bw-flame-deep);
+  --bw-focus-ring: 3px solid var(--bw-ink);
 }
 
 @media (min-width: 900px) {
   :root {
-    --bw-gutter: var(--bw-space-7);
     --bw-topbar-height: 72px;
   }
 }
 
 body.dark {
-  --bw-paper: #14101e;
-  --bw-surface: #1e1830;
-  --bw-sunken: #171223;
-  --bw-ink: #f6f1ec;
-  --bw-ink-muted: #aba2b6;
-  --bw-line: #2e2742;
-  --bw-flame: #ff6a4d;
-  --bw-flame-deep: #ff8a73;
-  --bw-amber: #ffc24d;
-  --bw-herb: #3bc694;
-  --bw-danger: #ff7a80;
+  /* "Night platform" */
+  --bw-ground: #121416;
+  --bw-panel: #1b1e21;
+  --bw-raised: #24282c;
+  --bw-ink: #ecede9;
+  --bw-ink-muted: #a5abb0;
+  --bw-rule: #7a8187;
+  --bw-hairline: #2e3337;
+  --bw-on-ink: #121416;
 
-  --bw-flame-tint: #35202b;
-  --bw-amber-tint: #362b1c;
-  --bw-herb-tint: #17302b;
-  --bw-danger-tint: #35202a;
-  --bw-ink-tint: #272038;
+  --bw-board: #000000;
+  --bw-on-board: #ecede9;
 
-  --bw-on-flame: #14101e;
-  --bw-on-amber: #14101e;
-  --bw-on-herb: #14101e;
-  --bw-on-ink: #14101e;
-  /* Dark `danger` is a light red; white on it fails AA. */
-  --bw-on-danger: #14101e;
+  --bw-error: #ff8a80;
+  --bw-error-tint: #3a1f1e;
+  --bw-on-error: #121416;
+  --bw-ok: #4cc38a;
 
-  /* A shade above `paper` so the band still separates from the page. */
-  --bw-night: #241a38;
-  --bw-on-night: #f6f1ec;
+  --bw-scrim: rgba(0, 0, 0, 0.7);
+  --bw-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7);
+}
 
-  --bw-scrim: rgba(6, 4, 12, 0.7);
+/* --- Lines: one colour per restaurant (spec §4.1) -------------------------
+   A component sets `.bw-line-N` (services/lines.js) and uses `--bw-route`
+   for the fill and `--bw-on-route` for text on it (`--bw-line` is a V4
+   alias for hairlines until V5.15).
 
-  --bw-e1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --bw-e2: 0 4px 12px rgba(0, 0, 0, 0.45);
-  --bw-e3: 0 12px 28px rgba(0, 0, 0, 0.55);
+   N  light fill / text   ratio   dark fill / text     ratio
+   0  #0b7a3e / #ffffff   5.43    #4cc38a / #121416    8.34
+   1  #1d4ed8 / #ffffff   6.70    #7aa2ff / #121416    7.42
+   2  #7b2d9b / #ffffff   7.80    #c48be0 / #121416    7.14
+   3  #e07800 / #101214   6.13    #ffa24c / #121416    9.25
+   4  #00747a / #ffffff   5.56    #3cc2c9 / #121416    8.57
+   5  #b0165a / #ffffff   6.76    #f07aa8 / #121416    7.08
+   6  #1b2a6b / #ffffff  13.21    #9fb0ff / #121416    8.91
+   7  #0369a1 / #ffffff   5.93    #56b8f0 / #121416    8.36
+   8  #6b5b00 / #ffffff   6.73    #c9b64a / #121416    9.03
+   9  #7c4a1e / #ffffff   7.35    #d49a6a / #121416    7.59
+   The World Cup line is the board itself: black with amber. */
+.bw-line-0 { --bw-route: #0b7a3e; --bw-on-route: #ffffff; }
+.bw-line-1 { --bw-route: #1d4ed8; --bw-on-route: #ffffff; }
+.bw-line-2 { --bw-route: #7b2d9b; --bw-on-route: #ffffff; }
+.bw-line-3 { --bw-route: #e07800; --bw-on-route: #101214; }
+.bw-line-4 { --bw-route: #00747a; --bw-on-route: #ffffff; }
+.bw-line-5 { --bw-route: #b0165a; --bw-on-route: #ffffff; }
+.bw-line-6 { --bw-route: #1b2a6b; --bw-on-route: #ffffff; }
+.bw-line-7 { --bw-route: #0369a1; --bw-on-route: #ffffff; }
+.bw-line-8 { --bw-route: #6b5b00; --bw-on-route: #ffffff; }
+.bw-line-9 { --bw-route: #7c4a1e; --bw-on-route: #ffffff; }
+.bw-line-cup { --bw-route: #0a0a0a; --bw-on-route: #ffb000; }
 
-  --bw-focus-ring: 2px solid var(--bw-flame);
+body.dark .bw-line-0 { --bw-route: #4cc38a; --bw-on-route: #121416; }
+body.dark .bw-line-1 { --bw-route: #7aa2ff; --bw-on-route: #121416; }
+body.dark .bw-line-2 { --bw-route: #c48be0; --bw-on-route: #121416; }
+body.dark .bw-line-3 { --bw-route: #ffa24c; --bw-on-route: #121416; }
+body.dark .bw-line-4 { --bw-route: #3cc2c9; --bw-on-route: #121416; }
+body.dark .bw-line-5 { --bw-route: #f07aa8; --bw-on-route: #121416; }
+body.dark .bw-line-6 { --bw-route: #9fb0ff; --bw-on-route: #121416; }
+body.dark .bw-line-7 { --bw-route: #56b8f0; --bw-on-route: #121416; }
+body.dark .bw-line-8 { --bw-route: #c9b64a; --bw-on-route: #121416; }
+body.dark .bw-line-9 { --bw-route: #d49a6a; --bw-on-route: #121416; }
+body.dark .bw-line-cup { --bw-route: #000000; --bw-on-route: #ffb000; }
+
+/* --- Transitional aliases ------------------------------------------------
+   V4 component styles still read these names until each component is
+   rebuilt for V5 (plan V5.6–V5.13). They map onto the Line system so the
+   app stays coherent mid-way. Remove this block in V5.15 once nothing
+   references it (grep for each name). */
+:root,
+body.dark {
+  --bw-paper: var(--bw-ground);
+  --bw-surface: var(--bw-panel);
+  --bw-sunken: var(--bw-ground);
+  --bw-line: var(--bw-hairline);
+  --bw-flame: var(--bw-ink);
+  --bw-flame-deep: var(--bw-ink);
+  --bw-on-flame: var(--bw-on-ink);
+  --bw-flame-tint: var(--bw-panel);
+  --bw-amber: var(--bw-led);
+  --bw-on-amber: #101214;
+  --bw-amber-tint: var(--bw-panel);
+  --bw-herb: var(--bw-ok);
+  --bw-on-herb: var(--bw-on-ink);
+  --bw-herb-tint: var(--bw-panel);
+  --bw-danger: var(--bw-error);
+  --bw-on-danger: var(--bw-on-error);
+  --bw-danger-tint: var(--bw-error-tint);
+  --bw-ink-tint: var(--bw-panel);
+  --bw-night: var(--bw-board);
+  --bw-on-night: var(--bw-on-board);
+  --bw-radius-xs: 0;
+  --bw-radius-sm: 0;
+  --bw-radius-md: 0;
+  --bw-radius-lg: 0;
+  --bw-radius-pill: 0;
+  --bw-e1: none;
+  --bw-e2: none;
+  --bw-e3: var(--bw-shadow);
+  --bw-display-xl: var(--bw-page-title);
+  --bw-display-l: var(--bw-section-title);
+  --bw-h1: 2rem;
+  --bw-h2: 1.5rem;
+  --bw-h3: 1.1875rem;
+  --bw-micro: 0.8125rem;
 }

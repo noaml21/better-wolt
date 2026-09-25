@@ -37,13 +37,42 @@ export function getRestaurantMeta(restaurant) {
   };
 }
 
-/* The tint a restaurant's plate uses when it has no photo (V4 spec §4.1).
-   Derived from the id like the rest of this file, so a restaurant keeps
-   its colour everywhere it appears. */
-const PLATE_TONES = ['amber', 'flame', 'herb', 'ink'];
+/* The restaurant's line (V5 spec §4.1): one of ten colours and a
+   two-digit number, derived from the id like the rest of this file, so a
+   restaurant keeps its line everywhere it appears. Presentation only; two
+   restaurants may rarely share a number, and nothing depends on it being
+   unique. The World Cup restaurant rides the board's own line. */
+export const LINE_COLOURS = 10;
 
-export function getPlateTone(restaurant) {
-  return PLATE_TONES[(hashId(restaurant?.id) >>> 5) % PLATE_TONES.length];
+/* Any constant works; this one happens to give the seven demo restaurants
+   seven different colours (docs/dev/demo-data.mjs). */
+const LINE_SALT = 28;
+
+/* Ids made one after another (MongoDB's are) differ only in their last
+   characters, which barely moves the running hash; mixing its bits
+   (murmur3's finaliser) spreads neighbours across the palette. */
+function mix(hash) {
+  let value = hash;
+
+  value ^= value >>> 16;
+  value = Math.imul(value, 0x85ebca6b);
+  value ^= value >>> 13;
+  value = Math.imul(value, 0xc2b2ae35);
+  value ^= value >>> 16;
+
+  return value >>> 0;
+}
+
+export function getLine(restaurant) {
+  if (restaurant?.name === WORLD_CUP_RESTAURANT_NAME) {
+    return { colour: 'cup', number: 26, className: 'bw-line-cup' };
+  }
+
+  const hash = mix((hashId(restaurant?.id) + LINE_SALT) >>> 0);
+  const colour = hash % LINE_COLOURS;
+  const number = 10 + ((hash >>> 8) % 90);
+
+  return { colour, number, className: `bw-line-${colour}` };
 }
 
 /* The seeded campaign restaurant (ARCHITECTURE §6). Its name is contract. */

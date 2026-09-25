@@ -18,6 +18,7 @@ body {
   font-family: var(--bw-font-ui);
   font-size: var(--bw-body);
   line-height: var(--bw-lh-body);
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -43,7 +44,8 @@ h2,
 h3,
 h4 {
   line-height: var(--bw-lh-heading);
-  font-weight: 700;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
   text-wrap: balance;
 }
 
@@ -79,12 +81,14 @@ img {
 }
 
 a {
-  color: var(--bw-flame-deep);
-  text-decoration: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
 }
 
 a:hover {
-  text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 button,
@@ -99,11 +103,12 @@ button {
   cursor: pointer;
 }
 
-/* One focus treatment for the whole app. Never removed. */
+/* One focus treatment for the whole app: a square ink ring, the same
+   weight as the board's rules. Never removed; fields replace it with
+   their own 2px border (Field.css). */
 :focus-visible {
   outline: var(--bw-focus-ring);
   outline-offset: 2px;
-  border-radius: var(--bw-radius-xs);
 }
 
 /* Except on <main> itself: it is not a control but the place focus is
@@ -133,7 +138,6 @@ button {
   inset-inline-start: var(--bw-space-2);
   z-index: 100;
   padding: var(--bw-space-3) var(--bw-space-5);
-  border-radius: var(--bw-radius-sm);
   background-color: var(--bw-ink);
   color: var(--bw-on-ink);
   font-weight: 600;
@@ -195,33 +199,44 @@ body.bw-has-dock .bw-page {
   flex: 1;
 }
 
-/* Display type is a deliberate, limited treatment (spec §4.2). */
+/* Signage type (V5 spec §4.2): Karantina, condensed, only at 28px and
+   up — names, titles, the board. Never a price or a sentence. */
 .bw-display {
   font-family: var(--bw-font-display);
-  font-weight: 400;
+  font-weight: 700;
   line-height: var(--bw-lh-display);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  text-wrap: balance;
 }
 
-/* Numbers are exact (V4 spec §4.2): prices, totals, times and counts are
-   set in the reading face with tabular figures. The display face draws
-   `₪` as a letter pair and uses old-style figures, so it never sets one. */
+/* Numbers are timetable-exact (spec §3.5): prices, totals, times and
+   counts in Noto Sans Hebrew, tabular, condensed. */
 .bw-num {
   font-family: var(--bw-font-ui);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  font-stretch: var(--bw-wdth-num);
+}
+
+/* A numeric range ("20–30") is laid out left to right on its own: an en
+   dash between two numbers is neutral, and in a right-to-left paragraph
+   it would read "30–20" (spec §9). */
+.bw-range {
+  unicode-bidi: isolate;
+  direction: ltr;
+  display: inline-block;
 }
 
 /* The parts of the page the browser draws still belong to the design. */
 ::selection {
-  background-color: var(--bw-amber);
-  color: var(--bw-on-amber);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
 html {
-  accent-color: var(--bw-flame);
-  caret-color: var(--bw-flame-deep);
-  scrollbar-color: var(--bw-line) transparent;
+  accent-color: var(--bw-ink);
+  caret-color: var(--bw-ink);
+  scrollbar-color: var(--bw-rule) var(--bw-ground);
 }
 
 /* Text people typed (dish and restaurant names, descriptions) takes its

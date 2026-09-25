@@ -1,3 +1,6 @@
+/* Empty and error states (V5 spec §5): a signage title, one sentence and
+   a way forward. The icon sits in a ruled square, never a soft blob. */
+
 .bw-state {
   display: flex;
   flex-direction: column;
@@ -14,31 +17,39 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  border-radius: var(--bw-radius-pill);
+  border: var(--bw-rule-strong);
 }
 
 .bw-state__icon--empty {
-  background-color: var(--bw-ink-tint);
-  color: var(--bw-ink-muted);
+  color: var(--bw-ink);
 }
 
 .bw-state__icon--error {
-  background-color: var(--bw-danger-tint);
-  color: var(--bw-danger);
+  border-color: var(--bw-error);
+  background-color: var(--bw-error-tint);
+  color: var(--bw-error);
 }
 
 .bw-state__title {
-  font-size: var(--bw-h3);
+  font-family: var(--bw-font-display);
+  font-size: var(--bw-section-title);
   font-weight: 700;
+  line-height: 0.95;
+  max-width: 22ch;
 }
 
 .bw-state__description {
-  max-width: 44ch;
+  max-width: 46ch;
   color: var(--bw-ink-muted);
+  font-size: var(--bw-body-l);
 }
 
 .bw-state__action {
-  margin-block-start: var(--bw-space-2);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--bw-space-3);
+  margin-block-start: var(--bw-space-3);
 }
 
 .bw-inline-message {
@@ -46,22 +57,22 @@
   align-items: center;
   gap: var(--bw-space-2);
   padding: var(--bw-space-3) var(--bw-space-4);
-  border-radius: var(--bw-radius-sm);
-  font-size: var(--bw-caption);
-  font-weight: 500;
+  border: 1px solid currentColor;
+  font-size: var(--bw-body);
+  font-weight: 600;
 }
 
 .bw-inline-message--error {
-  background-color: var(--bw-danger-tint);
-  color: var(--bw-danger);
+  background-color: var(--bw-error-tint);
+  color: var(--bw-error);
 }
 
 .bw-inline-message--info {
-  background-color: var(--bw-ink-tint);
+  background-color: var(--bw-panel);
   color: var(--bw-ink);
 }
 
 .bw-inline-message--success {
-  background-color: var(--bw-herb-tint);
-  color: var(--bw-herb);
+  background-color: var(--bw-panel);
+  color: var(--bw-ink);
 }

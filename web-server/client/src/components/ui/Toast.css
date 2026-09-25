@@ -1,3 +1,7 @@
+/* Toasts only confirm (V5 spec §5): a square ink block with an icon for
+   the tone; an error toast takes the error fill. The only copy of an
+   error is always written inline where it happened. */
+
 .bw-toasts {
   position: fixed;
   inset-block-end: var(--bw-space-6);
@@ -15,56 +19,72 @@
   display: flex;
   align-items: center;
   gap: var(--bw-space-3);
-  max-width: 460px;
-  padding: var(--bw-space-3) var(--bw-space-3) var(--bw-space-3) var(--bw-space-4);
-  border-radius: var(--bw-radius-pill);
+  max-width: 480px;
+  min-height: 52px;
+  padding: var(--bw-space-2) var(--bw-space-2) var(--bw-space-2) var(--bw-space-4);
+  border: 2px solid var(--bw-ink);
   background-color: var(--bw-ink);
   color: var(--bw-on-ink);
   font-size: var(--bw-body);
-  font-weight: 500;
-  box-shadow: var(--bw-e3);
+  font-weight: 700;
+  font-stretch: var(--bw-wdth-ui);
+  box-shadow: var(--bw-shadow);
   pointer-events: auto;
-  animation: bw-toast-in var(--bw-base) var(--bw-ease);
+  animation: bw-toast-in var(--bw-base) var(--bw-ease-out);
 }
 
 .bw-toast--success {
-  background-color: var(--bw-herb);
-  color: var(--bw-on-herb);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
 .bw-toast--error {
-  background-color: var(--bw-danger);
-  color: var(--bw-on-danger);
+  border-color: var(--bw-error);
+  background-color: var(--bw-error);
+  color: var(--bw-on-error);
 }
 
 .bw-toast__close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: var(--bw-radius-pill);
-  background-color: rgba(255, 255, 255, 0.16);
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid currentColor;
+  background-color: transparent;
   color: inherit;
 }
 
 .bw-toast__close:hover {
-  background-color: rgba(255, 255, 255, 0.28);
+  background-color: currentColor;
+}
+
+.bw-toast__close:hover svg {
+  color: var(--bw-ink);
+}
+
+.bw-toast--error .bw-toast__close:hover svg {
+  color: var(--bw-error);
 }
 
 .bw-toast--leaving {
   opacity: 0;
   transform: translateY(8px);
-  /* Out on the strong ease-out: it moves at once, the moment you see it
-     go. (--bw-ease-out is a V3 name for an ease-in curve.) */
-  transition: opacity 150ms var(--bw-ease), transform 150ms var(--bw-ease);
+  transition: opacity 140ms var(--bw-ease), transform 140ms var(--bw-ease);
   pointer-events: none;
 }
 
 @keyframes bw-toast-in {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: none; }
+}
+
+@media (min-width: 900px) {
+  .bw-toasts {
+    align-items: flex-start;
+    padding-inline: var(--bw-gutter);
+  }
 }
 
 @media (max-width: 599px) {

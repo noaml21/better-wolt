@@ -1,4 +1,5 @@
-/* One inline SVG set, drawn on a 24px grid with a 1.75 stroke.
+/* One inline SVG set, drawn on a 24px grid with a 2.2 stroke and square
+   caps to match the Line system's rules (V5 spec §4.5).
    Icons inherit currentColor and are hidden from assistive tech: the
    control around them carries the label. */
 
@@ -33,7 +34,7 @@ const paths = {
 
 export const iconNames = Object.keys(paths);
 
-export default function Icon({ name, size = 20, className = '', strokeWidth = 1.75 }) {
+export default function Icon({ name, size = 20, className = '', strokeWidth = 2.2 }) {
   const glyph = paths[name];
 
   if (!glyph) {
@@ -49,8 +50,8 @@ export default function Icon({ name, size = 20, className = '', strokeWidth = 1.
       fill="none"
       stroke="currentColor"
       strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      strokeLinecap="square"
+      strokeLinejoin="miter"
       aria-hidden="true"
       focusable="false"
     >

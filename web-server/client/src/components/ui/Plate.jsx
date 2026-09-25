@@ -1,21 +1,20 @@
-import { getPlateTone } from '../../services/restaurantMeta';
+import { getLine } from '../../services/restaurantMeta';
 import './Plate.css';
 
-/* What a restaurant looks like without a photograph: its first word, set
-   in the display face on the restaurant's own tint (V4 spec §4.4). Owners
-   type image URLs by hand and some never add one, so this is an ordinary
-   state of the grid, not an error — it has to look chosen. The name is
-   already on the page next to it, so the plate is decorative. */
+/* What a restaurant looks like without a photograph: its line plate — the
+   line colour, the line number large in signage type and the name under
+   it (V5 spec §4.4). Owners type image URLs by hand and some never add
+   one, so this is an ordinary state of the board, not an error — it has
+   to look chosen. The name is already on the page next to it, so the
+   plate is decorative. */
 
 export default function Plate({ restaurant, size = 'card', className = '' }) {
-  const word = restaurant?.name?.trim().split(/\s+/)[0] || '';
+  const line = getLine(restaurant);
 
   return (
-    <span
-      className={`bw-plate bw-plate--${getPlateTone(restaurant)} bw-plate--${size} ${className}`}
-      aria-hidden="true"
-    >
-      <span className="bw-plate__word">{word}</span>
+    <span className={`bw-plate ${line.className} bw-plate--${size} ${className}`} aria-hidden="true">
+      <span className="bw-plate__number">{line.number}</span>
+      {size !== 'thumb' && <span className="bw-plate__name">{restaurant?.name}</span>}
     </span>
   );
 }

@@ -1,134 +1,109 @@
-/* The tag: a rectangle that comes to a point on the inline start edge,
-   with a punched hole — a market price tag. RTL-only app, so the point
-   sits on the right. */
+/* Labels in the Line system (V5 spec §5): square, ruled, quiet. */
+
+/* Tag: a small ruled label for a price or a note on a photo corner. */
 .bw-tag {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  padding-block: 3px;
-  padding-inline: 18px 10px;
-  border-radius: var(--bw-radius-xs);
+  padding-block: 2px;
+  padding-inline: var(--bw-space-2);
+  border: 1px solid var(--bw-ink);
+  background-color: var(--bw-panel);
+  color: var(--bw-ink);
   font-family: var(--bw-font-ui);
   font-size: var(--bw-caption);
-  font-weight: 600;
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-num);
   font-variant-numeric: tabular-nums;
   line-height: 1.5;
   white-space: nowrap;
-  clip-path: polygon(100% 50%, calc(100% - 11px) 0, 0 0, 0 100%, calc(100% - 11px) 100%);
-}
-
-.bw-tag::after {
-  content: '';
-  position: absolute;
-  inset-inline-start: 5px;
-  inset-block-start: 50%;
-  width: 4px;
-  height: 4px;
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-surface);
-  transform: translateY(-50%);
-}
-
-.bw-tag--price {
-  background-color: var(--bw-amber-tint);
-  color: var(--bw-ink);
 }
 
 .bw-tag--promo {
-  background-color: var(--bw-herb-tint);
-  color: var(--bw-herb);
+  border-color: var(--bw-ok);
+  color: var(--bw-ok);
 }
 
 .bw-tag--hot {
-  background-color: var(--bw-flame);
-  color: var(--bw-on-flame);
+  border-color: var(--bw-ink);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
 }
 
-.bw-tag--hot::after {
-  background-color: var(--bw-flame-tint);
-}
-
-/* Chip --------------------------------------------------------------- */
-
+/* Chip: an outlined square that fills when chosen. */
 .bw-chip {
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-2);
-  min-height: 40px;
+  min-height: var(--bw-target);
   padding-inline: var(--bw-space-4);
-  border: 1px solid var(--bw-line);
-  border-radius: var(--bw-radius-pill);
-  background-color: var(--bw-surface);
+  border: var(--bw-rule-strong);
+  background-color: transparent;
   color: var(--bw-ink);
-  font-size: var(--bw-caption);
-  font-weight: 500;
+  font-size: var(--bw-body);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
   white-space: nowrap;
-  transition: background-color var(--bw-fast) var(--bw-ease),
-    border-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
+  text-decoration: none;
+  transition: background-color var(--bw-fast) var(--bw-ease), color var(--bw-fast) var(--bw-ease);
 }
 
-.bw-chip:hover {
-  border-color: var(--bw-ink-muted);
-}
-
+.bw-chip:hover,
 .bw-chip--selected {
   background-color: var(--bw-ink);
-  border-color: var(--bw-ink);
   color: var(--bw-on-ink);
+  text-decoration: none;
 }
 
-/* Status pill -------------------------------------------------------- */
-
+/* Status: a ruled label with a square marker. */
 .bw-status {
   display: inline-flex;
   align-items: center;
   gap: var(--bw-space-2);
-  padding-block: 5px;
-  padding-inline: var(--bw-space-3);
-  border-radius: var(--bw-radius-pill);
-  font-size: var(--bw-micro);
-  font-weight: 600;
+  padding-block: 3px;
+  padding-inline: var(--bw-space-2);
+  border: 1px solid currentColor;
+  font-size: var(--bw-caption);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-ui);
 }
 
 .bw-status__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: var(--bw-radius-pill);
+  width: 8px;
+  height: 8px;
   background-color: currentColor;
 }
 
 .bw-status--active {
-  background-color: var(--bw-flame-tint);
-  color: var(--bw-flame-deep);
+  border-color: var(--bw-board);
+  background-color: var(--bw-board);
+  color: var(--bw-led);
 }
 
 .bw-status--done {
-  background-color: var(--bw-herb-tint);
-  color: var(--bw-herb);
+  color: var(--bw-ok);
 }
 
 .bw-status--neutral {
-  background-color: var(--bw-ink-tint);
   color: var(--bw-ink-muted);
 }
 
-/* Rating and meta ---------------------------------------------------- */
-
+/* Rating: illustrative (footer), so it stays small and ink-only. */
 .bw-rating {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: var(--bw-caption);
-  font-weight: 600;
-  color: var(--bw-ink);
+  font-weight: 800;
+  font-stretch: var(--bw-wdth-num);
+  font-variant-numeric: tabular-nums;
+  color: inherit;
 }
 
 .bw-rating__star {
-  color: var(--bw-amber);
-  fill: var(--bw-amber);
+  fill: currentColor;
 }
 
 .bw-rating__count {
-  color: var(--bw-ink-muted);
-  font-weight: 400;
+  opacity: 0.8;
+  font-weight: 500;
 }

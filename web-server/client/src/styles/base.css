@@ -1,0 +1,291 @@
+/* Base layer: reset, document defaults, RTL, focus and reduced motion.
+   Loaded once from index.js, after tokens.css. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bw-paper);
+  color: var(--bw-ink);
+  font-family: var(--bw-font-ui);
+  font-size: var(--bw-body);
+  line-height: var(--bw-lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  /* Names, dishes and addresses are typed by people; a word with no
+     break opportunity must still fit the box it is given. */
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: var(--bw-lh-heading);
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--bw-h1);
+}
+
+h2 {
+  font-size: var(--bw-h2);
+}
+
+h3 {
+  font-size: var(--bw-h3);
+  font-weight: 600;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+img {
+  height: auto;
+}
+
+a {
+  color: var(--bw-flame-deep);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* One focus treatment for the whole app. Never removed. */
+:focus-visible {
+  outline: var(--bw-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--bw-radius-xs);
+}
+
+/* Except on <main> itself: it is not a control but the place focus is
+   put after the skip link, a route change or a removed element, and a
+   ring around the whole page says nothing. */
+.bw-app > main:focus-visible {
+  outline: none;
+}
+
+/* Utilities ---------------------------------------------------------- */
+
+.bw-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bw-skip-link {
+  position: absolute;
+  inset-block-start: var(--bw-space-2);
+  inset-inline-start: var(--bw-space-2);
+  z-index: 100;
+  padding: var(--bw-space-3) var(--bw-space-5);
+  border-radius: var(--bw-radius-sm);
+  background-color: var(--bw-ink);
+  color: var(--bw-on-ink);
+  font-weight: 600;
+  transform: translateY(-200%);
+  transition: transform var(--bw-fast) var(--bw-ease);
+}
+
+.bw-skip-link:focus-visible {
+  transform: translateY(0);
+  text-decoration: none;
+}
+
+.bw-page {
+  width: 100%;
+  max-width: var(--bw-content-max);
+  margin-inline: auto;
+  padding-inline: var(--bw-gutter);
+  padding-block: var(--bw-space-7) var(--bw-space-10);
+}
+
+.bw-page--narrow {
+  max-width: 760px;
+}
+
+/* Room for the docked order pill, so the last card on a page is never
+   left sitting underneath it. */
+body.bw-has-dock .bw-page {
+  padding-block-end: var(--bw-space-11);
+}
+
+.bw-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-4);
+}
+
+.bw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-3);
+  justify-content: center;
+}
+
+.bw-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--bw-space-2);
+  margin-block-end: var(--bw-space-6);
+}
+
+.bw-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.bw-app > main {
+  flex: 1;
+}
+
+/* Display type is a deliberate, limited treatment (spec §4.2). */
+.bw-display {
+  font-family: var(--bw-font-display);
+  font-weight: 400;
+  line-height: var(--bw-lh-display);
+  letter-spacing: -0.01em;
+}
+
+/* Numbers are exact (V4 spec §4.2): prices, totals, times and counts are
+   set in the reading face with tabular figures. The display face draws
+   `₪` as a letter pair and uses old-style figures, so it never sets one. */
+.bw-num {
+  font-family: var(--bw-font-ui);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* The parts of the page the browser draws still belong to the design. */
+::selection {
+  background-color: var(--bw-amber);
+  color: var(--bw-on-amber);
+}
+
+html {
+  accent-color: var(--bw-flame);
+  caret-color: var(--bw-flame-deep);
+  scrollbar-color: var(--bw-line) transparent;
+}
+
+/* Text people typed (dish and restaurant names, descriptions) takes its
+   direction from its own first strong character, so a line that starts
+   in English reads in English order inside the Hebrew page, while it
+   stays aligned with the Hebrew around it. */
+.bw-dish__label,
+.bw-dish__description,
+.bw-cart__line-name,
+.bw-restaurant-card__name,
+.bw-restaurant-card__highlights,
+.bw-tracking__item-label,
+.bw-past-order__name,
+.bw-worldcup-dish__name {
+  unicode-bidi: plaintext;
+  text-align: right;
+}
+
+.bw-nowrap {
+  white-space: nowrap;
+}
+
+.bw-order-number {
+  unicode-bidi: isolate;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+
+.bw-meta {
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+  font-weight: 500;
+}
+
+/* Shared motion (V4 spec §7). Every one of these is a response to
+   something the person did; under reduced motion base.css below turns
+   them into instant state changes. */
+@keyframes bw-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes bw-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes bw-bump {
+  50% {
+    transform: scale(1.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

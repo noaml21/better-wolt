@@ -1,77 +1,121 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Button, Field, Icon, InlineMessage, useToast } from '../components/ui';
+import AuthLayout from '../components/auth/AuthLayout';
 
-const LoginPage = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [role, setRole] = useState('customer');
-    const usernameInputRef = useRef(null);
-    const { login } = useAuth();
-    const navigate = useNavigate();
+const highlights = ['משלוחים מכל המסעדות בעיר', 'מעקב אחרי השליח בזמן אמת', 'היסטוריית הזמנות בלחיצה'];
 
-    useEffect(() => {
-        if (usernameInputRef.current) {
-            usernameInputRef.current.focus();
-        }
-    }, []);
+export default function LoginPage() {
+  const [values, setValues] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const usernameRef = useRef(null);
+  const { login, sessionEnded, isAuthenticated } = useAuth();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!username.trim() || !password.trim()) {
-            setError('חובה להזין שם משתמש וסיסמה.');
-            return;
-        }
+  useEffect(() => {
+    usernameRef.current?.focus();
+  }, []);
 
-        setError('');
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
-        try {
-            await login(username, password);
-            navigate('/');
-        } catch (error) {
-            setError('שם משתמש או סיסמה לא נכונים.');
-        }
-    };
+    setValues((current) => ({ ...current, [name]: value }));
+  };
 
-    return (
-        <div className="auth-page">
-            <h2>התחברות 🔐</h2>
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-            {error && <div className="error-message">{error}</div>}
+    if (!values.username.trim() || !values.password) {
+      setError('צריך שם משתמש וסיסמה כדי להיכנס.');
+      return;
+    }
 
-            <form onSubmit={handleSubmit} className="auth-form">
-                <div className="form-group">
-                    <label>שם משתמש</label>
-                    <input
-                        type="text"
-                        ref={usernameInputRef}
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="הזן שם משתמש"
-                        className={error && !username.trim() ? 'input-error' : ''}
-                    />
-                </div>
+    setSubmitting(true);
+    setError('');
 
-                <div className="form-group">
-                    <label>סיסמה</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="הזן סיסמה"
-                        className={error && !password.trim() ? 'input-error' : ''}
-                    />
-                </div>
+    try {
+      const user = await login(values.username, values.password);
 
-                <button type="submit" className="submit-btn">היכנס</button>
-            </form>
+      showToast(`שלום ${user.displayName}`);
+      navigate(location.state?.from || '/');
+    } catch (requestError) {
+      /* 401 gets the friendly line; everything else (429, 400) shows the
+         server's own message, which is contract (ARCHITECTURE §4.3). */
+      setError(
+        requestError.status === 401 ? 'שם המשתמש או הסיסמה אינם נכונים.' : requestError.message
+      );
+      setSubmitting(false);
+    }
+  };
 
-            <p className="auth-switch">
-                עוד אין לך חשבון? <Link to="/register">הירשם כאן</Link>
-            </p>
-        </div>
-    );
-};
+  /* Already signed in — opened directly, or signed in from another tab
+     while this one waited here after a sign-out. Go where the visit was
+     headed. A submit from this page navigates by itself. */
+  if (isAuthenticated && !submitting) {
+    return <Navigate to={location.state?.from || '/'} replace />;
+  }
 
-export default LoginPage;
+  return (
+    <AuthLayout
+      title="כניסה לחשבון"
+      subtitle="עוד רגע אתם מזמינים."
+      footer={
+        <>
+          עוד אין לכם חשבון? <Link to="/register">הרשמה</Link>
+        </>
+      }
+      aside={
+        <>
+          <div className="bw-auth__aside-quote">
+            <strong>האוכל של העיר, אצלכם בדלת.</strong>
+            <span>נכנסים פעם אחת, מזמינים בכל פעם בשתי הקשות.</span>
+          </div>
+
+          <ul className="bw-auth__aside-list">
+            {highlights.map((item) => (
+              <li key={item}>
+                <Icon name="check" size={18} />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </>
+      }
+    >
+      <form className="bw-stack" onSubmit={handleSubmit} noValidate>
+        {error && <InlineMessage>{error}</InlineMessage>}
+        {!error && sessionEnded && (
+          <InlineMessage tone="info">החיבור פג. התחברו שוב כדי להמשיך מאיפה שהייתם.</InlineMessage>
+        )}
+
+        <Field
+          label="שם משתמש"
+          name="username"
+          ref={usernameRef}
+          value={values.username}
+          onChange={handleChange}
+          autoComplete="username"
+          required
+        />
+
+        <Field
+          label="סיסמה"
+          name="password"
+          type="password"
+          value={values.password}
+          onChange={handleChange}
+          autoComplete="current-password"
+          required
+        />
+
+        <Button type="submit" size="lg" fullWidth loading={submitting}>
+          כניסה
+        </Button>
+      </form>
+    </AuthLayout>
+  );
+}

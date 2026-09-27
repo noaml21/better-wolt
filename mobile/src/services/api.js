@@ -3,21 +3,49 @@ const BASE_URL = (
   process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8080/api'
 ).replace(/\/+$/, '');
 
+export const NETWORK_ERROR = 'אין חיבור לשרת. בדקו את החיבור ונסו שוב.';
+
+/* A 401 on a request that carried a token means the session is over,
+   not that this one request failed. AuthContext subscribes and signs out;
+   without it every screen keeps failing under a greeting by name. */
+let unauthorizedHandler = null;
+
+export function onUnauthorized(handler) {
+  unauthorizedHandler = handler;
+
+  return () => {
+    if (unauthorizedHandler === handler) {
+      unauthorizedHandler = null;
+    }
+  };
+}
+
 async function request(endpoint, options = {}, token = null) {
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
+  let response;
 
-      ...(token
-        ? {
-          Authorization: `Bearer ${token}`,
-        }
-        : {}),
+  // fetch() rejects only when no answer arrived at all, with the
+  // platform's own English message ("Network request failed"), which
+  // would otherwise reach a toast or a form as-is.
+  try {
+    response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
 
-      ...options.headers,
-    },
-  });
+        ...(token
+          ? {
+            Authorization: `Bearer ${token}`,
+          }
+          : {}),
+
+        ...options.headers,
+      },
+    });
+  } catch {
+    const error = new Error(NETWORK_ERROR);
+    error.status = 0;
+    throw error;
+  }
 
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;
@@ -31,6 +59,10 @@ async function request(endpoint, options = {}, token = null) {
         message;
     } catch {
       // The server did not return JSON.
+    }
+
+    if (response.status === 401 && token) {
+      unauthorizedHandler?.();
     }
 
     const error = new Error(message);
@@ -106,7 +138,7 @@ export async function getUserOrders(token) {
     return result;
   }
 
-  return result.map(normalizeOrder);
+  return result.map(normalizeEntity);
 }
 
 export async function createRestaurant(token, restaurantData) {
@@ -146,8 +178,6 @@ export function createOrder(token, payload) {
   );
 }
 
-// export const register = (userData) => request('/users', 'POST', userData);
-// export const login = (credentials) => request('/tokens', 'POST', credentials);
 export function register(userData) {
   return request(
     '/users',
@@ -224,10 +254,13 @@ export function deleteProduct(
   );
 }
 
+// Seeded by the server (web-server/src/seed/worldCup.js). The restaurant name
+// and the dish names in WorldCupScreen are part of the API contract
+// (docs/ARCHITECTURE.md §6).
+const WORLD_CUP_RESTAURANT_NAME = 'חגיגת מונדיאל';
+
 export async function getWorldCupRestaurant() {
-  const results = await searchRestaurants(
-    'חגיגת מונדיאל'
-  );
+  const results = await searchRestaurants(WORLD_CUP_RESTAURANT_NAME);
 
   if (!Array.isArray(results)) {
     throw new Error(
@@ -238,8 +271,7 @@ export async function getWorldCupRestaurant() {
   return (
     results.find(
       (restaurant) =>
-        restaurant?.name?.trim() ===
-        'חגיגת מונדיאל'
+        restaurant?.name?.trim() === WORLD_CUP_RESTAURANT_NAME
     ) || null
   );
 }
@@ -272,20 +304,6 @@ function normalizeRestaurant(restaurant) {
   };
 }
 
-function normalizeOrder(order) {
-  const normalized = normalizeEntity(order);
-
-  if (!normalized || typeof normalized !== 'object') {
-    return normalized;
-  }
-
-  return normalized;
-}
-
-function normalizeRestaurantList(result) {
-  if (!Array.isArray(result)) {
-    return result;
-  }
-
-  return result.map(normalizeRestaurant);
+export function getOrderById(token, orderId) {
+  return request(`/orders/${orderId}`, { method: 'GET' }, token);
 }

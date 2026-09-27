@@ -1,229 +1,131 @@
-import React, {
-  useCallback,
-  useState,
-} from 'react';
-
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-import {
-  useFocusEffect,
-} from '@react-navigation/native';
-
-import ProductCard from '../components/ProductCard';
+import React, { useCallback, useRef, useState } from 'react';
+import { Alert, FlatList, Text, TextInput, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createStyles, rtl, space, useTheme } from '../theme';
+import { deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
+import { dishCount, getRestaurantMeta } from '../services/presentation';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-
 import {
-  deleteProduct,
-  deleteRestaurant,
-  getRestaurantById,
-} from '../services/api';
+  Button,
+  EmptyState,
+  ErrorState,
+  Icon,
+  IconButton,
+  Media,
+  MetaItem,
+  Plate,
+  Rating,
+  Screen,
+  Scrim,
+  Skeleton,
+  useToast,
+} from '../ui';
+import CartBar, { CART_BAR_SPACE } from '../components/CartBar';
+import DishRow from '../components/DishRow';
 
-export default function RestaurantDetailsScreen({
-  route,
-  navigation,
-}) {
-  const restaurantId =
-    route?.params?.restaurantId;
+/* One restaurant: the photo, the facts, the menu, and — for the owner —
+   the same menu with edit controls, so it is managed where it is read. */
 
+export default function RestaurantDetailsScreen({ navigation, route }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { user, token } = useAuth();
+  const { showToast } = useToast();
+  const cart = useCart();
 
-  const {
-    addToCart,
-    itemsCount,
-  } = useCart();
+  const restaurantId = route.params?.restaurantId;
+  const [restaurant, setRestaurant] = useState(null);
+  const [status, setStatus] = useState('loading');
+  const [failedImage, setFailedImage] = useState(null);
+  const [menuQuery, setMenuQuery] = useState('');
+  const shown = useRef(false);
 
-  const [restaurant, setRestaurant] =
-    useState(null);
+  /* A silent load keeps what is on screen: a failed re-read leaves the
+     menu as it was instead of replacing it with the error state. */
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setStatus('loading');
+      }
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState('');
-
-  const loadRestaurant = useCallback(
-    async () => {
       try {
-        setLoading(true);
-        setError('');
-
-        if (!restaurantId) {
-          throw new Error(
-            'Restaurant ID is missing'
-          );
+        setRestaurant(await getRestaurantById(restaurantId));
+        setStatus('ready');
+        shown.current = true;
+      } catch (error) {
+        if (silent && error.status !== 404) {
+          return;
         }
 
-        const result =
-          await getRestaurantById(
-            restaurantId
-          );
-
-        if (!result || !result.id) {
-          throw new Error(
-            'Restaurant not found'
-          );
-        }
-
-        setRestaurant(result);
-      } catch (err) {
-        console.error(
-          'Failed to load restaurant:',
-          err
-        );
-
-        setError(
-          err.message ||
-            'לא הצלחנו לטעון את המסעדה.'
-        );
-      } finally {
-        setLoading(false);
+        setStatus(error.status === 404 ? 'missing' : 'error');
       }
     },
     [restaurantId]
   );
 
+  /* Coming back from a dish form should show the change, so the menu is
+     re-read on focus — quietly once it has been shown, so the list is not
+     swapped for a skeleton and the owner keeps their place in it. */
   useFocusEffect(
     useCallback(() => {
-      loadRestaurant();
-    }, [loadRestaurant])
+      load({ silent: shown.current });
+    }, [load])
   );
 
-  function getOwnerUsername(restaurant) {
-  if (!restaurant) {
-    return null;
-  }
+  const isOwner = Boolean(user?.username) && user.username === restaurant?.username;
+  const products = restaurant?.products || [];
+  const cartHasOtherRestaurant = cart.itemsCount > 0 && cart.restaurantId !== String(restaurantId);
 
-  if (restaurant.username) {
-    return restaurant.username;
-  }
-
-  if (restaurant.ownerUsername) {
-    return restaurant.ownerUsername;
-  }
-
-  if (typeof restaurant.owner === 'string') {
-    return restaurant.owner;
-  }
-
-  if (restaurant.owner?.username) {
-    return restaurant.owner.username;
-  }
-
-  if (restaurant.user?.username) {
-    return restaurant.user.username;
-  }
-
-  return null;
-}
-
-  const ownerUsername = getOwnerUsername(restaurant);
-
-  const isOwner =
-    user?.role === 'restaurant' &&
-    user?.username &&
-    ownerUsername &&
-    user.username === ownerUsername;
-
-  const handleAddToCart = (product) => {
-    const added = addToCart(
-      product,
-      restaurant
-    );
-
-    if (!added) {
+  const addToCart = (product) => {
+    if (cartHasOtherRestaurant) {
       Alert.alert(
-        'לא ניתן להוסיף לסל',
-        'הסל מכיל פריטים ממסעדה אחרת. יש לנקות אותו לפני הוספת פריטים ממסעדה חדשה.'
+        'להתחיל סל חדש?',
+        `בסל יש כבר מנות מ${cart.restaurant?.name}. הוספת מנה מכאן תחליף אותן.`,
+        [
+          { text: 'ביטול', style: 'cancel' },
+          {
+            text: 'סל חדש',
+            style: 'destructive',
+            onPress: () => {
+              cart.addItem(product, restaurant);
+              showToast(`${product.name} נוספה לסל`);
+            },
+          },
+        ]
       );
 
       return;
     }
 
+    cart.addItem(product, restaurant);
+  };
+
+  const removeRestaurant = () => {
     Alert.alert(
-      'נוסף לסל',
-      `${product.name} נוסף לסל.`
-    );
-  };
-
-  const openCart = () => {
-    navigation?.navigate('Cart');
-  };
-
-  const openRestaurantEdit = () => {
-    navigation?.navigate(
-      'RestaurantForm',
-      {
-        restaurant,
-      }
-    );
-  };
-
-  const openCreateProduct = () => {
-    navigation?.navigate(
-      'ProductForm',
-      {
-        restaurantId: restaurant.id,
-      }
-    );
-  };
-
-  const openProductEdit = (product) => {
-    navigation?.navigate(
-      'ProductForm',
-      {
-        restaurantId: restaurant.id,
-        product,
-      }
-    );
-  };
-
-  const handleDeleteRestaurant = () => {
-    Alert.alert(
-      'מחיקת מסעדה',
-      'האם את בטוחה שברצונך למחוק את המסעדה?',
+      `לסגור את ${restaurant.name}?`,
+      'המסעדה והתפריט שלה יימחקו. אי אפשר לבטל את הפעולה.',
       [
+        { text: 'ביטול', style: 'cancel' },
         {
-          text: 'ביטול',
-          style: 'cancel',
-        },
-        {
-          text: 'מחיקה',
+          text: 'סגירת המסעדה',
           style: 'destructive',
           onPress: async () => {
             try {
-              await deleteRestaurant(
-                token,
-                restaurant.id
-              );
+              await deleteRestaurant(token, restaurant.id);
+              showToast('המסעדה נסגרה');
+              navigation.navigate('Tabs', { screen: 'Home' }, { pop: true });
+            } catch (error) {
+              // Closed already, on another device: what was asked for.
+              if (error.status === 404) {
+                showToast('המסעדה כבר נסגרה');
+                navigation.navigate('Tabs', { screen: 'Home' }, { pop: true });
+                return;
+              }
 
-              Alert.alert(
-                'המסעדה נמחקה',
-                'המסעדה נמחקה בהצלחה.'
-              );
-
-              navigation?.navigate('Home');
-            } catch (err) {
-              console.error(
-                'Failed to delete restaurant:',
-                err
-              );
-
-              Alert.alert(
-                'המחיקה נכשלה',
-                err.message ||
-                  'לא הצלחנו למחוק את המסעדה.'
-              );
+              showToast(error.message, { tone: 'error' });
             }
           },
         },
@@ -231,448 +133,306 @@ export default function RestaurantDetailsScreen({
     );
   };
 
-  const handleDeleteProduct = (
-    product
-  ) => {
-    Alert.alert(
-      'מחיקת מנה',
-      `האם למחוק את ${product.name}?`,
-      [
-        {
-          text: 'ביטול',
-          style: 'cancel',
-        },
-        {
-          text: 'מחיקה',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteProduct(
-                token,
-                restaurant.id,
-                product.id
-              );
-
-              Alert.alert(
-                'המנה נמחקה',
-                'המנה הוסרה מהתפריט.'
-              );
-
-              await loadRestaurant();
-            } catch (err) {
-              console.error(
-                'Failed to delete product:',
-                err
-              );
-
-              Alert.alert(
-                'המחיקה נכשלה',
-                err.message ||
-                  'לא הצלחנו למחוק את המנה.'
-              );
+  const removeProduct = (product) => {
+    Alert.alert(`למחוק את ${product.name}?`, 'המנה תוסר מהתפריט. הזמנות קודמות לא משתנות.', [
+      { text: 'ביטול', style: 'cancel' },
+      {
+        text: 'מחיקה',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteProduct(token, restaurant.id, product.id);
+            await load({ silent: true });
+            showToast(`${product.name} הוסרה מהתפריט`);
+          } catch (error) {
+            // Gone already: the menu on screen is what is stale.
+            if (error.status === 404) {
+              await load({ silent: true });
+              showToast(`${product.name} כבר לא בתפריט`);
+              return;
             }
-          },
+
+            showToast(error.message, { tone: 'error' });
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
-  if (loading) {
+  if (status === 'loading') {
     return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <ActivityIndicator size="large" />
+      <Screen topInset={false}>
+        <Skeleton height={230} radius="lg" style={styles.heroSkeleton} />
 
-        <Text style={styles.message}>
-          טוען מסעדה...
-        </Text>
-      </SafeAreaView>
+        <View style={styles.skeletonBody}>
+          <Skeleton width="55%" height={26} />
+          <Skeleton width="80%" height={14} />
+          <Skeleton height={76} radius="md" />
+          <Skeleton height={76} radius="md" />
+        </View>
+      </Screen>
     );
   }
 
-  if (error) {
+  if (status !== 'ready') {
     return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <Text style={styles.errorTitle}>
-          לא ניתן לטעון את המסעדה
-        </Text>
+      <Screen>
+        <View style={styles.backRow}>
+          <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />
+        </View>
 
-        <Text style={styles.message}>
-          {error}
-        </Text>
-
-        <Pressable
-          style={styles.retryButton}
-          onPress={loadRestaurant}
-        >
-          <Text style={styles.retryText}>
-            נסי שוב
-          </Text>
-        </Pressable>
-      </SafeAreaView>
+        {status === 'missing' ? (
+          <EmptyState
+            icon="store"
+            title="המסעדה הזו לא נמצאה"
+            description="ייתכן שהיא נסגרה או שהקישור שגוי."
+            actionLabel="לכל המסעדות"
+            onAction={() => navigation.navigate('Tabs', { screen: 'Home' }, { pop: true })}
+          />
+        ) : (
+          <ErrorState description="לא הצלחנו להביא את פרטי המסעדה." onRetry={() => load()} />
+        )}
+      </Screen>
     );
   }
 
-  const products = Array.isArray(
-    restaurant?.products
-  )
-    ? restaurant.products
-    : [];
+  const meta = getRestaurantMeta(restaurant);
+  const showCartBar = !isOwner && cart.itemsCount > 0 && cart.restaurantId === String(restaurant.id);
+
+  const hasPhoto = Boolean(restaurant.image) && failedImage !== restaurant.image;
+  /* Finding one dish in a long menu (V4 audit A3): the API has no
+     categories, so the menu can be narrowed by what is typed instead.
+     Same threshold and matching as the web client. */
+  const filterable = products.length > 8;
+  const term = menuQuery.trim().toLowerCase();
+  const shownProducts =
+    filterable && term
+      ? products.filter((product) => `${product.name} ${product.description || ''}`.toLowerCase().includes(term))
+      : products;
+
+  const header = (
+    <View>
+      {/* The name is set on the food, over a scrim; without a photo the
+          plate's tint takes the frame and the name sits on it in ink
+          (V4 spec §4.4). */}
+      <View style={styles.hero}>
+        <Media
+          uri={restaurant.image}
+          style={styles.heroImage}
+          onFail={setFailedImage}
+          fallback={<Plate restaurant={restaurant} showWord={false} />}
+        />
+        {hasPhoto ? <Scrim id="restaurant-hero" /> : null}
+
+        <Text style={[styles.heroName, !hasPhoto && styles.heroNamePlate]} accessibilityRole="header">
+          {restaurant.name}
+        </Text>
+
+        <View style={[styles.heroBack, { top: insets.top + 8 }]}>
+          <IconButton icon="forward" label="חזרה" variant="outline" onPress={navigation.goBack} />
+        </View>
+      </View>
+
+      <View style={styles.facts}>
+        <View style={styles.factsRow}>
+          <Rating value={meta.rating} />
+          <MetaItem icon="clock">{meta.eta} דק׳</MetaItem>
+          <MetaItem icon="scooter" tone={meta.isFreeDelivery ? 'herb' : undefined}>
+            {meta.deliveryLabel}
+          </MetaItem>
+        </View>
+        {restaurant.address ? <MetaItem icon="location">{restaurant.address}</MetaItem> : null}
+        {restaurant.phone ? <MetaItem icon="phone">{restaurant.phone}</MetaItem> : null}
+      </View>
+
+      {isOwner ? (
+        <View style={styles.owner}>
+          <View style={styles.ownerLabel}>
+            <Icon name="store" size={18} color={colors.ink} />
+            <Text style={styles.ownerTitle}>ניהול המסעדה</Text>
+          </View>
+
+          <View style={styles.ownerActions}>
+            <Button
+              size="sm"
+              icon="plus"
+              onPress={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
+            >
+              הוספת מנה
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              icon="edit"
+              onPress={() => navigation.navigate('RestaurantForm', { restaurant })}
+            >
+              עריכת פרטים
+            </Button>
+            <Button size="sm" variant="danger" icon="trash" onPress={removeRestaurant}>
+              סגירה
+            </Button>
+          </View>
+        </View>
+      ) : null}
+
+      <View style={styles.menuHeader}>
+        <View style={styles.menuText}>
+          <Text style={styles.menuTitle}>התפריט</Text>
+          {products.length ? <Text style={styles.menuCount}>{dishCount(products.length)}</Text> : null}
+        </View>
+      </View>
+
+      {filterable ? (
+        <View style={styles.filter}>
+          <Icon name="search" size={18} color={colors.inkMuted} />
+          <TextInput
+            value={menuQuery}
+            onChangeText={setMenuQuery}
+            placeholder="חיפוש בתפריט"
+            placeholderTextColor={colors.inkMuted}
+            accessibilityLabel="חיפוש בתפריט"
+            returnKeyType="search"
+            style={styles.filterInput}
+          />
+          {menuQuery ? (
+            <IconButton icon="close" label="ניקוי החיפוש" size={16} onPress={() => setMenuQuery('')} />
+          ) : null}
+        </View>
+      ) : null}
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <Screen topInset={false}>
       <FlatList
-        data={products}
-        keyExtractor={(item) =>
-          String(item.id)
+        data={shownProducts}
+        keyExtractor={(product) => String(product.id)}
+        ListHeaderComponent={header}
+        keyboardShouldPersistTaps="handled"
+        ListEmptyComponent={
+          products.length > 0 ? (
+            <EmptyState
+              icon="search"
+              title={`אין בתפריט מנה שמתאימה ל"${menuQuery.trim()}"`}
+              description="נסו מילה אחרת, או חזרו לתפריט המלא."
+              actionLabel="לתפריט המלא"
+              onAction={() => setMenuQuery('')}
+            />
+          ) : (
+            <EmptyState
+              icon="bag"
+              title="התפריט עוד ריק"
+              description={
+                isOwner
+                  ? 'הוסיפו את המנה הראשונה והיא תופיע כאן ללקוחות.'
+                  : 'המסעדה עוד לא פרסמה מנות. שווה לבדוק שוב מאוחר יותר.'
+              }
+              actionLabel={isOwner ? 'הוספת מנה' : undefined}
+              onAction={() => navigation.navigate('ProductForm', { restaurantId: restaurant.id })}
+            />
+          )
         }
-        renderItem={({ item }) => (
-          <ProductCard
+        renderItem={({ item, index }) => (
+          <DishRow
+            first={index === 0}
+            last={index === shownProducts.length - 1}
             product={item}
+            quantity={cart.restaurantId === String(restaurant.id) ? cart.quantities[item.id] || 0 : 0}
+            onAdd={addToCart}
+            onRemove={(product) => cart.decreaseItem(product.id)}
             isOwner={isOwner}
-            onAddToCart={
-              handleAddToCart
+            onEdit={(product) =>
+              navigation.navigate('ProductForm', { restaurantId: restaurant.id, product })
             }
-            onEdit={openProductEdit}
-            onDelete={
-              handleDeleteProduct
-            }
+            onDelete={removeProduct}
           />
         )}
         contentContainerStyle={[
           styles.list,
-          products.length === 0 &&
-            styles.emptyList,
+          { paddingBottom: (showCartBar ? CART_BAR_SPACE : space[4]) + insets.bottom },
         ]}
-        showsVerticalScrollIndicator={
-          false
-        }
-        ListHeaderComponent={
-          <View style={styles.header}>
-            {restaurant.image ? (
-              <Image
-                source={{
-                  uri: restaurant?.image,
-                }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-            ) : (
-              <View
-                style={
-                  styles.imagePlaceholder
-                }
-              >
-                <Text
-                  style={
-                    styles.placeholderText
-                  }
-                >
-                  אין תמונה זמינה
-                </Text>
-              </View>
-            )}
-
-            <View
-              style={styles.restaurantInfo}
-            >
-              <Text
-                style={
-                  styles.restaurantName
-                }
-              >
-                {restaurant.name}
-              </Text>
-
-              {restaurant.address ? (
-                <Text
-                  style={
-                    styles.restaurantDetail
-                  }
-                >
-                  {restaurant.address}
-                </Text>
-              ) : null}
-
-              {restaurant.phone ? (
-                <Text
-                  style={
-                    styles.restaurantDetail
-                  }
-                >
-                  {restaurant.phone}
-                </Text>
-              ) : null}
-            </View>
-
-            {isOwner ? (
-              <View
-                style={styles.ownerActions}
-              >
-                <Pressable
-                  style={styles.editButton}
-                  onPress={
-                    openRestaurantEdit
-                  }
-                >
-                  <Text
-                    style={
-                      styles.editButtonText
-                    }
-                  >
-                    עריכת מסעדה
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  style={
-                    styles.deleteButton
-                  }
-                  onPress={
-                    handleDeleteRestaurant
-                  }
-                >
-                  <Text
-                    style={
-                      styles.deleteButtonText
-                    }
-                  >
-                    מחיקת מסעדה
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  style={
-                    styles.addProductButton
-                  }
-                  onPress={
-                    openCreateProduct
-                  }
-                >
-                  <Text
-                    style={
-                      styles.addProductText
-                    }
-                  >
-                    הוספת מנה
-                  </Text>
-                </Pressable>
-              </View>
-            ) : (
-              <Pressable
-                style={styles.cartButton}
-                onPress={openCart}
-              >
-                <Text
-                  style={
-                    styles.cartButtonText
-                  }
-                >
-                  מעבר לסל ({itemsCount})
-                </Text>
-              </Pressable>
-            )}
-
-            <Text style={styles.menuTitle}>
-              תפריט
-            </Text>
-          </View>
-        }
-        ListEmptyComponent={
-          <View
-            style={styles.emptyContainer}
-          >
-            <Text style={styles.emptyTitle}>
-              אין מנות במסעדה
-            </Text>
-
-            <Text style={styles.message}>
-              המסעדה עדיין לא הוסיפה מנות
-              לתפריט.
-            </Text>
-          </View>
-        }
+        showsVerticalScrollIndicator={false}
       />
-    </SafeAreaView>
+
+      {showCartBar ? (
+        <CartBar
+          itemsCount={cart.itemsCount}
+          subtotal={cart.subtotal}
+          onPress={() => navigation.navigate('Tabs', { screen: 'Cart' }, { pop: true })}
+        />
+      ) : null}
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
+const useStyles = createStyles(({ colors, space, radius, type, shadow }) => ({
+  list: { paddingHorizontal: space[4] },
+  heroSkeleton: { marginBottom: space[5] },
+  skeletonBody: { gap: space[4], paddingHorizontal: space[4] },
+  backRow: { ...rtl.row, paddingHorizontal: space[4] },
 
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-
-  emptyList: {
-    flexGrow: 1,
-  },
-
-  header: {
-    marginBottom: 18,
-  },
-
-  image: {
-    width: '100%',
-    height: 220,
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-  },
-
-  imagePlaceholder: {
-    width: '100%',
-    height: 220,
-    alignItems: 'center',
+  hero: {
+    height: 250,
+    marginHorizontal: -space[4],
+    backgroundColor: colors.sunken,
     justifyContent: 'center',
-    borderBottomLeftRadius: 18,
-    borderBottomRightRadius: 18,
-    backgroundColor: '#E7E2EA',
+    overflow: 'hidden',
   },
-
-  placeholderText: {
-    fontSize: 14,
-    color: '#777777',
+  heroImage: { width: '100%', height: '100%' },
+  heroName: {
+    ...type.h1,
+    ...rtl.text,
+    position: 'absolute',
+    right: space[4],
+    left: space[4],
+    bottom: space[4],
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: '900',
+    color: '#FFFFFF',
   },
+  heroNamePlate: { color: colors.ink, fontSize: 36, lineHeight: 42 },
+  heroBack: { position: 'absolute', right: space[4] },
 
-  restaurantInfo: {
-    paddingTop: 20,
+  facts: { gap: space[2], marginTop: space[4], alignItems: 'flex-end' },
+  factsRow: { ...rtl.row, flexWrap: 'wrap', alignItems: 'center', gap: space[4] },
+
+  owner: {
+    gap: space[3],
+    marginTop: space[5],
+    padding: space[4],
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  ownerLabel: { ...rtl.row, alignItems: 'center', gap: space[2] },
+  ownerTitle: { ...type.bodyL, fontWeight: '700', color: colors.ink },
+  ownerActions: { ...rtl.row, flexWrap: 'wrap', gap: space[2] },
+
+  filter: {
+    ...rtl.row,
+    alignItems: 'center',
+    gap: space[2],
+    minHeight: 48,
+    marginBottom: space[4],
+    paddingHorizontal: space[4],
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.surface,
+  },
+  filterInput: { ...type.body, ...rtl.text, flex: 1, minHeight: 44, color: colors.ink },
+  menuHeader: {
+    ...rtl.row,
     alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: space[3],
+    marginTop: space[7],
+    marginBottom: space[4],
   },
+  menuText: { flex: 1, gap: 2 },
+  menuTitle: { ...type.h2, ...rtl.text, color: colors.ink },
+  menuCount: { ...type.caption, ...rtl.text, color: colors.inkMuted },
 
-  restaurantName: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  restaurantDetail: {
-    marginTop: 7,
-    fontSize: 15,
-    color: '#666666',
-    textAlign: 'right',
-  },
-
-  cartButton: {
-    marginTop: 18,
-    paddingVertical: 13,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  cartButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  ownerActions: {
-    marginTop: 18,
-  },
-
-  editButton: {
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#EFE4F2',
-  },
-
-  editButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#542163',
-  },
-
-  deleteButton: {
-    marginTop: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#FBE6EA',
-  },
-
-  deleteButtonText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#A02E49',
-  },
-
-  addProductButton: {
-    marginTop: 10,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  addProductText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  menuTitle: {
-    marginTop: 25,
-    fontSize: 23,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  centerContainer: {
-    flex: 1,
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F7F4FA',
-  },
-
-  message: {
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: 'center',
-    color: '#666666',
-  },
-
-  errorTitle: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#351440',
-  },
-
-  retryButton: {
-    marginTop: 22,
-    paddingHorizontal: 25,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  retryText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  emptyContainer: {
-    flex: 1,
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#351440',
-  },
-});
+}));

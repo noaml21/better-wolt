@@ -1,360 +1,283 @@
 import React, { useState } from 'react';
-import {
-    ScrollView,
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    Alert,
-    ActivityIndicator,
-    Image,
-} from 'react-native';
-import { register } from '../services/api';
+import { Image, Pressable, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
+import { createStyles, rtl } from '../theme';
+import { register } from '../services/api';
+import { AuthScaffold, Button, Chip, Field, Icon, InlineMessage, useToast } from '../ui';
+
+/* Registration. Every rule the server enforces is checked here too, so
+   the answer arrives before the round trip — and the server's own
+   message is what shows when it refuses anyway (ARCHITECTURE §4.3). */
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const roles = [
+  { key: 'customer', label: 'להזמין אוכל' },
+  { key: 'restaurant', label: 'לפתוח מסעדה' },
+];
+
 export default function RegisterScreen({ navigation }) {
-    const [formData, setFormData] = useState({
-        username: '',
-        displayName: '',
-        email: '',
-        password: '',
-        confirm: '',
-        address: '',
-        role: 'customer'
-    });
+  const styles = useStyles();
+  const { showToast } = useToast();
+  const [values, setValues] = useState({
+    username: '',
+    displayName: '',
+    email: '',
+    password: '',
+    confirm: '',
+    address: '',
+    role: 'customer',
+  });
+  const [image, setImage] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const change = (name) => (value) => {
+    setValues((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: undefined }));
+  };
 
-    // toDo : add picture
-    const [preview, setPreview] = useState(null);
+  const pickImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    const handleChange = (name, value) => {
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-    const handleImageChange = async () => {
-        try {
-            // 1. בקשת הרשאות לגשת לגלריה
-            const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showToast('אין לנו גישה לגלריה. אפשר להמשיך בלי תמונה.', { tone: 'error' });
 
-            if (permissionResult.granted === false) {
-                Alert.alert("שגיאה", "נראה שסירבת לתת גישה לגלריה. לא נוכל להעלות תמונה.");
-                return;
-            }
+      return;
+    }
 
-            // 2. פתיחת הגלריה
-            const pickerResult = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ['images'],
-                allowsEditing: true,
-                aspect: [1, 1],
-                quality: 0.5,
-            });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
 
-            // 3. אם המשתמש בחר תמונה (לא ביטל), נשמור את הנתיב שלה
-            if (!pickerResult.canceled && pickerResult.assets && pickerResult.assets.length > 0) {
-                setPreview(pickerResult.assets[0].uri);
-            }
-        } catch (err) {
-            console.error("Image picker error: ", err);
-        }
-    };
+      if (!result.canceled && result.assets?.length) {
+        setImage(result.assets[0].uri);
+      }
+    } catch {
+      showToast('לא הצלחנו לפתוח את הגלריה. אפשר להמשיך בלי תמונה.', { tone: 'error' });
+    }
+  };
 
-    const handleSubmit = async () => {
-        const { username, displayName, email, password, confirm, address, role } = formData;
+  const validate = () => {
+    const next = {};
 
-        // ולידציות
-        if (!username.trim() || !displayName.trim() || !email.trim() || !password || !confirm || !address.trim()) {
-            return setError('יש למלא את כל שדות החובה 🙃');
-        }
-        if (password.length < 8 || !/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
-            return setError('הסיסמה חייבת להכיל לפחות 8 תווים, כולל אות וספרה.');
-        }
-        if (password !== confirm) {
-            return setError('הסיסמאות אינן תואמות.');
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email.trim())) {
-            return setError('מבנה כתובת האימייל אינו תקין.');
-        }
-        setError('');
-        setIsLoading(true);
-        try {
-            // הכנת התמונה לשרת (הפיכה ל-Base64 כפי שהיה ב-Web)
-            let base64Image = '';
-            if (preview) {
-                try {
-                    const base64 = await FileSystem.readAsStringAsync(preview, { encoding: FileSystem.EncodingType.Base64 });
-                    base64Image = `data:image/jpeg;base64,${base64}`;
-                } catch (fsError) {
-                    console.error("File system error: ", fsError);
-                }
-            }
+    if (!values.username.trim()) next.username = 'שדה חובה';
+    if (!values.displayName.trim()) next.displayName = 'שדה חובה';
+    if (!values.address.trim()) next.address = 'שדה חובה';
+    /* An empty field is missing, not malformed — telling someone their
+       blank email is "invalid" is the wrong complaint. */
+    if (!values.email.trim()) {
+      next.email = 'שדה חובה';
+    } else if (!emailPattern.test(values.email.trim())) {
+      next.email = 'כתובת אימייל לא תקינה';
+    }
 
-            const payload = {
-                username: username.trim(),
-                displayName: displayName.trim(),
-                email: email.trim(),
-                password,
-                address: address.trim(),
-                image: base64Image,
-                role
-            };
+    if (values.password.length < 8 || !/\d/.test(values.password) || !/[a-zA-Z]/.test(values.password)) {
+      next.password = 'לפחות 8 תווים, עם אות וספרה';
+    }
 
-            await register(payload);
+    if (!values.confirm) {
+      next.confirm = 'שדה חובה';
+    } else if (values.password !== values.confirm) {
+      next.confirm = 'הסיסמאות אינן תואמות';
+    }
 
-            Alert.alert('איזה כיף!', 'הרשמה עברה בהצלחה! מעביר להתחברות...', [
-                { text: 'המשך', onPress: () => navigation.navigate('Login') }
-            ]);
+    setErrors(next);
 
-        } catch (err) {
-            setError('ההרשמה נכשלה: ' + (err?.message || 'שגיאה לא ידועה'));
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    return Object.keys(next).length === 0;
+  };
 
-    return (
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-            <Text style={styles.title}>הרשמה למערכת 📝</Text>
+  const submit = async () => {
+    setError('');
 
-            {error !== '' && (
-                <View style={styles.errorContainer}>
-                    <Text style={styles.errorText}>{error}</Text>
-                </View>
-            )}
+    if (!validate()) {
+      return;
+    }
 
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>שם משתמש</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.username}
-                    onChangeText={(text) => handleChange('username', text)}
-                    placeholder="בחר שם משתמש"
-                    autoCapitalize="none"
-                />
-            </View>
+    setSubmitting(true);
 
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>שם תצוגה</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.displayName}
-                    onChangeText={(text) => handleChange('displayName', text)}
-                    placeholder="איך תרצה שנקרא לך?"
-                />
-            </View>
+    try {
+      let encodedImage = '';
 
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>כתובת אימייל</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.email}
-                    onChangeText={(text) => handleChange('email', text)}
-                    placeholder="הזן אימייל"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                />
-            </View>
+      if (image) {
+        const base64 = await FileSystem.readAsStringAsync(image, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
 
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>כתובת משלוח</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.address}
-                    onChangeText={(text) => handleChange('address', text)}
-                    placeholder="הזן כתובת מלאה"
-                />
-            </View>
+        encodedImage = `data:image/jpeg;base64,${base64}`;
+      }
 
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>סיסמה</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.password}
-                    onChangeText={(text) => handleChange('password', text)}
-                    placeholder="8 תווים, אות וספרה"
-                    secureTextEntry
-                />
-            </View>
+      await register({
+        username: values.username.trim(),
+        displayName: values.displayName.trim(),
+        email: values.email.trim(),
+        password: values.password,
+        address: values.address.trim(),
+        image: encodedImage,
+        role: values.role,
+      });
 
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>אימות סיסמה</Text>
-                <TextInput
-                    style={styles.input}
-                    value={formData.confirm}
-                    onChangeText={(text) => handleChange('confirm', text)}
-                    placeholder="הקלד סיסמה שוב"
-                    secureTextEntry
-                />
-            </View>
-            <View style={styles.formGroup}>
-                <Text style={styles.label}>אני נרשמ/ת בתור:</Text>
-                <View style={styles.radioContainer}>
-                    <TouchableOpacity
-                        style={[styles.radioBtn, formData.role === 'customer' && styles.radioBtnActive]}
-                        onPress={() => handleChange('role', 'customer')}
-                    >
-                        <Text style={[styles.radioText, formData.role === 'customer' && styles.radioTextActive]}>
-                            לקוח
-                        </Text>
-                    </TouchableOpacity>
+      showToast('נרשמתם. אפשר להתחבר.');
+      navigation.navigate('Login', undefined, { pop: true });
+    } catch (requestError) {
+      setError(requestError.message);
+      setSubmitting(false);
+    }
+  };
 
-                    <TouchableOpacity
-                        style={[styles.radioBtn, formData.role === 'restaurant' && styles.radioBtnActive]}
-                        onPress={() => handleChange('role', 'restaurant')}
-                    >
-                        <Text style={[styles.radioText, formData.role === 'restaurant' && styles.radioTextActive]}>
-                            בעל מסעדה
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+  return (
+    <AuthScaffold
+      title="פתיחת חשבון"
+      subtitle="דקה, ואתם בפנים."
+      footer={
+        <>
+          <Text style={styles.footerText}>כבר יש לכם חשבון?</Text>
+          <Pressable onPress={() => navigation.goBack()} accessibilityRole="link" hitSlop={8}>
+            <Text style={styles.footerLink}>התחברות</Text>
+          </Pressable>
+        </>
+      }
+    >
+      {error ? <InlineMessage>{error}</InlineMessage> : null}
 
-            <View style={[styles.formGroup, { alignItems: 'center' }]}>
-                <TouchableOpacity style={styles.imageBtn} onPress={handleImageChange}>
-                    <Text style={styles.imageBtnText}>📸 בחר תמונת פרופיל</Text>
-                </TouchableOpacity>
-                {preview && (
-                    <View style={styles.previewContainer}>
-                        <Image source={{ uri: preview }} style={styles.previewImage} />
-                    </View>
-                )}
-            </View>
+      <View style={styles.roles}>
+        <Text style={styles.rolesLabel}>מה אתם רוצים לעשות כאן?</Text>
 
+        <View style={styles.roleChips}>
+          {roles.map((role) => (
+            <Chip
+              key={role.key}
+              selected={values.role === role.key}
+              onPress={() => change('role')(role.key)}
+            >
+              {role.label}
+            </Chip>
+          ))}
+        </View>
+      </View>
 
-            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={isLoading}>
-                {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>צור חשבון</Text>}
-            </TouchableOpacity>
+      <Pressable
+        onPress={pickImage}
+        accessibilityRole="button"
+        accessibilityLabel={image ? 'החלפת תמונת הפרופיל' : 'הוספת תמונת פרופיל'}
+        style={({ pressed }) => [styles.avatarRow, pressed && styles.pressed]}
+      >
+        <View style={styles.avatar}>
+          {image ? (
+            <Image source={{ uri: image }} style={styles.avatarImage} />
+          ) : (
+            <Icon name="user" size={24} color={styles.avatarGlyph.color} />
+          )}
+        </View>
 
-            <View style={styles.authSwitch}>
-                <Text style={styles.authSwitchText}>כבר יש לך חשבון? </Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                    <Text style={styles.linkText}>היכנס כאן</Text>
-                </TouchableOpacity>
-            </View>
-            <View style={{ height: 40 }} />
-        </ScrollView>
-    );
+        <View style={styles.avatarText}>
+          <Text style={styles.avatarTitle}>{image ? 'תמונה נבחרה' : 'תמונת פרופיל'}</Text>
+          <Text style={styles.avatarHint}>לא חובה.</Text>
+        </View>
+      </Pressable>
+
+      <Field
+        label="שם משתמש"
+        value={values.username}
+        onChangeText={change('username')}
+        error={errors.username}
+        autoCapitalize="none"
+        autoCorrect={false}
+        required
+      />
+
+      <Field
+        label="שם מלא"
+        value={values.displayName}
+        onChangeText={change('displayName')}
+        error={errors.displayName}
+        required
+      />
+
+      <Field
+        label="אימייל"
+        value={values.email}
+        onChangeText={change('email')}
+        error={errors.email}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        required
+      />
+
+      <Field
+        label="כתובת למשלוח"
+        value={values.address}
+        onChangeText={change('address')}
+        error={errors.address}
+        required
+      />
+
+      <Field
+        label="סיסמה"
+        value={values.password}
+        onChangeText={change('password')}
+        error={errors.password}
+        hint="לפחות 8 תווים, עם אות וספרה"
+        secureTextEntry
+        autoCapitalize="none"
+        required
+      />
+
+      <Field
+        label="אימות סיסמה"
+        value={values.confirm}
+        onChangeText={change('confirm')}
+        error={errors.confirm}
+        secureTextEntry
+        autoCapitalize="none"
+        onSubmitEditing={submit}
+        returnKeyType="go"
+        required
+      />
+
+      <Button size="lg" fullWidth loading={submitting} onPress={submit}>
+        יצירת חשבון
+      </Button>
+    </AuthScaffold>
+  );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexGrow: 1,
-        padding: 20,
-        backgroundColor: '#f5f5f5',
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 20,
-        marginTop: 20,
-        color: '#000000',
-    },
-    formGroup: {
-        marginBottom: 15,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 8,
-        color: '#010001',
-        fontWeight: '500',
-    },
-    input: {
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        padding: 12,
-        borderRadius: 8,
-        fontSize: 16,
-    },
-    errorContainer: {
-        backgroundColor: '#f50404',
-        padding: 10,
-        borderRadius: 8,
-        marginBottom: 20,
-    },
-    errorText: {
-        fontWeight: 'bold',
-        color: 'white',
-        textAlign: 'center',
-    },
-    radioContainer: {
-        flexDirection: 'row',
-        gap: 15,
-        marginTop: 5,
-    },
-    radioBtn: {
-        flex: 1,
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        alignItems: 'center',
-        backgroundColor: '#fff',
-    },
-    radioBtnActive: {
-        borderColor: '#750786',
-        backgroundColor: '#f7ddff',
-    },
-    radioText: {
-        color: '#555',
-        fontSize: 16,
-    },
-    radioTextActive: {
-        color: '#a600e8',
-        fontWeight: 'bold',
-    },
-    imageBtn: {
-        backgroundColor: '#8d338e',
-        padding: 12,
-        borderRadius: 8,
-        width: '100%',
-        alignItems: 'center',
-    },
-    imageBtnText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    submitBtn: {
-        backgroundColor: '#510671',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 15,
-    },
-    submitBtnText: {
-        color: '#ffffff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    authSwitch: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 20,
-    },
-    authSwitchText: {
-        fontSize: 16,
-        color: '#555',
-    },
-    linkText: {
-        fontSize: 16,
-        color: '#560464',
-        fontWeight: 'bold',
-    },
-    logoutButton: {
-        marginTop: 12,
-        paddingVertical: 11,
-        alignItems: 'center',
-        borderRadius: 12,
-        backgroundColor: '#FBE6EA',
-    },
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
+  footerText: { ...type.body, color: colors.onInk, opacity: 0.8 },
+  footerLink: { ...type.body, color: colors.amber, fontWeight: '800' },
 
-    logoutButtonText: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#A02E49',
-    },
-});
+  roles: { gap: space[2] },
+  rolesLabel: { ...type.caption, ...rtl.text, color: colors.ink, fontWeight: '700' },
+  roleChips: { ...rtl.row, gap: space[2] },
+
+  avatarRow: {
+    ...rtl.row,
+    alignItems: 'center',
+    gap: space[3],
+    padding: space[3],
+    borderRadius: radius.md,
+    backgroundColor: colors.sunken,
+  },
+  pressed: { opacity: 0.9 },
+  avatar: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  avatarImage: { width: '100%', height: '100%' },
+  avatarGlyph: { color: colors.inkMuted },
+  avatarText: { flex: 1, gap: 2 },
+  avatarTitle: { ...type.body, ...rtl.text, color: colors.ink, fontWeight: '700' },
+  avatarHint: { ...type.caption, ...rtl.text, color: colors.inkMuted },
+}));

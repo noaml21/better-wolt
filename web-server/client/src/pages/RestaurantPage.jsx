@@ -1,390 +1,381 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { deleteProduct, deleteRestaurant, getRestaurantById } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import RestaurantMenu from '../components/RestaurantMenu';
-import Toast from '../components/Toast';
-import { addProduct, updateProduct, deleteProduct, updateRestaurant, deleteRestaurant, createOrder, getRestaurantById } from '../services/api';
+import useMenuCart from '../hooks/useMenuCart';
+import usePlaceOrder from '../hooks/usePlaceOrder';
+import { dishCount } from '../services/counts';
+import {
+  Button,
+  ConfirmDialog,
+  Dialog,
+  EmptyState,
+  ErrorState,
+  SectionHeader,
+  useToast,
+} from '../components/ui';
+import RestaurantHero, { RestaurantHeroSkeleton } from '../components/restaurant/RestaurantHero';
+import DishRow from '../components/restaurant/DishRow';
+import MenuFilter, { MENU_FILTER_THRESHOLD, matchesDish } from '../components/restaurant/MenuFilter';
+import OwnerPanel from '../components/owner/OwnerPanel';
+import CartPanel, { CartBar } from '../components/restaurant/CartPanel';
+import RestaurantFormDialog from '../components/owner/RestaurantFormDialog';
+import ProductFormDialog from '../components/owner/ProductFormDialog';
+import './RestaurantPage.css';
 
-const RestaurantPage = () => {
-    const handleCreateProduct = async (e) => {
-        e.preventDefault();
+export default function RestaurantPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const { showToast } = useToast();
+  const cart = useMenuCart();
 
-        try {
-            const productData = {
-                name: newProduct.name,
-                description: newProduct.description,
-                price: Number(newProduct.price)
-            };
+  const [restaurant, setRestaurant] = useState(null);
+  const [status, setStatus] = useState('loading');
+  const [cartOpen, setCartOpen] = useState(false);
+  const [editingRestaurant, setEditingRestaurant] = useState(false);
+  const [productDialog, setProductDialog] = useState({ open: false, product: null });
+  const [confirm, setConfirm] = useState(null);
+  const [removing, setRemoving] = useState(false);
+  const [menuQuery, setMenuQuery] = useState('');
 
-            if (editingProduct) {
-                await updateProduct(id, editingProduct.id, productData);
+  /* Moving between restaurants without a reload means two requests can
+     be in flight; only the newest one may write, or a slow answer for
+     the restaurant you just left replaces the one you are reading. */
+  const latestRequest = useRef(0);
 
-                setRestaurant(prev => ({
-                    ...prev,
-                    products: (prev.products || []).map(product =>
-                        String(product.id) === String(editingProduct.id)
-                            ? { ...product, ...productData, id: editingProduct.id }
-                            : product
-                    )
-                }));
+  /* `refresh` re-reads the restaurant after the owner changed it. The
+     page stays on screen while it does: dropping to the skeleton would
+     unmount the menu, throw away the scroll position halfway down a long
+     menu, and lose the element keyboard focus returns to. A failed
+     refresh leaves the page as it was and says so; the change itself
+     has already been saved. */
+  const load = useCallback(
+    async ({ refresh = false, failureMessage = 'השינוי נשמר, אבל לא הצלחנו לרענן את העמוד.' } = {}) => {
+      const request = latestRequest.current + 1;
 
-                setToast({ message: 'המנה עודכנה בהצלחה!', type: 'success' });
-            } else {
-                const createdProduct = await addProduct(id, productData);
+      latestRequest.current = request;
 
-                setRestaurant(prev => ({
-                    ...prev,
-                    products: [...(prev.products || []), createdProduct]
-                }));
+      if (!refresh) {
+        setStatus('loading');
+      }
 
-                setToast({ message: 'מנה נוספה בהצלחה!', type: 'success' });
-            }
+      try {
+        const data = await getRestaurantById(id);
 
-            setIsProductModalOpen(false);
-            setEditingProduct(null);
-            setNewProduct({
-                name: "",
-                description: "",
-                price: ""
-            });
-
-        } catch (error) {
-            console.error("שגיאה בשמירת מנה:", error);
-            setToast({ message: 'שגיאה בשמירת מנה', type: 'error' });
+        if (latestRequest.current !== request) {
+          return;
         }
-    };
 
-    const handleDeleteProduct = async (productId) => {
-        if (!window.confirm("למחוק את המנה הזו מהתפריט?")) return;
+        setRestaurant(data);
+        setStatus('ready');
 
-        try {
-            await deleteProduct(id, productId);
-
-            setRestaurant(prev => ({
-                ...prev,
-                products: (prev.products || []).filter(product =>
-                    String(product.id) !== String(productId)
-                )
-            }));
-
-            setToast({ message: 'המנה נמחקה!', type: 'success' });
-            // כאן כדאי לרענן את הנתונים מהשרת או לעדכן את state המסעדה
-        } catch (error) {
-            console.error("שגיאה במחיקה:", error);
-            setToast({ message: 'שגיאה במחיקת המנה', type: 'error' });
+        return data;
+      } catch (error) {
+        if (latestRequest.current !== request) {
+          return;
         }
-    };
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuth();
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [restaurant, setRestaurant] = useState(null);
-    const [cart, setCart] = useState([]);
-    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-    const [newProduct, setNewProduct] = useState({
-        name: "",
-        description: "",
-        price: ""
+
+        if (refresh && error.status !== 404) {
+          if (failureMessage) {
+            showToast(failureMessage, { tone: 'error' });
+          }
+
+          return;
+        }
+
+        setStatus(error.status === 404 ? 'missing' : 'error');
+      }
+    },
+    [id, showToast]
+  );
+
+  const refresh = useCallback(() => load({ refresh: true }), [load]);
+
+  useEffect(() => {
+    load();
+    setMenuQuery('');
+  }, [load]);
+
+  const isOwner = isAuthenticated && user?.username === restaurant?.username;
+
+  /* Owner dialogs belong to the owner. If the account changes while one is
+     open (signing out, or in, from another tab), it closes: left open it
+     would send the next account's token with the owner's edit. */
+  useEffect(() => {
+    if (!isOwner) {
+      setEditingRestaurant(false);
+      setProductDialog((current) => (current.open ? { open: false, product: null } : current));
+      setConfirm(null);
+    }
+  }, [isOwner]);
+
+  const {
+    placing,
+    placeOrder: handlePlaceOrder,
+    problem: orderProblem,
+    dismissProblem,
+  } = usePlaceOrder({
+    restaurantId: restaurant?.id,
+    cart,
+    from: `/restaurant/${id}`,
+    onPlaced: () => setCartOpen(false),
+    /* The order named a dish that is gone, or the restaurant is. Nothing
+       was ordered; show the menu as it is now (a closed restaurant turns
+       the page into its "not found" state), take the missing dishes out
+       of the cart and say which, so the next attempt can succeed. The
+       explanation is returned, and the cart shows it beside itself. */
+    onMenuChanged: async () => {
+      const fresh = await load({ refresh: true, failureMessage: null });
+
+      if (!fresh) {
+        return 'התפריט השתנה ולא הצלחנו לטעון אותו מחדש. רעננו את העמוד ונסו שוב.';
+      }
+
+      const onMenu = new Set((fresh.products || []).map((product) => product.id));
+      const gone = cart.lines.filter((line) => !onMenu.has(line.id));
+
+      cart.keepOnly(onMenu);
+
+      return gone.length === 0
+        ? 'התפריט השתנה. בדקו את הסל ונסו שוב.'
+        : gone.length === 1
+          ? `המנה "${gone[0].name}" כבר לא בתפריט והוסרה מהסל. בדקו את הסל ונסו שוב.`
+          : `${gone.length} מנות כבר לא בתפריט והוסרו מהסל. בדקו את הסל ונסו שוב.`;
+    },
+  });
+
+  const handleDeleteRestaurant = async () => {
+    setRemoving(true);
+
+    try {
+      await deleteRestaurant(restaurant.id);
+      showToast('המסעדה נסגרה');
+      navigate('/');
+    } catch (error) {
+      // Closed already (another tab, another device): what was asked for.
+      if (error.status === 404) {
+        showToast('המסעדה כבר נסגרה');
+        navigate('/');
+        return;
+      }
+
+      showToast(error.message, { tone: 'error' });
+      setRemoving(false);
+      setConfirm(null);
+    }
+  };
+
+  const handleDeleteProduct = async (product) => {
+    setRemoving(true);
+
+    try {
+      await deleteProduct(restaurant.id, product.id);
+      await refresh();
+      showToast(`${product.name} הוסרה מהתפריט`);
+    } catch (error) {
+      /* Gone already — removed in another tab or with its restaurant. The
+         menu on screen is what is stale, not the request: re-read it. */
+      if (error.status === 404) {
+        await refresh();
+        showToast(`${product.name} כבר לא בתפריט`);
+        return;
+      }
+
+      showToast(error.message, { tone: 'error' });
+    } finally {
+      setRemoving(false);
+      setConfirm(null);
+    }
+  };
+
+  if (status === 'loading') {
+    return (
+      <div className="bw-page">
+        <RestaurantHeroSkeleton />
+      </div>
+    );
+  }
+
+  if (status === 'missing') {
+    return (
+      <div className="bw-page bw-page--narrow">
+        <EmptyState
+          level={1}
+          icon="store"
+          title="המסעדה הזו לא נמצאה"
+          description="ייתכן שהיא נסגרה או שהקישור שגוי."
+          action={<Button onClick={() => navigate('/restaurants')}>לכל המסעדות</Button>}
+        />
+      </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="bw-page bw-page--narrow">
+        <ErrorState level={1} description="לא הצלחנו להביא את פרטי המסעדה." onRetry={() => load()} />
+      </div>
+    );
+  }
+
+  const products = restaurant.products || [];
+  const filterable = products.length > MENU_FILTER_THRESHOLD;
+  const shownProducts = filterable ? products.filter((product) => matchesDish(product, menuQuery)) : products;
+  const openAddDish = () => setProductDialog({ open: true, product: null });
+  const confirmClose = () =>
+    setConfirm({
+      title: `לסגור את ${restaurant.name}?`,
+      description: 'המסעדה והתפריט שלה יימחקו. אי אפשר לבטל את הפעולה.',
+      confirmLabel: 'סגירת המסעדה',
+      onConfirm: handleDeleteRestaurant,
     });
 
-    const [editingProduct, setEditingProduct] = useState(null);
+  return (
+    <div className="bw-page bw-restaurant-page">
+      <RestaurantHero restaurant={restaurant} />
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setNewProduct(prev => ({ ...prev, [name]: value }));
-    };
-
-    const openEditProductModal = (product) => {
-        setEditingProduct(product);
-
-        setNewProduct({
-            name: product.name || '',
-            description: product.description || '',
-            price: product.price || ''
-        });
-
-        setIsProductModalOpen(true);
-    };
-
-    // State חדש שמנהל את ה-Toast (מכיל את ההודעה והסוג שלה)
-    const [toast, setToast] = useState({ message: '', type: '' });
-
-    useEffect(() => {
-        const fetchRestaurant = async () => {
-            try {
-                const data = await getRestaurantById(id);
-                setRestaurant(data);
-            } catch (error) {
-                console.error("שגיאה בטעינת מסעדה:", error);
-                setToast({ message: 'לא הצלחנו לטעון את המסעדה', type: 'error' });
-            }
-        };
-
-        fetchRestaurant();
-    }, [id]);
-
-    const handleAddToCart = (product) => {
-        setCart((prevCart) => [...prevCart, product]);
-        // מקפיצים Toast בכל פעם שפריט נוסף לסל!
-        setToast({ message: `🍔 ${product.name} נוסף לסל!`, type: 'success' });
-    };
-    const handleEditSubmit = async (e) => {
-        e.preventDefault(); // עוצר את רענון הדף
-        try {
-            await updateRestaurant(id, restaurant);
-            setIsEditModalOpen(false);
-            setToast({ message: 'המסעדה עודכנה בהצלחה! ✏️', type: 'success' });
-        } catch (error) {
-            console.error("שגיאה בעדכון:", error);
-            setToast({ message: 'שגיאה בעדכון המסעדה', type: 'error' });
-        }
-    };
-    const handleDelete = async () => {
-        if (!window.confirm("האם אתה בטוח שברצונך למחוק מסעדה זו? הפעולה בלתי הפיכה.")) return;
-
-        try {
-            await deleteRestaurant(id);
-            navigate('/');
-        } catch (error) {
-            console.error("שגיאה במחיקה:", error);
-        }
-    };
-
-    const handleRemoveFromCart = (indexToRemove) => {
-        setCart((prevCart) => prevCart.filter((_, index) => index !== indexToRemove));
-    };
-
-    const handlePlaceOrder = () => {
-        if (cart.length === 0) return;
-
-        if (!isAuthenticated) {
-            setToast({ message: 'עליך להתחבר כדי לבצע הזמנה 🔒', type: 'error' });
-            setTimeout(() => navigate('/login'), 1500);
-            return;
-        }
-
-        const productQuantities = cart.reduce((quantities, item) => {
-            const productId = String(item.id);
-
-            quantities.set(productId, (quantities.get(productId) || 0) + 1);
-            return quantities;
-        }, new Map());
-
-        const orderData = {
-            restaurant: restaurant.id,
-            products: Array.from(productQuantities, ([productId, quantity]) => ({
-                id: productId,
-                quantity
-            }))
-        };
-
-        createOrder(orderData)
-            .then((createdOrder) => {
-                setCart([]);
-                navigate(`/tracking/${createdOrder.id}`);
-            })
-            .catch((error) => {
-                console.error("שגיאה ביצירת הזמנה:", error);
-                setToast({ message: 'שגיאה ביצירת הזמנה', type: 'error' });
-            });
-    };
-    if (!restaurant) {
-        return <div className="page-content">טוען נתונים...</div>;
-    }
-
-    const totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
-    const isOwner = isAuthenticated && user?.username === restaurant?.username;
-
-    return (
-        <div className="page-content">
-            <div className="restaurant-header">
-                {restaurant.image && (
-                    <img
-                        src={restaurant.image}
-                        alt={restaurant.name}
-                        style={{
-                            width: '100%',
-                            maxHeight: '260px',
-                            objectFit: 'cover',
-                            borderRadius: '16px',
-                            marginBottom: '16px'
-                        }}
-                    />
-                )}
-
-                <h2>{restaurant.name}</h2>
-                <p>{restaurant.description}</p>
-                {isOwner && (
-                    <div className="admin-actions">
-                        <button className="edit-btn" onClick={() => setIsEditModalOpen(true)}>✏️ ערוך מסעדה</button>
-                        <button className="delete-btn" onClick={handleDelete}>🗑️ מחק מסעדה</button>
-                    </div>
-                )}
-            </div>
-
-            <div className="restaurant-layout">
-                <div className="menu-section">
-                    <h3>תפריט המסעדה</h3>
-                    <RestaurantMenu products={restaurant.products} onAddToCart={handleAddToCart} />
-                </div>
-
-                <div className="cart-sidebar">
-                    <h3>הסל שלי 🛒</h3>
-                    {cart.length === 0 ? (
-                        <p>הסל כרגע ריק.</p>
-                    ) : (
-                        <>
-                            <ul className="cart-items">
-                                {cart.map((item, index) => (
-                                    <li key={index} className="cart-item">
-                                        <span>{item.name}</span>
-                                        <div className="cart-item-actions">
-                                            <span className="cart-item-price">₪{item.price}</span>
-                                            <button className="remove-btn" onClick={() => handleRemoveFromCart(index)}>❌</button>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <div className="cart-summary">
-                                <div className="cart-total">
-                                    <span>סה"כ לתשלום:</span>
-                                    <strong>₪{totalPrice}</strong>
-                                </div>
-                                <button className="place-order-btn" onClick={handlePlaceOrder}>
-                                    בצע הזמנה
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-            {isEditModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>✏️ עריכת פרטי מסעדה</h3>
-                        <form onSubmit={handleEditSubmit}>
-                            <label>שם המסעדה:</label>
-                            <input
-                                type="text"
-                                value={restaurant.name}
-                                onChange={(e) => setRestaurant({ ...restaurant, name: e.target.value })}
-                                required
-                            />
-
-                            <label>תיאור המסעדה:</label>
-                            <input
-                                type="text"
-                                value={restaurant.description}
-                                onChange={(e) => setRestaurant({ ...restaurant, description: e.target.value })}
-                            />
-                            <label>מחיר (₪):</label>
-                            <input
-                                type="number"
-                                name="price"
-                                value={newProduct.price}
-                                onChange={handleChange}
-                            />
-                        </form>
-                    </div>
-                </div>
-            )}
-            {isProductModalOpen && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>{editingProduct ? '✏️ עריכת מנה' : '🍴 ניהול תפריט'}</h3>
-
-                        {/* 1. רשימת המנות הקיימות עם כפתור מחיקה */}
-                        <ul className="admin-menu-list">
-                            {(restaurant.products || []).map((product) => (
-                                <li
-                                    key={product.id}
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        gap: '10px'
-                                    }}
-                                >
-                                    <span>{product.name} - ₪{product.price}</span>
-
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button
-                                            type="button"
-                                            className="edit-btn"
-                                            onClick={() => openEditProductModal(product)}
-                                        >
-                                            ✏️ ערוך
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteProduct(product.id)}
-                                        >
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-
-                        <hr />
-
-                        {/* 2. הטופס להוספת מנה חדשה */}
-                        <form onSubmit={handleCreateProduct}>
-                            <label>שם המנה:</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={newProduct.name}
-                                onChange={handleChange}
-                            />
-                            <label>תיאור המנה:</label>
-                            <input
-                                type="text"
-                                name="description"
-                                value={newProduct.description}
-                                onChange={handleChange}
-                            />
-                            <input
-                                type="number"
-                                name="price"
-                                value={newProduct.price}
-                                onChange={handleChange}
-                            />
-                            <button type="submit">
-                                {editingProduct ? 'שמור שינויים' : 'הוסף מנה'}
-                            </button>
-                            <button type="button" onClick={() => setIsProductModalOpen(false)}>סגור</button>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* 3. הכפתור שפותח את המודאל */}
-            {isOwner && (
-                <div className="editMenu">
-                    <button
-                        type="button"
-                        className="cancel-btn"
-                        onClick={() => {
-                            setEditingProduct(null);
-                            setNewProduct({ name: "", description: "", price: "" });
-                            setIsProductModalOpen(true);
-                        }}
-                    >
-                        ערוך תפריט
-                    </button>
-                </div>
-            )}
-            {/* קומפוננטת ה-Toast שלנו מרחפת מעל הכל */}
-            <Toast
-                message={toast.message}
-                type={toast.type}
-                onClose={() => setToast({ message: '', type: '' })}
+      <div className={`bw-restaurant-page__layout ${isOwner ? 'bw-restaurant-page__layout--owner' : ''}`}>
+        {/* First in the DOM for the owner: the tools come before the menu
+            they act on, in reading order and in tab order. */}
+        {isOwner && (
+          <aside className="bw-restaurant-page__side">
+            <OwnerPanel
+              products={products}
+              onAddDish={openAddDish}
+              onEdit={() => setEditingRestaurant(true)}
+              onDelete={confirmClose}
             />
-        </div>
-    );
-};
+          </aside>
+        )}
 
-export default RestaurantPage;
+        <section className="bw-restaurant-page__menu" aria-labelledby="bw-menu-title">
+          <SectionHeader
+            id="bw-menu-title"
+            title="התפריט"
+            description={products.length ? dishCount(products.length) : undefined}
+          />
+
+          {filterable && (
+            <MenuFilter
+              value={menuQuery}
+              onChange={setMenuQuery}
+              resultLabel={shownProducts.length ? `${dishCount(shownProducts.length)} מתאימות` : 'אין מנה מתאימה'}
+            />
+          )}
+
+          {products.length === 0 ? (
+            <EmptyState
+              icon="bag"
+              title="התפריט עוד ריק"
+              description={
+                isOwner
+                  ? 'הוסיפו את המנה הראשונה והיא תופיע כאן ללקוחות.'
+                  : 'המסעדה עוד לא פרסמה מנות. שווה לבדוק שוב מאוחר יותר.'
+              }
+              action={
+                isOwner && <Button onClick={openAddDish}>הוספת מנה</Button>
+              }
+            />
+          ) : shownProducts.length === 0 ? (
+            <EmptyState
+              icon="search"
+              title={`אין בתפריט מנה שמתאימה ל"${menuQuery.trim()}"`}
+              description="נסו מילה אחרת, או חזרו לתפריט המלא."
+              action={
+                <Button variant="secondary" onClick={() => setMenuQuery('')}>
+                  לתפריט המלא
+                </Button>
+              }
+            />
+          ) : (
+            <ul className="bw-menu-list">
+              {shownProducts.map((product) => (
+                <DishRow
+                  key={product.id}
+                  product={product}
+                  quantity={cart.quantities[product.id] || 0}
+                  onAdd={cart.addItem}
+                  onRemove={cart.removeItem}
+                  isOwner={isOwner}
+                  onEdit={(selected) => setProductDialog({ open: true, product: selected })}
+                  onDelete={(selected) =>
+                    setConfirm({
+                      title: `למחוק את ${selected.name}?`,
+                      description: 'המנה תוסר מהתפריט. הזמנות קודמות לא משתנות.',
+                      onConfirm: () => handleDeleteProduct(selected),
+                    })
+                  }
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {!isOwner && (
+          <aside className="bw-restaurant-page__side bw-restaurant-page__cart">
+            <CartPanel
+              lines={cart.lines}
+              itemCount={cart.itemCount}
+              subtotal={cart.subtotal}
+              onAdd={cart.addItem}
+              onRemove={cart.removeItem}
+              onPlaceOrder={handlePlaceOrder}
+              placing={placing}
+              restaurantName={restaurant.name}
+              problem={orderProblem}
+              onDismissProblem={dismissProblem}
+            />
+          </aside>
+        )}
+      </div>
+
+      {!isOwner && (
+        <>
+          <CartBar itemCount={cart.itemCount} subtotal={cart.subtotal} onOpen={() => setCartOpen(true)} />
+
+          <Dialog open={cartOpen} onClose={() => setCartOpen(false)} title="הסל שלי">
+            <CartPanel
+              variant="sheet"
+              lines={cart.lines}
+              itemCount={cart.itemCount}
+              subtotal={cart.subtotal}
+              onAdd={cart.addItem}
+              onRemove={cart.removeItem}
+              onPlaceOrder={handlePlaceOrder}
+              placing={placing}
+              restaurantName={restaurant.name}
+              problem={orderProblem}
+              onDismissProblem={dismissProblem}
+            />
+          </Dialog>
+        </>
+      )}
+
+      <RestaurantFormDialog
+        open={editingRestaurant}
+        restaurant={restaurant}
+        onClose={() => setEditingRestaurant(false)}
+        onSaved={refresh}
+      />
+
+      <ProductFormDialog
+        open={productDialog.open}
+        product={productDialog.product}
+        restaurantId={restaurant.id}
+        onClose={() => setProductDialog({ open: false, product: null })}
+        onSaved={refresh}
+      />
+
+      <ConfirmDialog
+        open={Boolean(confirm)}
+        title={confirm?.title}
+        description={confirm?.description}
+        confirmLabel={confirm?.confirmLabel}
+        loading={removing}
+        onClose={() => setConfirm(null)}
+        onConfirm={() => confirm?.onConfirm()}
+      />
+    </div>
+  );
+}

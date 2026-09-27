@@ -1,0 +1,34 @@
+.bw-image-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-4);
+  margin: 0;
+}
+
+.bw-image-preview__frame {
+  flex-shrink: 0;
+  width: 128px;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: var(--bw-radius-sm);
+  background-color: var(--bw-sunken);
+}
+
+.bw-image-preview__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bw-image-preview__frame .bw-plate {
+  padding: var(--bw-space-2);
+}
+
+.bw-image-preview__frame .bw-plate__word {
+  font-size: 1.125rem;
+}
+
+.bw-image-preview__caption {
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+}

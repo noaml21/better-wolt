@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Better Wolt",
+  "name": "Better Wolt — משלוחי אוכל",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,8 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#1f1330",
+  "background_color": "#fbf7f3",
+  "lang": "he",
+  "dir": "rtl"
 }

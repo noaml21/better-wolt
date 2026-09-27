@@ -1,6 +1,6 @@
 # Starts Expo/Metro dev server inside Docker.
 # This does not create a native iOS/Android binary.
-FROM node:20-bookworm-slim
+FROM node:24-bookworm-slim
 
 WORKDIR /app
 

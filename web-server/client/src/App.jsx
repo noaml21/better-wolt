@@ -1,60 +1,94 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import Navbar from './components/Navbar';
+import { ToastProvider } from './components/ui';
+import TopBar from './components/layout/TopBar';
+import AppFooter from './components/layout/AppFooter';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import RestaurantPage from './pages/RestaurantPage';
-import OrdersPage from './pages/OrdersPage';
 import ActiveOrderWidget from './components/ActiveOrderWidget';
-import OrderTrackingPage from './pages/OrderTrackingPage';
-import SearchResultsPage from './pages/searchResultPage';
-import './App.css';
-import './services/api'
-
 import HomePage from './pages/HomePage';
 import RestaurantsPage from './pages/RestaurantsPage';
+import RestaurantPage from './pages/RestaurantPage';
+import SearchResultsPage from './pages/SearchResultsPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import OrdersPage from './pages/OrdersPage';
+import WorldCupPage from './pages/WorldCupPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
+import NotFoundPage from './pages/NotFoundPage';
 
+/* A route change swaps the page under the element that had focus, which
+   leaves the keyboard on <body> and tells a screen reader nothing. Focus
+   moves to <main> instead, from where Tab starts at the new page's top.
+   Rendered before the page, so a page that places focus itself (the login
+   form's first field) still has the last word. Not on first load, and not
+   when only the query changes (typing a new search). */
+function RouteFocus() {
+  const { pathname } = useLocation();
+  const firstRender = useRef(true);
 
-function App() {
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+
+    document.getElementById('main')?.focus({ preventScroll: true });
+  }, [pathname]);
+
+  return null;
+}
+
+export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <div className="app-container">
-            <Navbar />
-            <ActiveOrderWidget />
-            <main>
-              <Routes>
-                {/* ראוט 1: דף הבית (הכותרת הגדולה בלבד) */}
-                <Route path="/" element={<HomePage />} />
-                
-                {/* ראוט 2: דף המסעדות (אליו הכפתור יעביר אותנו) */}
-                <Route path="/restaurants" element={<RestaurantsPage />} />
-                
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/restaurant/:id" element={<RestaurantPage />} />
-                <Route path="/search" element={<SearchResultsPage />} />
-                <Route path="/tracking/:orderId" element={
-                  <ProtectedRoute>
-                    <OrderTrackingPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/orders" element={
-                  <ProtectedRoute>
-                    <OrdersPage />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-            </main>
-          </div>
-        </BrowserRouter>
+        <ToastProvider>
+          <BrowserRouter>
+            <div className="bw-app">
+              <RouteFocus />
+              <a className="bw-skip-link" href="#main">
+                דילוג לתוכן הראשי
+              </a>
+
+              <TopBar />
+
+              <main id="main" tabIndex={-1}>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/restaurants" element={<RestaurantsPage />} />
+                  <Route path="/restaurant/:id" element={<RestaurantPage />} />
+                  <Route path="/search" element={<SearchResultsPage />} />
+                  <Route path="/world-cup" element={<WorldCupPage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route
+                    path="/orders"
+                    element={
+                      <ProtectedRoute>
+                        <OrdersPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/tracking/:orderId"
+                    element={
+                      <ProtectedRoute>
+                        <OrderTrackingPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Routes>
+              </main>
+
+              <AppFooter />
+              <ActiveOrderWidget />
+            </div>
+          </BrowserRouter>
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );
 }
-
-export default App;

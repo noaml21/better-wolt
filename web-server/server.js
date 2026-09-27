@@ -1,18 +1,17 @@
 require('dotenv').config();
 
 const app = require('./src/app');
-const connectDB = require('./src/config/db');
-const seedWorldCupRestaurant = require('./src/services/seedWorldCupRestaurant');
-
-const PORT = process.env.PORT || 8080;
+const config = require('./src/config');
+const connectDB = require('./src/db');
+const seedWorldCupRestaurant = require('./src/seed/worldCup');
 
 async function startServer() {
     try {
         await connectDB();
         await seedWorldCupRestaurant();
 
-        app.listen(PORT, () => {
-            console.log(`Ex3 web server running on port ${PORT}`);
+        app.listen(config.port, () => {
+            console.log(`Better Wolt API listening on port ${config.port}`);
         });
     } catch (error) {
         console.error('Failed to start server:', error.message);

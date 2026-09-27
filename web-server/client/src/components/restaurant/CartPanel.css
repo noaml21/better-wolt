@@ -1,0 +1,301 @@
+.bw-cart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-4);
+}
+
+.bw-cart:focus {
+  outline: none;
+}
+
+.bw-cart--panel {
+  position: sticky;
+  inset-block-start: calc(var(--bw-topbar-height) + var(--bw-space-5));
+  padding: var(--bw-space-6);
+  border: 1px solid var(--bw-line);
+  border-radius: var(--bw-radius-lg);
+  background-color: var(--bw-surface);
+}
+
+.bw-cart__title {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-2);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.bw-cart__count {
+  animation: bw-bump 200ms var(--bw-ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding-inline: 7px;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-flame);
+  color: var(--bw-on-flame);
+  font-size: var(--bw-micro);
+  font-weight: 700;
+}
+
+.bw-cart__from {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-block-start: 2px;
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.bw-cart__empty {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+}
+
+.bw-cart__empty-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-sunken);
+  color: var(--bw-ink-muted);
+}
+
+.bw-cart__lines {
+  display: flex;
+  flex-direction: column;
+  max-height: 44vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.bw-cart__line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+  padding-block: var(--bw-space-3);
+  border-block-end: 1px solid var(--bw-line);
+}
+
+/* A dish added from the menu arrives in the panel beside it. Not in the
+   sheet, which slides in whole. */
+.bw-cart--panel .bw-cart__line {
+  animation: bw-rise-in var(--bw-base) var(--bw-ease);
+}
+
+.bw-cart__line:first-child {
+  padding-block-start: 0;
+}
+
+.bw-cart__line:last-child {
+  border-block-end: 0;
+  padding-block-end: 0;
+}
+
+.bw-cart__line-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bw-cart__line-name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  unicode-bidi: isolate;
+}
+
+.bw-cart__line-price {
+  color: var(--bw-ink);
+  font-size: var(--bw-caption);
+  font-weight: 600;
+}
+
+.bw-cart__line-unit {
+  color: var(--bw-ink-muted);
+  font-weight: 500;
+}
+
+.bw-cart__summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-3);
+  padding-block-start: var(--bw-space-4);
+  border-block-start: 1px solid var(--bw-line);
+}
+
+.bw-cart__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.bw-cart__total strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.bw-cart__note {
+  color: var(--bw-ink-muted);
+  font-size: var(--bw-caption);
+}
+
+/* A refused order stays beside the cart until it is dealt with. */
+.bw-cart__problem {
+  animation: bw-rise-in var(--bw-base) var(--bw-ease);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: var(--bw-space-2);
+  padding: var(--bw-space-3);
+  border-radius: var(--bw-radius-sm);
+  background-color: var(--bw-danger-tint);
+  color: var(--bw-danger);
+  font-size: var(--bw-caption);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.bw-cart__problem > svg {
+  margin-block-start: 1px;
+}
+
+.bw-cart__problem p {
+  overflow-wrap: anywhere;
+}
+
+.bw-cart__problem strong {
+  font-weight: 700;
+}
+
+.bw-cart__problem-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px;
+  border: 0;
+  border-radius: var(--bw-radius-pill);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.bw-cart__problem-close:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+/* The primary action carries the amount it commits to. */
+.bw-cart__cta .bw-button__content {
+  width: 100%;
+}
+
+.bw-cart__cta .bw-button__label {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--bw-space-3);
+}
+
+/* Each half stays whole; a very large total moves to its own line
+   rather than breaking the action's name. */
+.bw-cart__cta .bw-button__label > span {
+  white-space: nowrap;
+}
+
+.bw-cart__cta-total {
+  font-weight: 700;
+}
+
+/* Compact widths: a docked bar that opens the cart as a sheet. */
+
+.bw-cart-bar {
+  display: none;
+  animation: bw-cart-bar-in 260ms var(--bw-ease-drawer);
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: 55;
+  padding: var(--bw-space-3) var(--bw-gutter);
+  padding-block-end: calc(var(--bw-space-3) + env(safe-area-inset-bottom));
+  background-color: var(--bw-surface);
+  border-block-start: 1px solid var(--bw-line);
+  box-shadow: var(--bw-e3);
+}
+
+.bw-cart-bar__button {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-space-3);
+  width: 100%;
+  max-width: 560px;
+  min-height: 52px;
+  margin-inline: auto;
+  padding-inline: var(--bw-space-4);
+  border: 0;
+  border-radius: var(--bw-radius-pill);
+  background-color: var(--bw-flame);
+  color: var(--bw-on-flame);
+  font-weight: 700;
+}
+
+.bw-cart-bar__button:hover {
+  background-color: var(--bw-flame-deep);
+}
+
+.bw-cart-bar__count {
+  animation: bw-bump 200ms var(--bw-ease);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: var(--bw-radius-pill);
+  background-color: rgba(255, 255, 255, 0.24);
+  font-size: var(--bw-caption);
+}
+
+.bw-cart-bar__label {
+  flex: 1;
+  text-align: start;
+}
+
+/* The docked bar exists only where the cart panel does not. */
+@media (max-width: 1099px) {
+  .bw-cart-bar {
+    display: block;
+  }
+}
+
+.bw-cart--sheet {
+  gap: var(--bw-space-4);
+}
+
+.bw-cart--sheet .bw-cart__title {
+  display: none;
+}
+
+/* The bar comes up from the edge it lives on, the first time a dish goes
+   into the cart. */
+@keyframes bw-cart-bar-in {
+  from {
+    transform: translateY(100%);
+  }
+}

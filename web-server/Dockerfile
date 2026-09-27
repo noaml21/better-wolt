@@ -1,7 +1,7 @@
 # Builds the React web client, then runs the Node/Express API server.
 # The Express server also serves client/build for the web application.
 
-FROM node:20-bookworm-slim AS web-build
+FROM node:24-bookworm-slim AS web-build
 WORKDIR /app/client
 
 COPY client/package*.json ./
@@ -11,7 +11,7 @@ COPY client/ ./
 RUN npm run build
 
 
-FROM node:20-bookworm-slim AS backend
+FROM node:24-bookworm-slim AS backend
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -19,10 +19,18 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-COPY server.js ./
-COPY src ./src
-COPY --from=web-build /app/client/build ./client/build
+# Application files are owned by the unprivileged `node` user from the base
+# image, and the server runs as that user.
+COPY --chown=node:node server.js ./
+COPY --chown=node:node src ./src
+COPY --chown=node:node --from=web-build /app/client/build ./client/build
+
+USER node
 
 EXPOSE 8080
+
+# The slim image has no curl; use node's own fetch.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD node -e "fetch('http://127.0.0.1:8080/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
 
 CMD ["npm", "start"]

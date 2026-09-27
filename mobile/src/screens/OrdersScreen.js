@@ -1,533 +1,303 @@
-import React, {
-  useCallback,
-  useState,
-} from 'react';
-
+import React, { useCallback, useRef, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { createStyles, rtl, useTheme } from '../theme';
+import { getUserOrders } from '../services/api';
 import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-
-import {
-  useFocusEffect,
-} from '@react-navigation/native';
-
-import OrderCard from '../components/OrderCard';
+  formatClock,
+  formatOrderDay,
+  formatOrderNumber,
+  getArrivalTime,
+  getSecondsLeft,
+  isActive,
+  itemCount,
+  orderCount,
+  summariseItems,
+} from '../services/presentation';
 import { useAuth } from '../context/AuthContext';
-
 import {
-  getRestaurantById,
-  getUserOrders,
-} from '../services/api';
+  Card,
+  EmptyState,
+  ErrorState,
+  Icon,
+  Screen,
+  ScreenHeader,
+  Skeleton,
+  formatPrice,
+} from '../ui';
 
-function getRestaurantId(order) {
-  const restaurant = order?.restaurant;
+/* Order history. The newest order is the one you just placed, so the
+   list is reversed. Orders on their way come first, on a night row with
+   the time they should arrive; the rest are grouped by day, each day one
+   hairline list, and every past order leads to its receipt or back to
+   the restaurant (docs/V4_DESIGN_SPEC.md §6). The sections are flattened
+   into one FlatList so the list stays virtualised. */
 
-  if (
-    restaurant &&
-    typeof restaurant === 'object'
-  ) {
-    const id =
-      restaurant.id || restaurant._id;
+function toRows(orders) {
+  const rows = [];
+  const active = orders.filter(isActive);
+  const past = orders.filter((order) => !isActive(order));
 
-    return id ? String(id) : null;
+  if (active.length) {
+    rows.push({ key: 'h-active', type: 'heading', title: 'בדרך אליכם' });
+    active.forEach((order) => rows.push({ key: order.id, type: 'active', order }));
   }
 
-  if (
-    restaurant === undefined ||
-    restaurant === null ||
-    restaurant === ''
-  ) {
-    return null;
+  if (past.length) {
+    rows.push({ key: 'h-past', type: 'heading', title: 'הזמנות קודמות' });
+
+    past.forEach((order, index) => {
+      const previous = past[index - 1];
+      const next = past[index + 1];
+      const first = !previous || previous.date !== order.date;
+      const last = !next || next.date !== order.date;
+
+      if (first) {
+        rows.push({ key: `d-${order.date}-${index}`, type: 'day', title: formatOrderDay(order.date) });
+      }
+
+      rows.push({ key: order.id, type: 'past', order, first, last });
+    });
   }
 
-  return String(restaurant);
+  return rows;
 }
 
-function isMongoId(value) {
-  return /^[a-f0-9]{24}$/i.test(
-    String(value || '')
-  );
-}
+export default function OrdersScreen({ navigation }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { token } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [refreshing, setRefreshing] = useState(false);
+  const shown = useRef(false);
 
-function buildProductNameMap(restaurant) {
-  const productNameById = new Map();
+  /* Re-read on every visit to the tab; once a list is on screen, a failed
+     re-read keeps it rather than swapping it for the error state (the
+     same rule as Home and the restaurant screen). */
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setStatus('loading');
+      }
 
-  const products = Array.isArray(
-    restaurant?.products
-  )
-    ? restaurant.products
-    : [];
-
-  products.forEach((product) => {
-    const productId =
-      product?.id || product?._id;
-
-    if (productId && product?.name) {
-      productNameById.set(
-        String(productId),
-        product.name
-      );
-    }
-  });
-
-  return productNameById;
-}
-
-function getProductDisplayName(
-  product,
-  productNameById
-) {
-  if (
-    product &&
-    typeof product === 'object'
-  ) {
-    if (product.name) {
-      return product.name;
-    }
-
-    const productId =
-      product.id || product._id;
-
-    if (
-      productId &&
-      productNameById.has(
-        String(productId)
-      )
-    ) {
-      return productNameById.get(
-        String(productId)
-      );
-    }
-
-    return 'מוצר לא זמין';
-  }
-
-  const value = String(
-    product || ''
-  ).trim();
-
-  if (!value) {
-    return 'מוצר ללא שם';
-  }
-
-  if (productNameById.has(value)) {
-    return productNameById.get(value);
-  }
-
-  if (isMongoId(value)) {
-    return 'מוצר לא זמין';
-  }
-
-  return value;
-}
-
-function mapOrderProducts(
-  order,
-  productNameById
-) {
-  const products = Array.isArray(
-    order?.products
-  )
-    ? order.products
-    : [];
-
-  return {
-    ...order,
-    products: products.map((product) =>
-      getProductDisplayName(
-        product,
-        productNameById
-      )
-    ),
-  };
-}
-
-async function addProductNamesToOrders(
-  orders
-) {
-  const restaurantIds = [
-    ...new Set(
-      orders
-        .map(getRestaurantId)
-        .filter(Boolean)
-    ),
-  ];
-
-  const restaurantEntries =
-    await Promise.all(
-      restaurantIds.map(
-        async (restaurantId) => {
-          try {
-            const restaurant =
-              await getRestaurantById(
-                restaurantId
-              );
-
-            return [
-              restaurantId,
-              buildProductNameMap(
-                restaurant
-              ),
-            ];
-          } catch (error) {
-            console.warn(
-              `Failed to load restaurant ${restaurantId}:`,
-              error
-            );
-
-            return [
-              restaurantId,
-              new Map(),
-            ];
-          }
-        }
-      )
-    );
-
-  const productMapsByRestaurant =
-    new Map(restaurantEntries);
-
-  return orders.map((order) => {
-    const restaurantId =
-      getRestaurantId(order);
-
-    const productNameById =
-      productMapsByRestaurant.get(
-        restaurantId
-      ) || new Map();
-
-    return mapOrderProducts(
-      order,
-      productNameById
-    );
-  });
-}
-
-export default function OrdersScreen({
-  navigation,
-}) {
-  const {
-    token,
-    isAuthenticated,
-    logout,
-  } = useAuth();
-
-  const [orders, setOrders] =
-    useState([]);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [refreshing, setRefreshing] =
-    useState(false);
-
-  const [error, setError] =
-    useState('');
-
-  const loadOrders = useCallback(
-    async (isRefresh = false) => {
       try {
-        if (
-          !isAuthenticated ||
-          !token
-        ) {
-          setOrders([]);
-          setError(
-            'יש להתחבר כדי לצפות בהזמנות.'
-          );
+        const data = await getUserOrders(token);
 
-          return;
+        setOrders(Array.isArray(data) ? [...data].reverse() : []);
+        setStatus('ready');
+        shown.current = true;
+      } catch {
+        if (!silent || !shown.current) {
+          setStatus('error');
         }
-
-        if (isRefresh) {
-          setRefreshing(true);
-        } else {
-          setLoading(true);
-        }
-
-        setError('');
-
-        const result =
-          await getUserOrders(token);
-
-        if (!Array.isArray(result)) {
-          throw new Error(
-            'The server returned an invalid orders response'
-          );
-        }
-
-        const ordersWithProductNames =
-          await addProductNamesToOrders(
-            result
-          );
-
-        const sortedOrders = [
-          ...ordersWithProductNames,
-        ].sort(
-          (
-            firstOrder,
-            secondOrder
-          ) =>
-            Number(
-              secondOrder.startTime || 0
-            ) -
-            Number(
-              firstOrder.startTime || 0
-            )
-        );
-
-        setOrders(sortedOrders);
-      } catch (err) {
-        console.error(
-          'Failed to load orders:',
-          err
-        );
-
-        if (
-          err.status === 401 ||
-          err.status === 403
-        ) {
-          await logout();
-
-          setError(
-            'פג תוקף ההתחברות. יש להתחבר מחדש.'
-          );
-        } else {
-          setError(
-            err.message ||
-              'לא הצלחנו לטעון את ההזמנות.'
-          );
-        }
-      } finally {
-        setLoading(false);
-        setRefreshing(false);
       }
     },
-    [isAuthenticated, token, logout]
+    [token]
   );
 
   useFocusEffect(
     useCallback(() => {
-      loadOrders();
-    }, [loadOrders])
+      load({ silent: true });
+    }, [load])
   );
 
-  const openLogin = () => {
-    navigation?.navigate('Login');
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <ActivityIndicator
-          size="large"
-        />
-
-        <Text style={styles.message}>
-          טוען הזמנות...
-        </Text>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    const authenticationError =
-      !isAuthenticated ||
-      error.includes('להתחבר');
-
-    return (
-      <SafeAreaView
-        style={styles.centerContainer}
-      >
-        <Text
-          style={styles.errorTitle}
-        >
-          לא ניתן להציג הזמנות
-        </Text>
-
-        <Text style={styles.message}>
-          {error}
-        </Text>
-
-        {authenticationError ? (
-          <Pressable
-            style={styles.button}
-            onPress={openLogin}
-          >
-            <Text
-              style={styles.buttonText}
-            >
-              מעבר להתחברות
-            </Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            style={styles.button}
-            onPress={() =>
-              loadOrders()
-            }
-          >
-            <Text
-              style={styles.buttonText}
-            >
-              נסי שוב
-            </Text>
-          </Pressable>
-        )}
-      </SafeAreaView>
-    );
-  }
+  const refresh = useCallback(async () => {
+    setRefreshing(true);
+    await load({ silent: true });
+    setRefreshing(false);
+  }, [load]);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={orders}
-        keyExtractor={(item, index) =>
-          String(
-            item.id ||
-              item._id ||
-              index
-          )
-        }
-        renderItem={({ item }) => (
-          <OrderCard order={item} />
-        )}
-        contentContainerStyle={[
-          styles.list,
-          orders.length === 0 &&
-            styles.emptyList,
-        ]}
-        refreshing={refreshing}
-        onRefresh={() =>
-          loadOrders(true)
-        }
-        showsVerticalScrollIndicator={
-          false
-        }
-        ListHeaderComponent={
-          <View style={styles.header}>
-            <Text style={styles.title}>
-              ההזמנות שלי
-            </Text>
+    <Screen>
+      <ScreenHeader
+        title="ההזמנות שלי"
+        subtitle={status === 'ready' && orders.length ? `${orderCount(orders.length)} בחשבון שלכם` : undefined}
+        large
+      />
 
-            <Text
-              style={styles.subtitle}
-            >
-              כאן ניתן לראות את כל
-              ההזמנות שלך
-            </Text>
-          </View>
+      <FlatList
+        data={status === 'ready' ? toRows(orders) : []}
+        keyExtractor={(row) => String(row.key)}
+        contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.flame} />
         }
         ListEmptyComponent={
-          <View
-            style={styles.emptyContainer}
-          >
-            <Text
-              style={styles.emptyTitle}
-            >
-              עדיין אין הזמנות
-            </Text>
-
-            <Text style={styles.message}>
-              לאחר ביצוע הזמנה היא
-              תופיע כאן.
-            </Text>
-          </View>
+          status === 'loading' ? (
+            <View style={styles.skeletons} accessibilityLabel="טוען הזמנות">
+              {[0, 1, 2].map((key) => (
+                <Card key={key} style={styles.skeletonCard}>
+                  <Skeleton width="45%" height={20} />
+                  <Skeleton width="70%" height={12} />
+                  <Skeleton width="30%" height={12} />
+                </Card>
+              ))}
+            </View>
+          ) : status === 'error' ? (
+            <ErrorState
+              title="לא הצלחנו לטעון את ההזמנות"
+              description="השרת לא הגיב. אפשר לנסות שוב."
+              onRetry={load}
+            />
+          ) : (
+            <EmptyState
+              icon="bag"
+              title="עוד לא הזמנתם כלום"
+              description="ההזמנה הראשונה מחכה. בחרו מסעדה והיא תופיע כאן."
+              actionLabel="לגלות מסעדות"
+              onAction={() => navigation.navigate('Home')}
+            />
+          )
         }
+        renderItem={({ item: row }) => {
+          if (row.type === 'heading') {
+            return <Text style={styles.heading}>{row.title}</Text>;
+          }
+
+          if (row.type === 'day') {
+            return <Text style={styles.day}>{row.title}</Text>;
+          }
+
+          const { order } = row;
+
+          if (row.type === 'active') {
+            const arrival = getArrivalTime(order);
+            const minutes = Math.ceil(getSecondsLeft(order) / 60);
+
+            return (
+              <Pressable
+                onPress={() => navigation.navigate('Tracking', { orderId: order.id })}
+                accessibilityRole="button"
+                accessibilityLabel={`מעקב אחרי ההזמנה מ${order.restaurantName}, עוד ${minutes} דקות`}
+                style={({ pressed }) => [styles.active, pressed && styles.pressed]}
+              >
+                <View style={styles.activeIcon}>
+                  <Icon name="scooter" size={22} color={colors.onAmber} />
+                </View>
+                <View style={styles.activeText}>
+                  <Text style={styles.activeName} numberOfLines={1}>
+                    {order.restaurantName}
+                  </Text>
+                  <Text style={styles.activeMeta}>
+                    {arrival ? `תגיע בסביבות ${arrival} · ` : ''}
+                    {`עוד ${minutes} דק׳`}
+                  </Text>
+                </View>
+                <Icon name="back" size={18} color={colors.onNight} />
+              </Pressable>
+            );
+          }
+
+          const items = summariseItems(order);
+          const start = Number(order.startTime);
+
+          return (
+            <View style={[styles.past, row.first && styles.pastFirst, row.last && styles.pastLast]}>
+              {!row.first ? <View style={styles.hairline} /> : null}
+
+              <View style={styles.pastTop}>
+                <View style={styles.pastText}>
+                  <Text style={styles.pastName} numberOfLines={1}>
+                    {order.restaurantName}
+                  </Text>
+                  {items ? (
+                    <Text style={styles.pastItems} numberOfLines={1}>
+                      {items}
+                    </Text>
+                  ) : null}
+                  <Text style={styles.pastMeta}>
+                    {Number.isFinite(start) ? `${formatClock(start)} · ` : ''}
+                    <Text style={styles.orderNumber}>{formatOrderNumber(order.id)}</Text>
+                    {` · ${itemCount(order.items)}`}
+                  </Text>
+                </View>
+                <Text style={styles.pastTotal}>{formatPrice(order.total)}</Text>
+              </View>
+
+              <View style={styles.pastActions}>
+                <Pressable
+                  onPress={() => navigation.navigate('Tracking', { orderId: order.id })}
+                  accessibilityRole="button"
+                  accessibilityLabel={`פרטי ההזמנה ${formatOrderNumber(order.id)}`}
+                  hitSlop={6}
+                  style={({ pressed }) => [styles.link, pressed && styles.pressed]}
+                >
+                  <Text style={styles.linkText}>פרטים</Text>
+                </Pressable>
+                {order.restaurant ? (
+                  <Pressable
+                    onPress={() => navigation.navigate('RestaurantDetails', { restaurantId: order.restaurant })}
+                    accessibilityRole="button"
+                    accessibilityLabel={`להזמין שוב מ${order.restaurantName}`}
+                    hitSlop={6}
+                    style={({ pressed }) => [styles.link, pressed && styles.pressed]}
+                  >
+                    <Text style={[styles.linkText, styles.linkAgain]}>להזמין שוב</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+          );
+        }}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F7F4FA',
-  },
+const useStyles = createStyles(({ colors, space, radius, type }) => ({
+  list: { paddingHorizontal: space[4], paddingBottom: space[7] },
+  skeletons: { gap: space[4] },
+  skeletonCard: { gap: space[3], padding: space[4] },
 
-  list: {
-    paddingHorizontal: 16,
-    paddingTop: 20,
-    paddingBottom: 32,
-  },
+  pressed: { opacity: 0.85 },
+  heading: { ...type.h3, ...rtl.text, fontSize: 20, marginTop: space[4], marginBottom: space[3], color: colors.ink },
+  day: { ...type.caption, ...rtl.text, marginTop: space[3], marginBottom: space[2], color: colors.inkMuted, fontWeight: '700' },
 
-  emptyList: {
-    flexGrow: 1,
+  active: {
+    ...rtl.row,
+    alignItems: 'center',
+    gap: space[3],
+    padding: space[4],
+    marginBottom: space[3],
+    borderRadius: radius.lg,
+    backgroundColor: colors.night,
   },
-
-  header: {
-    marginBottom: 22,
-  },
-
-  title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#351440',
-    textAlign: 'right',
-  },
-
-  subtitle: {
-    marginTop: 5,
-    fontSize: 15,
-    color: '#666666',
-    textAlign: 'right',
-  },
-
-  centerContainer: {
-    flex: 1,
-    padding: 24,
+  activeIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7F4FA',
+    backgroundColor: colors.amber,
   },
+  activeText: { flex: 1, gap: 2 },
+  activeName: { ...type.bodyL, ...rtl.text, fontWeight: '800', color: colors.onNight },
+  activeMeta: { ...type.caption, ...type.num, ...rtl.text, fontWeight: '700', color: colors.amber },
 
-  errorTitle: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#351440',
-    textAlign: 'center',
+  past: {
+    gap: space[2],
+    paddingHorizontal: space[4],
+    paddingTop: space[3],
+    paddingBottom: space[2],
+    backgroundColor: colors.surface,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: colors.line,
   },
-
-  message: {
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 21,
-    color: '#666666',
-    textAlign: 'center',
-  },
-
-  button: {
-    marginTop: 22,
-    paddingHorizontal: 25,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: '#542163',
-  },
-
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-
-  emptyContainer: {
-    flex: 1,
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#351440',
-  },
-});
+  pastFirst: { borderTopWidth: 1, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
+  pastLast: { borderBottomWidth: 1, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
+  hairline: { position: 'absolute', top: 0, left: space[4], right: space[4], height: 1, backgroundColor: colors.line },
+  pastTop: { ...rtl.row, alignItems: 'flex-start', gap: space[3] },
+  pastText: { flex: 1, gap: 2 },
+  pastName: { ...type.bodyL, ...rtl.text, fontWeight: '700', color: colors.ink },
+  pastItems: { ...type.caption, ...rtl.text, fontWeight: '400', color: colors.inkMuted },
+  pastMeta: { ...type.micro, ...rtl.text, color: colors.inkMuted, fontWeight: '500' },
+  orderNumber: { fontVariant: ['tabular-nums'] },
+  pastTotal: { ...type.price, color: colors.ink },
+  pastActions: { ...rtl.row, gap: space[1], marginRight: -space[2] },
+  link: { minHeight: 40, justifyContent: 'center', paddingHorizontal: space[2], borderRadius: radius.pill },
+  linkText: { ...type.caption, fontWeight: '700', color: colors.ink },
+  linkAgain: { color: colors.flameDeep },
+}));

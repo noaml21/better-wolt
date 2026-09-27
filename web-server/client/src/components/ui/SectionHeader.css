@@ -1,0 +1,24 @@
+.bw-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--bw-space-3);
+  margin-block-end: var(--bw-space-5);
+}
+
+.bw-section-header__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bw-space-1);
+}
+
+.bw-section-header__title {
+  font-size: var(--bw-h2);
+  font-weight: 700;
+}
+
+.bw-section-header__description {
+  color: var(--bw-ink-muted);
+  max-width: 60ch;
+}

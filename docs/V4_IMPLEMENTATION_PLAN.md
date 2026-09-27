@@ -81,6 +81,12 @@ from the first unchecked box.
 
 **V4 is complete.** What remains open is listed in the audit §4 ("Still open") and under "Needs a device" below.
 
+- [x] **Post-V4 — Repository presentation.** Documentation only; no application code changed. The README is now a short
+      landing page, and its run, test and security detail moved to [DEVELOPMENT.md](DEVELOPMENT.md) and
+      [ARCHITECTURE.md §9](ARCHITECTURE.md#9-security-measures). New pages: [docs/README.md](README.md) (the index) and
+      [SHOWCASE.md](SHOWCASE.md) (the V4 gallery). The original release's screenshots moved from `docs/screenshots/`
+      to `docs/screenshots/v1/`.
+
 ## Verification at the end of V4
 
 API 144/144 (no backend file changed since `b547763`), web Jest 38/38 (from 25: order-placement problems and price

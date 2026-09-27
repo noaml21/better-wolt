@@ -4,8 +4,9 @@ Authoritative description of how Better Wolt is structured and the conventions c
 Scope and decisions: [V2_SPEC.md](V2_SPEC.md). Order of work: [V2_IMPLEMENTATION_PLAN.md](V2_IMPLEMENTATION_PLAN.md).
 How to add a feature: [EXTENDING.md](EXTENDING.md).
 
-> **Status note.** This describes the code as it exists on `v2/extensible-architecture` after the V2 work (all phases of the
-> [implementation plan](V2_IMPLEMENTATION_PLAN.md) are done). §4 is the contract the test suite in `web-server/test/` pins.
+> **Status note.** This describes the backend as the V2 work left it (all phases of the
+> [implementation plan](V2_IMPLEMENTATION_PLAN.md) are done). V3 and V4 changed only the clients, so it still holds on
+> `v4/premium-frontend`. §4 is the contract the test suite in `web-server/test/` pins.
 
 ## 1. System overview
 
@@ -228,7 +229,26 @@ Docker Compose reads the repo-root `.env`; running the API outside Docker reads 
   `.jsx`. Mobile: bundle-compile check in CI, and `npm run lint` (`expo lint`) locally.
 - CI: `.github/workflows/ci.yml` (`api`, `web`, `docker`, `mobile`).
 
-## 9. Known limitations (intentional, documented)
+## 9. Security measures
+
+- Passwords are hashed with bcrypt (`BCRYPT_ROUNDS`, default 12) before they are stored.
+- Protected endpoints take a bearer JWT; only HS256 is accepted, and tokens expire after 24 h.
+- Login and registration are rate limited per IP (`AUTH_RATE_LIMIT_MAX` per 15 minutes; failed attempts only for
+  login). An unknown username still runs one bcrypt comparison, so response time does not reveal which accounts exist.
+- Restaurant and menu mutations are authorized against the owner (§3.5); another user's order is `404`, not `403`.
+- Order creation is server-authoritative (§3.6): the API resolves products from the restaurant's menu, snapshots their
+  names and prices, and computes item counts, the total, the status and the timestamps. Clients send only product ids
+  and quantities.
+- Request bodies are validated with Zod at the route boundary (§3.4). Errors are `{ "error": "..." }` with no driver or
+  stack text (§3.3).
+- JSON bodies are limited to 100 KB, except registration (5 MB), which may carry an avatar.
+- Search input is matched literally: regular-expression syntax is escaped before the query runs.
+- A browser origin outside `CORS_ORIGINS` is refused with `403 Origin not allowed`.
+- The API container runs as the unprivileged `node` user and has a health check; Compose publishes MongoDB on
+  `127.0.0.1` only.
+- No payment-card data is collected or stored, and there is no payment processing.
+
+## 10. Known limitations (intentional, documented)
 
 Kept deliberately in V2 (see the spec's "not changed" list):
 

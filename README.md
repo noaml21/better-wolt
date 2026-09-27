@@ -1,260 +1,134 @@
 # Better Wolt
 
-Better Wolt is an educational, Wolt-inspired full-stack food-delivery platform with a React web client, a React Native/Expo mobile client, and a shared Node.js/Express REST API backed by MongoDB.
+A Wolt-inspired food-delivery platform: a React web app and a React Native / Expo mobile app on one Express and
+MongoDB API, designed in Hebrew, right to left.
 
-This project is not affiliated with or endorsed by Wolt.
+<sub>An educational project. Not affiliated with, sponsored by or endorsed by Wolt.</sub>
 
-**Course project final grade: 97/100**
-
-## Key Features
-
-- Customer and restaurant-owner account registration and sign-in
-- JWT-based authentication for protected API operations
-- Restaurant and menu creation, editing, and deletion for restaurant owners
-- Server-side authorization and ownership checks for restaurant and menu changes
-- Restaurant search by name, address, menu item, or menu description
-- Cart with per-dish quantity controls, and authenticated, server-priced order placement
-- Order history and a live order-tracking screen on both clients
-- A designed Hebrew, right-to-left interface on web and mobile, with a shared design-token system,
-  a light and a dark theme, and a designed loading, empty and error state on every screen
-- React web application served by the backend in production
-- React Native mobile application developed with Expo, on bottom-tab navigation with safe-area handling
-- A World Cup campaign on both clients: a flag grid, cart-based ordering, and opt-in audio on the web
-- Dockerized backend and MongoDB services with persistent database storage
-
-## Screenshots
-
-The V4 interface. Every screen is right-to-left Hebrew; the full set is in
-[docs/screenshots/v4](docs/screenshots/v4), and the V3 and V2 interfaces before it are in
-[docs/screenshots/v3](docs/screenshots/v3) and [docs/screenshots/v2](docs/screenshots/v2).
-
-### Web
+**[Showcase](docs/SHOWCASE.md)** · **[Architecture & API](docs/ARCHITECTURE.md)** ·
+**[Run it locally](docs/DEVELOPMENT.md)** · **[All documentation](docs/README.md)**
 
 <p align="center">
-  <img src="docs/screenshots/v4/web-home-desktop.jpg" alt="Better Wolt web home page: the night search band with photo links to restaurants, the order-again row, the World Cup strip and the restaurant grid" width="850">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/v4/web-home-dark.jpg">
+    <img src="docs/screenshots/v4/web-home-desktop.jpg" alt="Better Wolt web home page: a dark search band with captioned photo links to restaurants, an order-again row, the World Cup strip and the restaurant grid" width="900">
+  </picture>
 </p>
+<p align="center"><sub>The web home page. It follows your GitHub theme: light or dark.</sub></p>
+
+## Highlights
+
+- **Two clients, one API.** A React web app and an Expo mobile app, both built on the same REST API and data.
+- **Customers and restaurant owners.** Customers search, fill a cart, order, and order again from their history.
+  Owners create a restaurant and manage its details and menu.
+- **The whole order journey.** Search by restaurant, dish or address; add from the menu; check out; follow the
+  order through four timed stages to its arrival time; find it later in a history grouped by day.
+- **Hebrew first.** Right-to-left layout by design on both clients: CSS logical properties on the web and a
+  direction-aware theme layer on mobile, never a mirrored patch.
+- **One design language.** Shared design tokens, light and dark themes, a designed loading, empty and error state
+  on every screen, and motion that stops under the system's reduced-motion setting.
+- **A World Cup campaign.** Twenty dishes from a restaurant the server seeds, ordered through the ordinary cart.
+
+## Product preview
 
 <p align="center">
-  <img src="docs/screenshots/v4/web-restaurant-desktop.jpg" alt="Restaurant page: the name set on the photo, the menu as one list with quiet add controls, and the cart panel with the total in its button" width="420">
+  <img src="docs/screenshots/v4/web-restaurant-desktop.jpg" alt="Restaurant page: the name set on the photo, the menu as one list with round add controls, and the cart with the total in its button" width="49%">
   &nbsp;
-  <img src="docs/screenshots/v4/web-tracking.jpg" alt="Order tracking: the arrival time, the minutes left and four stages with their times" width="420">
+  <img src="docs/screenshots/v4/web-tracking.jpg" alt="Order tracking: the arrival time, the minutes left and four stages with the time each began" width="49%">
 </p>
+<p align="center"><sub>Web: a restaurant with the cart beside its menu · tracking an order</sub></p>
 
 <p align="center">
-  <img src="docs/screenshots/v4/web-orders.jpg" alt="Orders: what is on its way first, then history grouped by day with reorder links" width="420">
+  <img src="docs/screenshots/v4/mobile-search.jpg" alt="Mobile search results: restaurant cards with photos, each saying which dish matched" width="220">
   &nbsp;
-  <img src="docs/screenshots/v4/web-home-dark.jpg" alt="The home page in the dark theme" width="420">
+  <img src="docs/screenshots/v4/mobile-restaurant.jpg" alt="Mobile restaurant screen: the name on the photo, the menu as one list and the cart bar" width="220">
+  &nbsp;
+  <img src="docs/screenshots/v4/mobile-tracking.jpg" alt="Mobile order tracking: the arrival time and a vertical four-stage timeline above the receipt" width="220">
 </p>
+<p align="center"><sub>Mobile (Expo): search · a restaurant with the cart bar · tracking an order</sub></p>
 
-### Mobile
-
-<p align="center">
-  <img src="docs/screenshots/v4/mobile-home.jpg" alt="Mobile home: search, quick searches, the order-again row, the World Cup strip and restaurant cards" width="240">
-  &nbsp;
-  <img src="docs/screenshots/v4/mobile-restaurant.jpg" alt="Mobile restaurant screen: the name on the photo, the menu as one list and the cart bar" width="240">
-  &nbsp;
-  <img src="docs/screenshots/v4/mobile-tracking.jpg" alt="Mobile order tracking with the arrival time and a vertical stage timeline" width="240">
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/v4/mobile-world-cup.jpg" alt="The World Cup campaign on mobile as one list with flags" width="240">
-  &nbsp;
-  <img src="docs/screenshots/v4/mobile-cart.jpg" alt="Mobile cart with steppers, the total and the order button carrying it" width="240">
-  &nbsp;
-  <img src="docs/screenshots/v4/mobile-orders.jpg" alt="Mobile orders: on the way, then history by day" width="240">
-</p>
+Owner tools, search, orders, sign-in, the phone-width web app and every mobile screen are in the
+**[showcase](docs/SHOWCASE.md)**.
 
 ## Architecture
 
 ```text
-React Web -----------\
-                      -> Node.js / Express REST API -> MongoDB
-React Native / Expo -/
+React web ───────────┐
+                     ├──►  Express 5 REST API  ──►  MongoDB 7
+React Native / Expo ─┘
 ```
 
-The web and mobile applications consume the same REST API. The production backend image builds the React client and serves its static output alongside the API, while the Expo application connects to the API over HTTP.
+Both clients call the same `/api`. Each has its own small API client, and one written contract in
+[ARCHITECTURE.md §4](docs/ARCHITECTURE.md#4-api-contract) keeps them in step. The backend is organized by feature
+(`routes → controller → service → model`). In production a single Docker image builds the web app and serves it
+next to the API.
 
-The backend is organized by feature (`web-server/src/features/<name>/` with `routes → controller → service → model`), with shared HTTP plumbing in `src/http/`. See the documentation below for the structure, the API contract, and how to add a feature.
+## Tech stack
+
+| Layer | Built with |
+|---|---|
+| Web | React 19, React Router 7, Create React App; CSS custom-property design tokens, no UI framework |
+| Mobile | React Native 0.85, Expo SDK 56, React Navigation 7, react-native-svg |
+| API | Node.js 24, Express 5, Mongoose 9, Zod 4, JSON Web Tokens, bcryptjs, express-rate-limit |
+| Data | MongoDB 7 |
+| Quality & delivery | `node:test` + Supertest, Jest + Testing Library, Docker Compose, GitHub Actions |
+
+## Quick start
+
+You need Docker with Compose.
+
+```bash
+cp .env.example .env    # then set JWT_SECRET to a long random value
+docker compose up -d --build mongo backend
+```
+
+Open **<http://localhost:8080>**. A new database holds only the World Cup restaurant. To add the sample restaurants
+from the screenshots and two demo accounts, run `node docs/dev/demo-data.mjs` (Node 18 or later).
+
+To run the mobile app, set up the fast development loop or run the tests, see **[DEVELOPMENT.md](docs/DEVELOPMENT.md)**.
+
+## Engineering highlights
+
+- **The server sets every price.** An order carries only product ids and quantities. The API looks each product up
+  in the restaurant's menu, records its name and price, and computes the total and status. It never reads a price,
+  total or status from the request. See [order pricing](docs/ARCHITECTURE.md#36-order-pricing).
+- **Authorization rules are tested.** Owner routes pass through one ownership check. Another user's order answers
+  `404`, not `403`, so it does not reveal whether an order exists. Endpoint tests cover the happy path, a missing
+  token, invalid input and, where it applies, another user's access. See the
+  [authorization matrix](docs/V2_SPEC.md#32-authorization-matrix).
+- **Validation at the boundary.** Zod checks every request body at the route. Every error has the same
+  `{ "error": "…" }` shape, and no driver or stack text reaches a client. The error strings are part of the contract,
+  because both clients display them.
+- **Hardened sign-in.** Passwords are hashed with bcrypt. Only HS256 tokens are accepted. Login and registration are
+  rate limited per IP, and an unknown username takes as long to reject as a wrong password.
+- **Feature modules.** Each backend feature lives in its own folder, and a feature may import another feature's
+  service only. [EXTENDING.md](docs/EXTENDING.md) walks through adding one.
+- **Production container and CI.** The image is multi-stage, runs as a non-root user and has a health check. MongoDB
+  is published on localhost only. CI runs the API tests against MongoDB 7, runs the web tests and build, builds the
+  image and bundles the Android app.
+
+The details, and the limitations kept on purpose, are in [ARCHITECTURE.md §9–10](docs/ARCHITECTURE.md#9-security-measures).
 
 ## Documentation
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — structure, conventions and the full API contract
-- [docs/EXTENDING.md](docs/EXTENDING.md) — how to add a backend feature, with a worked example
-- [docs/V2_SPEC.md](docs/V2_SPEC.md) — scope, invariants and the deliberate behavior changes
-- [docs/V2_IMPLEMENTATION_PLAN.md](docs/V2_IMPLEMENTATION_PLAN.md) — the phased plan and what was verified
-- [docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md) — the V3 design: identity, tokens, component language, accessibility
-- [docs/V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) — the V3 phases, what was built and how it was verified
-- [docs/V4_VISUAL_AUDIT.md](docs/V4_VISUAL_AUDIT.md) — the audit of V3 in the browser that V4 answers
-- [docs/V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md) — the V4 design: principles, type, components, motion
-- [docs/V4_IMPLEMENTATION_PLAN.md](docs/V4_IMPLEMENTATION_PLAN.md) — the V4 phases, what was built and how it was verified
-- [AGENTS.md](AGENTS.md) — branch policy, commands and conventions for contributors
+| | |
+|---|---|
+| [Showcase](docs/SHOWCASE.md) | Every V4 screen on web and mobile, and the design language behind them |
+| [Architecture & API](docs/ARCHITECTURE.md) | Structure, conventions, the full API contract, security measures and known limitations |
+| [Development](docs/DEVELOPMENT.md) | Running the stack, the mobile app, tests, configuration |
+| [Extending](docs/EXTENDING.md) | How to add a backend feature, with a worked example |
+| [V4 design spec](docs/V4_DESIGN_SPEC.md) | Colour, type, components, motion, RTL and accessibility rules |
+| [Documentation index](docs/README.md) | Everything else, including the specs and plans for V2, V3 and V4 |
 
-## Tech Stack
+## Project context
 
-### Backend
-
-- Node.js
-- Express
-- Mongoose
-- JSON Web Tokens (`jsonwebtoken`)
-- `bcryptjs`
-- Zod for request validation
-- `express-rate-limit`
-- CORS and environment-based configuration
-- `node:test` and `supertest` for integration tests against MongoDB 7
-
-### Web
-
-- React
-- React Router
-- Create React App / `react-scripts`
-- CSS custom properties as design tokens (`client/src/styles/tokens.css`), CSS logical properties for RTL,
-  and a small `components/ui` primitive set — no UI framework
-- Suez One and Rubik from Google Fonts
-
-### Mobile
-
-- React Native
-- Expo
-- React Navigation (native stack + bottom tabs with a custom RTL tab bar)
-- `react-native-safe-area-context` for notches and gesture bars
-- `react-native-svg` for the icon set and the logo
-- A theme module (`mobile/src/theme/`) holding the same tokens as the web client, and a `src/ui` primitive set
-- AsyncStorage
-- Expo Image Picker
-
-### Database
-
-- MongoDB
-- Mongoose schemas for users, restaurants, embedded menu products, and orders
-
-### Infrastructure
-
-- Docker and Docker Compose
-- Multi-stage backend image that builds and embeds the React production bundle, runs as a non-root user and exposes a health check
-- MongoDB health check and named volume for persistence
-- GitHub Actions CI
-
-## Security / Backend Design
-
-- Passwords are hashed with bcrypt before storage.
-- Protected endpoints authenticate bearer tokens using JWTs.
-- Restaurant and menu mutations are authorized against the authenticated restaurant owner.
-- Order creation is server-authoritative: the API resolves products from the selected restaurant, snapshots item names and prices, calculates item counts and totals, and sets the initial status and timestamps.
-- Clients submit product identifiers and quantities; they cannot choose authoritative order prices, totals, or status values.
-- Request bodies are validated with Zod at the route boundary; errors are returned as `{ "error": "..." }` without driver or stack text.
-- Login and registration are rate limited per IP, unknown usernames still run a bcrypt comparison (so timing does not reveal which accounts exist), and only HS256 tokens are accepted.
-- JSON bodies are limited to 100 KB, except registration (5 MB) which may carry an avatar.
-- Search queries are matched literally, not as regular expressions.
-- The API container runs as a non-root user, and MongoDB is published on `127.0.0.1` only.
-- Sensitive payment-card data is not collected or stored. The project does not implement payment processing.
-
-## Project Structure
-
-```text
-web-server/             Node.js/Express API (src/features/...) and the React web client
-web-server/test/        API integration tests (node:test + supertest)
-mobile/                 React Native/Expo mobile client
-docs/                   Architecture, API contract, extension guide, the V2–V4 specs and plans, screenshots
-docker-compose.yml      Backend, MongoDB and the optional Expo dev server
-docker-compose.test.yml Throwaway MongoDB for the test suite
-.github/workflows/      CI: API tests, web tests and build, image build, mobile bundle
-.env.example            Required environment-variable template
-```
-
-## Running the Web Application
-
-Docker and Docker Compose are required.
-
-1. Copy `.env.example` to `.env`.
-2. Replace the example value in `.env` with a long, random `JWT_SECRET`.
-3. Build and start MongoDB and the backend:
-
-   ```bash
-   docker compose up --build mongo backend
-   ```
-
-4. Open [http://localhost:8080](http://localhost:8080).
-
-The backend container waits for MongoDB to become healthy, builds the React production client, and serves both the web application and the API on port `8080`.
-
-## Running the Mobile Application
-
-Start the backend before launching the mobile client. With an Android emulator available, run:
-
-```bash
-cd mobile
-npm ci
-npx expo start --android
-```
-
-The existing mobile API configuration reads `EXPO_PUBLIC_API_URL` when supplied and otherwise falls back to `http://10.0.2.2:8080/api`, which maps the Android emulator to the backend running on the host machine.
-
-## Development
-
-For a fast edit-reload loop, run MongoDB in Docker and the API and web client on the host:
-
-1. Start MongoDB only: `docker compose up -d mongo` (published on `127.0.0.1:27017`).
-2. Create `web-server/.env` with at least `JWT_SECRET=<a long random value>`. See `.env.example` for the optional variables.
-3. Start the API with reload on change:
-
-   ```bash
-   cd web-server
-   npm ci
-   npm run dev          # http://localhost:8080
-   ```
-
-4. In a second terminal, start the web client:
-
-   ```bash
-   cd web-server/client
-   npm ci
-   npm start            # http://localhost:3000, /api is proxied to :8080
-   ```
-
-`GET /api/health` returns `{"status":"ok"}` when the API has a live database connection, and `503` otherwise.
-
-## Testing
-
-The API integration tests run against a real MongoDB 7 (Docker required for the local database):
-
-```bash
-cd web-server
-npm ci
-npm run test:db:up     # throwaway MongoDB on 127.0.0.1:27018 (in memory)
-npm test
-npm run test:db:down
-```
-
-To use another MongoDB 7 instance instead, set `TEST_MONGODB_URI` (each test file creates and drops its own `bw_test_*` database).
-
-Web client tests: `cd web-server/client && npm test -- --watchAll=false`.
-
-## Design
-
-The interface is specified in [docs/V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md), which evolves
-[docs/V3_DESIGN_SPEC.md](docs/V3_DESIGN_SPEC.md). In short: warm paper surfaces, a deep aubergine ink, one pomegranate
-action colour and an amber highlight. Food is loud and chrome is quiet: photography leads, a restaurant without a
-photo gets a designed plate in its own tint, and a menu reads like a menu — one list, the dish name first, a small
-round add control rather than a button per row. Prices, totals and times are exact: tabular figures, never the
-display face. Problems at checkout are written beside the cart and stay until they are dealt with, and a price the
-server corrected is explained on the tracking page. Motion only answers an action (the cart bar rising, a count
-bumping) or the passing of time (the tracking stages), and stops under the operating system's reduced-motion
-setting. Hebrew is the layout, not a patch: CSS logical properties and plaintext bidi for what people type on the web,
-a direction-aware layer in the mobile theme, and no `I18nManager.forceRTL`.
-
-## Special World Cup Feature
-
-The World Cup experience is an intentional product and UI feature beyond the core restaurant-browsing and ordering
-flow. It presents country-themed dishes through a dedicated web page (`/world-cup`) and mobile screen, with a flag
-grid, ordering through the ordinary cart, and background music on the web that plays only when it is asked for.
-
-These dishes are not client-only mock data: the backend seeds a dedicated restaurant and menu as real MongoDB records. Orders placed through the feature use those persisted product identifiers and pass through the same authenticated, server-authoritative order flow as standard restaurant orders.
-
-## Team Project
-
-Better Wolt was jointly developed as a collaborative team project. Its web, mobile, backend, database, and infrastructure elements are presented as the result of the team's shared work rather than as individually owned subsystems.
+Better Wolt began as a team course project (final grade 97/100). Its web, mobile, backend, database and
+infrastructure are the team's shared work. Three passes followed, each on its own branch: **V2** reorganized the
+backend around features and integration tests, **V3** redesigned both clients, and **V4**, this branch, refined
+them. The [documentation index](docs/README.md#project-history) keeps the spec and plan for each pass.
 
 ## Disclaimer
 
-Better Wolt is an educational project inspired by Wolt. It is not affiliated with, sponsored by, or endorsed by Wolt. Wolt and all other third-party trademarks and assets remain the property of their respective owners.
+Better Wolt is an educational project inspired by Wolt. It is not affiliated with, sponsored by or endorsed by Wolt.
+Wolt and all other third-party trademarks belong to their owners. The photos, ratings, delivery times and fees
+shown in the app are only there to illustrate the design.

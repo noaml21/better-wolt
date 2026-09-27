@@ -9,6 +9,7 @@ Project guidance for contributors and coding agents. The documents in `docs/` ar
 [V3_IMPLEMENTATION_PLAN.md](docs/V3_IMPLEMENTATION_PLAN.md) (V3 phases and progress) ·
 [V4_DESIGN_SPEC.md](docs/V4_DESIGN_SPEC.md) (V4 design, evolving V3) ·
 [V4_IMPLEMENTATION_PLAN.md](docs/V4_IMPLEMENTATION_PLAN.md) (V4 phases, progress and the resume point).
+[docs/README.md](docs/README.md) indexes them; [DEVELOPMENT.md](docs/DEVELOPMENT.md) is the full run and test guide.
 
 ## Git
 

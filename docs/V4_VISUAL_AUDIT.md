@@ -70,10 +70,9 @@ invent sections. The equivalent move for long menus is an in-menu filter.
 
 ## 3. Impeccable critique
 
-⚠️ **DEGRADED: single-context.** The critique's two assessments were started as isolated sub-agents. The detector
-assessment (B) finished; the design review (A) was cut off by a usage limit before it returned anything, so A was
-redone in the main context. That run had already seen B's output, but B's findings are two rules (below), which is
-little to anchor on. Impeccable's own product-context step (PRODUCT.md) was not run: the committed V3 spec and the V4
+⚠️ **Degraded: not independent.** The critique's two assessments were meant to run independently. The detector
+assessment (B) finished; the design review (A) was interrupted before it returned anything, so A was redone after B's
+output had been seen. B's findings are two rules (below), which is little to anchor on. Impeccable's own product-context step (PRODUCT.md) was not run: the committed V3 spec and the V4
 brief are the product context, and the repository treats committed specs as the source of truth.
 
 ### Design health (Nielsen, 0–4)

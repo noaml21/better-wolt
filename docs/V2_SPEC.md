@@ -153,7 +153,7 @@ header middleware (harmless, affects static files only).
 - **Layout:** keep `web-server/` (API + React client) and `mobile/` as they are.
 - **Commits:** small, one concern each; `npm test` green before every commit from Phase 1 on. File moves are their own commits
   (rename-only, verified with `git diff -M --stat`). Never reset, force-push, or rewrite history; recover with `git revert`.
-- **Progress** is recorded in the checklist at the top of the implementation plan so any session can resume.
+- **Progress** is recorded in the checklist at the top of the implementation plan so work can be picked up from it at any point.
 - **Language:** new code, comments, tests, and docs in English. Existing Hebrew UI strings and data are left as they are.
 
 ## 8. Decision log

@@ -6,7 +6,7 @@ How to add a feature: [EXTENDING.md](EXTENDING.md).
 
 > **Status note.** This describes the backend as the V2 work left it (all phases of the
 > [implementation plan](V2_IMPLEMENTATION_PLAN.md) are done). V3 and V4 changed only the clients, so it still holds on
-> `v4/premium-frontend`. §4 is the contract the test suite in `web-server/test/` pins.
+> `main`, which carries V4. §4 is the contract the test suite in `web-server/test/` pins.
 
 ## 1. System overview
 

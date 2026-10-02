@@ -1,6 +1,5 @@
 # Better Wolt V2 — Implementation Plan
 
-> **For agentic workers:** use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans`.
 > Work one task at a time, one commit per task, and update the **Progress** table in the same commit.
 > Before every commit: `git branch --show-current` must print `v2/extensible-architecture`.
 
@@ -65,7 +64,7 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 | 5.1 | Non-root image + Mongo on localhost | ☑ | |
 | 5.2 | `/api/health` | ☑ | |
 | 5.3 | `npm run dev` + README Development | ☑ | |
-| 5.4 | `AGENTS.md` | ☑ | |
+| 5.4 | Contributor guide (now `CONTRIBUTING.md`) | ☑ | |
 | 5.5 | README links + accuracy pass | ☑ | |
 
 ### Progress notes
@@ -79,16 +78,16 @@ Record the commit hash when a task lands. A phase is done only when its exit cri
 - Local suite time is dominated by bcrypt at cost 12 (~650 ms per hash/compare with bcryptjs); addressed in Task 2.5.
 - **Phase 2 exit (2026-09-19):** 132 API tests green (6 s with `BCRYPT_ROUNDS=4`); test diff since Phase 1 = the seed import path plus the `BCRYPT_ROUNDS` line in `helpers/env.js` (assertions untouched); `process.env` only in `config.js`; no layer folders left; `docker compose up --build` + Appendix A 1–6 PASS. Extra commit `cdfaf85`: search and orders now reach restaurant data through `restaurants.service` instead of importing its model (§3.1 rule), search.service folded into it.
 
-- **Checkpoint (2026-09-19, session paused):** 3.1 (BF-1) and 3.2 (BF-2) are committed and green (133 API tests). 3.2 also maps `entity.too.large` to `413 Payload too large`, which was planned for 3.10. That preserves today's 413 status for bodies over 5 MB and only changes its format, so 3.10 now only changes the limits.
+- **Checkpoint (2026-09-19):** 3.1 (BF-1) and 3.2 (BF-2) are committed and green (133 API tests). 3.2 also maps `entity.too.large` to `413 Payload too large`, which was planned for 3.10. That preserves today's 413 status for bodies over 5 MB and only changes its format, so 3.10 now only changes the limits.
   **3.3 (BF-3):** the first flipped test hung because it asserted inside a loop over pre-built supertest requests. supertest opens a listening server per request and closes it only when the request is awaited, so the first failed assertion left 5 servers open and the test process never exited. Fixed by settling all requests with `Promise.all` before asserting. Then it failed cleanly (400/500 vs 404), and the fix made it pass. For `GET …/products/:pId`, an invalid restaurant id uses `Product not found`, matching an unknown restaurant id on that route.
 
 - **Phase 3 exit (2026-09-19):** BF-1…BF-9 each landed as one commit whose flipped test was seen failing first (quoted in each commit body). 142 API tests green; `grep -rn PINNED web-server/test` is empty; no controller has an HTTP `try/catch`. 3.5 (refactor) passed with zero test edits. `npm audit` after in-range fixes (`c79303e`): 0 vulnerabilities. Deviations: `413` JSON mapping moved into 3.2 (see above); the Zod helpers `requestBody`/`requiredString`/`optionalString` live in `http/validate.js`; the rate limiter is `http/rateLimit.js` (used by the auth and users features).
 
-- **Phase 4 (2026-09-19):** 4.1–4.3 committed. Web Jest 11/11, `CI=true npm run build` OK, mobile `expo export --platform android` OK. `docker compose up --build` + Appendix A steps 1–6 PASS. A headless Chrome `--dump-dom` of `/`, `/restaurants`, `/search?q=pizza` and `/login` shows the React app rendering (navbar present; World Cup entry on `/`). **Not done:** the interactive steps 7–12 (web clicks through cart/order/owner flows; Android emulator). No browser automation or emulator was available to the implementing agent, so they are left for human review.
+- **Phase 4 (2026-09-19):** 4.1–4.3 committed. Web Jest 11/11, `CI=true npm run build` OK, mobile `expo export --platform android` OK. `docker compose up --build` + Appendix A steps 1–6 PASS. A headless Chrome `--dump-dom` of `/`, `/restaurants`, `/search?q=pizza` and `/login` shows the React app rendering (navbar present; World Cup entry on `/`). **Not done:** the interactive steps 7–12 (web clicks through cart/order/owner flows; Android emulator). No browser automation or emulator was available at the time, so they were left for a manual pass.
 
 ## Rules that apply to every phase
 
-- **Entry check (every session):** on the right branch; `git status` clean or containing only this task's changes; the last commit's test run green (`npm run test:db:up && npm test` in `web-server/`).
+- **Entry check (every task):** on the right branch; `git status` clean or containing only this task's changes; the last commit's test run green (`npm run test:db:up && npm test` in `web-server/`).
 - **Verification before commit:** run the task's tests plus the full `npm test`; never record a result you have not seen.
 - **Rollback/recovery (default):** `git revert <sha>` for a bad commit (fix forward only for a one-line fix). To abandon a phase: revert its commits newest-first. The whole V2 effort can be dropped by leaving the branch; `main` is never touched. V2 has **no data migrations**, so there is no data rollback to plan for.
 - **Stop conditions:** if a characterization test shows behavior different from what these docs describe, stop, record it in the spec's decision log, and decide whether to pin it or amend the spec. Never "fix" behavior inside a refactor commit.
@@ -304,7 +303,7 @@ Create `.github/workflows/ci.yml`, triggered on `push` and `pull_request`, all j
 | 5.1 | `web-server/Dockerfile`: `COPY --chown=node:node`, `USER node`. `docker-compose.yml`: publish Mongo as `127.0.0.1:27017:27017`. | `docker compose up -d` works; `docker compose exec backend id -u` ≠ `0`; site works. |
 | 5.2 | `GET /api/health` → `200 {status:'ok'}` when `mongoose.connection.readyState === 1`, else `503 {status:'unavailable'}`. Docker `HEALTHCHECK` and compose `healthcheck` call it (with `node -e "fetch(...)"`, since the slim image has no curl). | `test/health.test.js`; backend container reports `healthy`. |
 | 5.3 | `web-server/package.json`: `"dev": "node --watch server.js"`. README "Development": Mongo via Compose, `web-server/.env`, `npm run dev` + client `npm start` (proxy from 0.4), tests. | Fresh-clone walkthrough executed once from the README alone. |
-| 5.4 | Add `AGENTS.md` (branch policy, commands, conventions, pointers to `docs/`). | Review. |
+| 5.4 | Add a contributor guide (branch policy, commands, conventions, pointers to `docs/`); it has since become `CONTRIBUTING.md`. | Review. |
 | 5.5 | README: link the four docs, remove statements that stopped being true. | Review. |
 
 **Exit:** [ ] README-only fresh clone can run the app and the tests; [ ] container non-root and healthy; [ ] all docs match the code; [ ] Progress table complete.

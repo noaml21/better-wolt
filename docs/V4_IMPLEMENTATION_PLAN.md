@@ -5,9 +5,6 @@ Branch `v4/premium-frontend`, created from the verified V3 HEAD `b54776352bae152
 [V4_VISUAL_AUDIT.md](V4_VISUAL_AUDIT.md). Contract that must not move: [ARCHITECTURE.md §4](ARCHITECTURE.md#4-api-contract),
 [V2_SPEC.md §3](V2_SPEC.md#3-invariants-must-survive-every-phase).
 
-**This file is the resume point.** A fresh session reads the checklist, runs the verification below, and continues
-from the first unchecked box.
-
 ## Progress
 
 - [x] **V4.0 — Audit.** Git reconciled, branch created, V3 walked in the browser (112 captures + flows), findings
@@ -64,7 +61,7 @@ from the first unchecked box.
         curve in V3's tokens → moved to `--bw-ease`; phone sheets now slide on `--bw-ease-drawer` at 300 ms. Not
         reported, by design: instant reduced motion (V3 decision), the 600 ms tracking fill, the hover-only photo zoom.
         No `scale(0)`, `transition: all` or animated layout properties remain (the tracking `width` fill is gone).
-  - [ ] `/review-animations` is reserved for explicit user invocation and was not run by the agent.
+  - [ ] A separate animation review (`/review-animations`) was not run.
 - [x] **V4.7 — QA and evidence.**
   - Responsive sweep: 14 routes × 6 widths (320–1920) × 2 themes, 168 captures — no overflow, no console errors.
   - Hostile content through the API (63-character name, unbroken Latin, ₪1,000,000 and ₪0, mixed direction with
@@ -77,7 +74,7 @@ from the first unchecked box.
     out to `/login` with the session-ended notice.
   - Second Impeccable pass: detector clean on both clients; design review 26/40 → 33/40 (audit §4).
   - Screenshots: `docs/screenshots/v4/` — 13 web (1440×950 and 390×844) and 9 mobile (Expo web, 412×915 at 2×,
-    scaled to 720 px). README and AGENTS.md point at V4.
+    scaled to 720 px). The README points at V4.
 
 **V4 is complete.** What remains open is listed in the audit §4 ("Still open") and under "Needs a device" below.
 
@@ -113,7 +110,7 @@ npx eslint --ext .js,.jsx src && CI=true npm run build                    # lint
 cd mobile && npm run lint && npx expo export --platform android           # lint: two documented findings at baseline
 ```
 
-Visual loop for web work (the brief's rule: a screen is not done because it compiles): the dev stack from
+Visual loop for web work (a screen is not done because it compiles): the dev stack from
 V3_IMPLEMENTATION_PLAN "Verification", then the Playwright capture scripts described under "Tooling" below at 1440,
 1024, 768 and 390, light and dark, reading every capture.
 
@@ -121,13 +118,6 @@ V3_IMPLEMENTATION_PLAN "Verification", then the Playwright capture scripts descr
 
 Captures are driven by small Node scripts on top of the Playwright library that ships with `@playwright/cli`
 (`chromium.launch({ channel: 'chrome' })`), signing in by writing the API's login response into `localStorage` —
-the same keys the web client uses. They live in the session scratchpad, not in the repo; the recipe is: log in through
+the same keys the web client uses. They were not committed; the recipe is: log in through
 `POST /api/tokens`, `addInitScript` to set `token`, `user` and `theme`, visit each route at each width, record
 `scrollWidth - innerWidth` (overflow) and console errors, and screenshot.
-
-## Notes for the next session
-
-- Demo data: `docs/dev/demo-data.mjs` (customer `noam`/`noampass1`, owner `chef`/`chefpass1`). The dev DB also holds
-  V3 test residue (`Smoke mu…`, `dfsf`); it is left alone and doubles as no-photo test data.
-- No Android emulator exists in this environment; mobile is inspected through Expo web and labelled as such. The
-  "Needs a device" list in V3_IMPLEMENTATION_PLAN still applies.

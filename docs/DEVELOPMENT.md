@@ -1,7 +1,8 @@
 # Better Wolt — Development
 
 How to run, look at and test Better Wolt locally. Configuration variables are listed in
-[ARCHITECTURE.md §7](ARCHITECTURE.md#7-configuration); branch policy and conventions are in [AGENTS.md](../AGENTS.md).
+[ARCHITECTURE.md §7](ARCHITECTURE.md#7-configuration); branch policy, conventions and invariants are in
+[CONTRIBUTING.md](../CONTRIBUTING.md).
 
 **Requirements:** Docker with Compose, and Node.js 24 (`.nvmrc`) for anything run on the host.
 

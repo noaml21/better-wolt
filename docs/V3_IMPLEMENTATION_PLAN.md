@@ -4,9 +4,6 @@ Branch `v3/ui-overhaul`, created from the verified V2 HEAD `98d24771fda44523eac3
 Design decisions and tokens: [V3_DESIGN_SPEC.md](V3_DESIGN_SPEC.md). Contract that must not move:
 [ARCHITECTURE.md §4](ARCHITECTURE.md#4-api-contract), [V2_SPEC.md §3](V2_SPEC.md#3-invariants-must-survive-every-phase).
 
-**This file is the resume point.** Any session can read the checklist, run the verification commands, and continue from
-the first unchecked box without conversation history.
-
 ## Progress
 
 - [x] **Phase 0 — Audit.** V2 HEAD verified, branch created, both clients read, the stack run, the web UI walked with
@@ -21,8 +18,7 @@ the first unchecked box without conversation history.
 - [x] **Phase 8 — Polish and QA.** Responsive sweep, accessibility pass, motion/reduced-motion, dark theme, final
       verification and screenshots.
 
-**V3 is complete.** The checklist above is the resume point if work continues; what a device still has to confirm is
-under "Needs a device" below.
+**V3 is complete.** What a device still has to confirm is under "Needs a device" below.
 
 ## Verification (run before every commit)
 
@@ -268,8 +264,8 @@ Two `react-hooks/set-state-in-effect` findings remain, and they are deliberate r
 
 ## Looking at the mobile app
 
-There is no Android emulator in this environment (`~/Android/Sdk` has no `emulator` package and no AVDs), so the mobile
-screens are inspected through Expo's web target, which renders the same React Native tree via `react-native-web`:
+No Android emulator was available during V3, so the mobile screens were inspected through Expo's web target, which
+renders the same React Native tree via `react-native-web`:
 
 ```bash
 cd mobile && BROWSER=none EXPO_PUBLIC_API_URL=http://localhost:8080/api npx expo start --web --port 8082
@@ -283,12 +279,9 @@ playwright-cli open --device="Pixel 7" http://localhost:8082
 `react-dom`, `react-native-web` and `@expo/metro-runtime` are **devDependencies** for exactly this reason; the Android
 bundle does not contain them. What this cannot check is listed under "Needs a device" above.
 
-## Notes for the next session
+## Screenshots
 
-- The V2 screenshots used for the audit are in `docs/screenshots/v2/`; V3 shots go in `docs/screenshots/v3/`.
-- The local dev database contained leftover `Smoke mu…` restaurants from an earlier smoke-test run against the dev DB.
-  They are test residue, not seeded data; they are ignored, not deleted — which is why they appear in the home-page
-  screenshots next to the demo restaurants.
-- The final screenshots in `docs/screenshots/v3/` are JPEGs: web at 1440×950 and 390×844, mobile from a Pixel 7
-  viewport scaled to 720 px wide.
-- Node here is v22 (`.nvmrc` pins 24; `engines` allows ≥ 22). Both are fine for the client build.
+- The V2 screenshots used for the audit are in `docs/screenshots/v2/`; the V3 ones are in `docs/screenshots/v3/`.
+- The V3 screenshots are JPEGs: web at 1440×950 and 390×844, mobile from a Pixel 7 viewport scaled to 720 px wide.
+- The `Smoke mu…` restaurants next to the demo restaurants on the home page are leftovers from an earlier smoke-test
+  run against the dev database, not seeded data.

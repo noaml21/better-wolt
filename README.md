@@ -124,8 +124,8 @@ The details, and the limitations kept on purpose, are in [ARCHITECTURE.md §9–
 
 Better Wolt began as a team course project (final grade 97/100). Its web, mobile, backend, database and
 infrastructure are the team's shared work. Three passes followed, each on its own branch: **V2** reorganized the
-backend around features and integration tests, **V3** redesigned both clients, and **V4**, this branch, refined
-them. The [documentation index](docs/README.md#project-history) keeps the spec and plan for each pass.
+backend around features and integration tests, **V3** redesigned both clients, and **V4**, the current version on
+`main`, refined them. The [documentation index](docs/README.md#project-history) keeps the spec and plan for each pass.
 
 ## Disclaimer
 

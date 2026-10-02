@@ -40,10 +40,10 @@ state, read the documents above.
 
 | Pass | Branch | Spec | Plan | Screenshots |
 |---|---|---|---|---|
-| V1: course release | `main` | — | — | [v1](screenshots/v1) |
+| V1: course release | `main` before the V4 merge (`1adfcfc`) | — | — | [v1](screenshots/v1) |
 | V2: feature-based backend, integration tests, CI | `v2/extensible-architecture` | [V2_SPEC](V2_SPEC.md) | [V2_IMPLEMENTATION_PLAN](V2_IMPLEMENTATION_PLAN.md) | [v2](screenshots/v2) |
 | V3: both clients redesigned | `v3/ui-overhaul` | [V3_DESIGN_SPEC](V3_DESIGN_SPEC.md) | [V3_IMPLEMENTATION_PLAN](V3_IMPLEMENTATION_PLAN.md) | [v3](screenshots/v3) |
-| V4: premium frontend pass | `v4/premium-frontend` | [V4_DESIGN_SPEC](V4_DESIGN_SPEC.md) · [audit](V4_VISUAL_AUDIT.md) | [V4_IMPLEMENTATION_PLAN](V4_IMPLEMENTATION_PLAN.md) | [v4](screenshots/v4) |
+| V4: premium frontend pass | `v4/premium-frontend`, merged into `main` | [V4_DESIGN_SPEC](V4_DESIGN_SPEC.md) · [audit](V4_VISUAL_AUDIT.md) | [V4_IMPLEMENTATION_PLAN](V4_IMPLEMENTATION_PLAN.md) | [v4](screenshots/v4) |
 
 ## Other files here
 

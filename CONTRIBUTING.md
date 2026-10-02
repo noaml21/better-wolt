@@ -14,17 +14,15 @@ scope, architecture and design. Where this page and those documents disagree, th
 
 ## Checks before a pull request
 
+Run each line from the repository root:
+
 ```bash
-cd web-server && npm ci
-npm run test:db:up && npm test        # API integration tests (real MongoDB 7 on :27018)
-npm run test:db:down
-
-cd web-server/client && npm ci
-npm test -- --watchAll=false          # web tests
-CI=true npm run build                 # CI builds with CI=true, so lint warnings fail the build
-
-cd mobile && npm ci
-npx expo export --platform android    # the mobile bundle check CI runs
+(cd web-server && npm ci && npm run test:db:up)              # throwaway MongoDB 7 on :27018 (needs Docker)
+(cd web-server && npm test)                                   # API integration tests
+(cd web-server && npm run test:db:down)
+(cd web-server/client && npm ci && npm test -- --watchAll=false)   # web tests
+(cd web-server/client && CI=true npm run build)   # CI builds with CI=true, so lint warnings fail the build
+(cd mobile && npm ci && npx expo export --platform android)        # the mobile bundle check CI runs
 ```
 
 CI (`.github/workflows/ci.yml`) runs the same checks on every push and pull request: the API tests against a

@@ -29,8 +29,8 @@ time.
 
 ## Contributing
 
-[AGENTS.md](../AGENTS.md) holds the branch policy, the commands, the conventions and the invariants for anyone,
-human or agent, who changes the code.
+[CONTRIBUTING.md](../CONTRIBUTING.md) holds the branch policy, the checks to run, the conventions and the invariants
+for anyone who changes the code.
 
 ## Project history
 

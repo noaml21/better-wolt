@@ -117,6 +117,7 @@ The details, and the limitations kept on purpose, are in [ARCHITECTURE.md §9–
 | [Architecture & API](docs/ARCHITECTURE.md) | Structure, conventions, the full API contract, security measures and known limitations |
 | [Development](docs/DEVELOPMENT.md) | Running the stack, the mobile app, tests, configuration |
 | [Extending](docs/EXTENDING.md) | How to add a backend feature, with a worked example |
+| [Contributing](CONTRIBUTING.md) | Branch policy, checks before a pull request, conventions and invariants |
 | [V4 design spec](docs/V4_DESIGN_SPEC.md) | Colour, type, components, motion, RTL and accessibility rules |
 | [Documentation index](docs/README.md) | Everything else, including the specs and plans for V2, V3 and V4 |
 
